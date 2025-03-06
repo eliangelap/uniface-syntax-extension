@@ -1,0 +1,37 @@
+{
+    "name": "uniface",
+    "displayName": "uniface",
+    "description": "uniface file",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.92.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "contributes": {
+        "languages": [
+            {
+                "id": "uniface",
+                "aliases": [
+                    "Uniface",
+                    "uniface"
+                ],
+                "extensions": [
+                    ".uniface"
+                ],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "uniface",
+                "scopeName": "pcado001.uniface",
+                "path": "./syntaxes/uniface.tmLanguage.json"
+            }
+        ]
+    },
+    "dependencies": {
+        "uniface": "file:"
+    }
+}
