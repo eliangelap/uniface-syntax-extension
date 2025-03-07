@@ -1,11 +1,18 @@
 {
-    "name": "uniface",
-    "displayName": "uniface",
-    "description": "uniface file",
-    "version": "0.0.1",
+    "name": "uniface-sintax-extension",
+    "displayName": "uniface-sintax-extension",
+    "description": "A VSCode extension for Uniface program language, with syntax highlighter and all powerful of VSCode resources",
+    "version": "0.1.0",
     "engines": {
         "vscode": "^1.92.0"
     },
+    "pricing": "Free",
+    "contributors": [
+        {
+            "name": "Eliangela Menezes Palharini Paes",
+            "url": "https://github.com/eliangelap"
+        }
+    ],
     "categories": [
         "Programming Languages"
     ],
@@ -26,12 +33,14 @@
         "grammars": [
             {
                 "language": "uniface",
-                "scopeName": "pcado001.uniface",
+                "scopeName": "source.uniface",
                 "path": "./syntaxes/uniface.tmLanguage.json"
             }
         ]
     },
-    "dependencies": {
-        "uniface": "file:"
-    }
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/eliangelap/uniface-syntax-extension.git"
+    },
+    "publisher": "eliangela"
 }
