@@ -6,16 +6,48 @@
     // symbols used as brackets
     "brackets": [
         [
-            "{",
-            "}"
+            "if",
+            "endif"
         ],
         [
-            "[",
-            "]"
+            "for",
+            "endfor"
         ],
         [
-            "(",
-            ")"
+            "forentity",
+            "endfor"
+        ],
+        [
+            "selectcase",
+            "endselectcase"
+        ],
+        [
+            "while",
+            "endwhile"
+        ],
+        [
+            "repeat",
+            "until"
+        ],
+        [
+            "params",
+            "endparams"
+        ],
+        [
+            "variables",
+            "endvariables"
+        ],
+        [
+            "operation",
+            "end"
+        ],
+        [
+            "entry",
+            "end"
+        ],
+        [
+            "try",
+            "endtry"
         ]
     ],
     // symbols that are auto closed when typing
@@ -33,13 +65,111 @@
             ")"
         ],
         [
-            "\"",
-            "\""
-        ],
-        [
             "'",
             "'"
-        ]
+        ],
+        {
+            "open": "\"",
+            "close": "\"",
+            "notIn": [
+                "string"
+            ]
+        },
+        {
+            "open": "'",
+            "close": "'",
+            "notIn": [
+                "string"
+            ]
+        },
+        {
+            "open": "if",
+            "close": "endif",
+            "notIn": [
+                "string",
+                "comment"
+            ]
+        },
+        {
+            "open": "for",
+            "close": "endfor",
+            "notIn": [
+                "string",
+                "comment"
+            ]
+        },
+        {
+            "open": "forentity",
+            "close": "endfor",
+            "notIn": [
+                "string",
+                "comment"
+            ]
+        },
+        {
+            "open": "selectcase",
+            "close": "endselectcase",
+            "notIn": [
+                "string",
+                "comment"
+            ]
+        },
+        {
+            "open": "while",
+            "close": "endwhile",
+            "notIn": [
+                "string",
+                "comment"
+            ]
+        },
+        {
+            "open": "repeat",
+            "close": "until",
+            "notIn": [
+                "string",
+                "comment"
+            ]
+        },
+        {
+            "open": "params",
+            "close": "endparams",
+            "notIn": [
+                "string",
+                "comment"
+            ]
+        },
+        {
+            "open": "variables",
+            "close": "endvariables",
+            "notIn": [
+                "string",
+                "comment"
+            ]
+        },
+        {
+            "open": "operation",
+            "close": "end",
+            "notIn": [
+                "string",
+                "comment"
+            ]
+        },
+        {
+            "open": "entry",
+            "close": "end",
+            "notIn": [
+                "string",
+                "comment"
+            ]
+        },
+        {
+            "open": "try",
+            "close": "endtry",
+            "notIn": [
+                "string",
+                "comment"
+            ]
+        }
     ],
     // symbols that can be used to surround a selection
     "surroundingPairs": [

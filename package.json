@@ -2,7 +2,7 @@
     "name": "uniface-sintax-extension",
     "displayName": "uniface-sintax-extension",
     "description": "A VSCode extension for Uniface program language, with syntax highlighter and all powerful of VSCode resources",
-    "version": "0.1.0",
+    "version": "1.0.3",
     "engines": {
         "vscode": "^1.92.0"
     },
