@@ -8,23 +8,43 @@ function getBlockAroundPosition(
   const cursorOffset = document.offsetAt(position);
 
   // Localiza o início do bloco (entry|trigger) antes do cursor
-  let blockStart = text.lastIndexOf("entry", cursorOffset);
-  const triggerStart = text.lastIndexOf("trigger", cursorOffset);
-  if (triggerStart > blockStart) {
-    blockStart = triggerStart;
-  }
+  let blockStart = text.lastIndexOf("entry ", cursorOffset);
+  const triggerStart = text.lastIndexOf("trigger ", cursorOffset);
+  const operationStart = text.lastIndexOf("operation ", cursorOffset);
+  const functionStart = text.lastIndexOf("function ", cursorOffset);
+
+  blockStart = Math.max(
+    blockStart,
+    triggerStart,
+    operationStart,
+    functionStart
+  );
+
   if (blockStart < 0) {
-    blockStart = 0;
+    return "";
   }
 
   // Localiza o fim do bloco (end) depois do cursor
-  let blockEnd = text.indexOf("\nend", cursorOffset);
-  const endTrigger = text.indexOf("\nend", cursorOffset);
-  if (endTrigger >= 0 && (blockEnd < 0 || endTrigger < blockEnd)) {
-    blockEnd = endTrigger + "\nend".length;
-  }
+  let blockEnd = text.indexOf("end", cursorOffset);
+
   if (blockEnd < 0) {
     blockEnd = text.length;
+  }
+
+  const subString = text.substring(blockStart, blockEnd);
+
+  if (
+    !subString.includes("variables") &&
+    !subString.includes("params") &&
+    !subString.includes("endvariables") &&
+    !subString.includes("endparams")
+  ) {
+    return "";
+  }
+
+  const endRegex = /(^|\s)end(\s|;|$)/;
+  if (endRegex.test(subString)) {
+    return "";
   }
 
   return text.substring(blockStart, blockEnd);
@@ -43,6 +63,10 @@ export const provideCompletionItems = (
   position: vscode.Position
 ) => {
   const blockText = getBlockAroundPosition(document, position);
+
+  if (!blockText) {
+    return [];
+  }
 
   const variableRegex = /variables([\s\S]*?)endvariables/gi;
   const matchVariablesBlock = variableRegex.exec(blockText);
@@ -69,12 +93,11 @@ export const provideCompletionItems = (
   if (matchParamsBlock) {
     const paramLines = matchParamsBlock[1].split("\n");
     for (const line of paramLines) {
-      const paramMatch = line
-        .trim()
-        .match(/(STRING|NUMERIC|STRUCT|BOOLEAN)\s+(\w+)/i);
+      const paramMatch = line.trim().match(/(\$?\w+\$?)\s*:\s*(in|out|inout)/i);
+
       if (paramMatch) {
         const item = new vscode.CompletionItem(
-          paramMatch[2],
+          paramMatch[1],
           vscode.CompletionItemKind.Variable
         );
         completions.push(item);
