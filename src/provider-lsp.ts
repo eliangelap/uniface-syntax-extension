@@ -62,6 +62,25 @@ export const provideCompletionItems = (
   document: vscode.TextDocument,
   position: vscode.Position
 ) => {
+  const completions = [];
+
+  const entries: string[] = document.getText().match(/entry\s+(\w+)/gi) || [];
+
+  const lineText = document.lineAt(position).text;
+
+  if (lineText.includes("call")) {
+    const entryItems = entries.map((entry) => {
+      const entryName = entry.replace("entry", "").trim();
+      return new vscode.CompletionItem(
+        entryName,
+        vscode.CompletionItemKind.Method
+      );
+    });
+    completions.push(...entryItems);
+
+    return completions;
+  }
+
   const blockText = getBlockAroundPosition(document, position);
 
   if (!blockText) {
@@ -71,7 +90,6 @@ export const provideCompletionItems = (
   const variableRegex = /variables([\s\S]*?)endvariables/gi;
   const matchVariablesBlock = variableRegex.exec(blockText);
 
-  const completions = [];
   if (matchVariablesBlock) {
     const varLines = matchVariablesBlock[1].split("\n");
     for (const line of varLines) {
