@@ -1,6 +1,8 @@
 node_modules/
 dist/
 out/
+.vscode/
+.vscode-test/
 
 uniface-sintax-extension-*
 
