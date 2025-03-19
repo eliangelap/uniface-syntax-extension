@@ -7,22 +7,44 @@
         },
         {
             "include": "#strings"
+        },
+        {
+            "include": "#comments"
+        },
+        {
+            "include": "#constants"
         }
     ],
     "repository": {
+        "code": {
+            "patterns": [
+                {
+                    "include": "#keywords"
+                },
+                {
+                    "include": "#strings"
+                },
+                {
+                    "include": "#comments"
+                },
+                {
+                    "include": "#constants"
+                }
+            ]
+        },
         "keywords": {
             "patterns": [
                 {
                     "name": "keyword.control.uniface",
-                    "match": "\\b(activate|newinstance|setformfocus|show|entitycopy|addmonths|compare|displaylength|length|lowercase|reset|scan|set|stripattributes|uppercase|close|commit|open|rollback|sql|clear|creocc|curoccvideo|discard|erase|moveocc|release|remocc|retrieve|selectdb|setocc|sort|store|u_condition|u_where|validate|validatekey|validateocc|fieldsyntax|fieldvideo|validatefield|dircreate|dirdelete|dirrename|filebox|filecopy|filedelete|filemove|filerename|filedump|fileload|flush|ldircreate|ldirdelete|ldirrename|lfilecopy|lfiledelete|lfiledump|lfileload|lfilemove|lfilerename|lflush|postmessage|delitem|getitem|getlistitems|putitem|putlistitems|sort|askmess|clrmess|message|putmess|public|soap|delete|findkey|lock|lookup|read|reload|write|eject|print|printbreak|skip|apexit|apstart|break|call|case|display|done|edit|else|elsecase|elseif|end|endfor|endif|endselectcase|endwhile|exit|for|forentity|forlist|forlist|goto|if|macro|perform|pulldown|repeat|return|run|selectcase|spawn|trigger|until|while|componentToStruct|jsonToStruct|structToComponent|structToJson|structToXml|xmlToStruct|callfieldtrigger|endjavascript|endscope|javascript|scope|web|webactivate|webgen|webget|webdefinitions|weblayout|webload|webmessage|weboperation|websave|websetocc|webtrigger|reconnect|retrieve|xmlload|xmlsave|xmlvalidate|blockdata|colorbox|debug|deletesetting|endparams|endvariables|entry|help|nodebug|numgen|numset|operation|params|pragma|proccompile|public|refresh|returns|sleep|variables|deleteinstance)\\b"
+                    "match": "(?i)\\b(activate|newinstance|setformfocus|show|entitycopy|addmonths|compare|displaylength|length|lowercase|reset|scan|set|stripattributes|uppercase|close|commit|open|rollback|sql|clear|creocc|curoccvideo|discard|erase|moveocc|release|remocc|retrieve|selectdb|setocc|sort|store|u_condition|u_where|validate|validatekey|validateocc|fieldsyntax|fieldvideo|validatefield|dircreate|dirdelete|dirrename|filebox|filecopy|filedelete|filemove|filerename|filedump|fileload|flush|ldircreate|ldirdelete|ldirrename|lfilecopy|lfiledelete|lfiledump|lfileload|lfilemove|lfilerename|lflush|postmessage|delitem|getitem|getlistitems|putitem|putlistitems|sort|askmess|clrmess|message|putmess|public|soap|delete|findkey|lock|lookup|read|reload|write|eject|print|printbreak|skip|apexit|apstart|break|call|case|display|done|edit|else|elsecase|elseif|exit|goto|macro|perform|pulldown|repeat|return|run|spawn|trigger|componentToStruct|jsonToStruct|structToComponent|structToJson|structToXml|xmlToStruct|callfieldtrigger|endunifacescript|endscope|unifacescript|scope|web|webactivate|webgen|webget|webdefinitions|weblayout|webload|webmessage|weboperation|websave|websetocc|webtrigger|reconnect|retrieve|xmlload|xmlsave|xmlvalidate|blockdata|colorbox|debug|deletesetting|entry|help|nodebug|numgen|numset|operation|params|pragma|proccompile|public|refresh|returns|sleep|variables|deleteinstance|catch|string|numeric|handle|boolean|struct|image|entity|raw|date|datetime)\\b"
                 },
                 {
                     "name": "keyword.operator.uniface",
-                    "match": "\\b($applname|$applproperties|$appltitle|$batch|$detachedinstances|$display|$gui|$ioprint|$keyboard|$language|$logical|$nmforms|$password|$proc_tracing|$proc_tracing_addition|$putmess|$result|$setting|$text|$textexist|$user|$variation|$componentinfo|$componentname|$componenttype|$entname|$instancechildren|$instancedb|$instancedbmod|$instancehandle|$instancemod|$instancename|$instanceparent|$instances|$instancevalidation|$modelname|$bold|$clock|$condition|$date|$datim|$decode|$encode|$expression|$italic|$oprsys|$string|$stripattributes|$syntax|$typed|$ude|$ude|compile|$ude|copy|$ude|delete|$ude|exist|$ude|export|$ude|import|$ude|import|symboltable|$underline|$uuid|$concat|$displaylength|$length|$lowercase|$ltrim|$newstruct|$nlslocalelist|$nlstimezonelist|$number|$replace|$rscan|$rtrim|$scan|$split|$uppercase|$def_charset|$collhandle|$CurEntProperties|$curhits|$curkey|$curocc|$curoccvideo|$dbocc|$entinfo|$entityproperties|$foreign|$hits|$keycheck|$keyfields|$keymod|$keytype|$keyvalidation|$occcheck|$occcrc|$occdbmod|$occdel|$occhandle|$occmod|$occproperties|$occstatus|$occvalidation|$paintedocc|$relation|$rettype|$selectlist|$storetype|$subsetreturn|$totdbocc|$totkeys|$totocc|$dataerrorcontext|$dberror|$dberrortext|$error|$proc_profiling|$processinfo|$procerrorcontext|$procerror|$procReturnContext|$columnsyntax|$curline|$curword|$fieldcheck|$fielddbmod|$fielddbvalue|$fieldendmod|$fieldindb|$fieldinfo|$fieldmod|$fieldname|$fieldprofile|$fieldproperties|$fieldsyntax|$fieldvalidation|$fieldvalrep|$fieldvideo|$format|$next|$paintedfieldproperties|$previous|$properties|$valrep|$dirlist|$fileexists|$fileproperties|$ldir|$ldirlist|$lfileexists|$lfileproperties|$ude|load|$cellinfo|$char|$direction|$editmode|$formdb|$formdbmod|$formfocus|$formmod|$formmodality|$formname|$formtitle|$interactive|$labelproperties|$printing|$prompt|$runmode|$selblk|$windowproperties|$fieldhandle|$instancepath|$msgdata|$msgdst|$msgid|$msginfo|$msgsrc|$ocxhandle|$sys_charset|$idpart|$item|$itemcount|$itemnr|$sortlist|$sortlistid|$valuepart|$abs|$acos|$asin|$atan|$cos|$e|$exp|$exp10|$fact|$frac|$int|$log|$log10|$pi|$power|$sin|$sqrt|$tan|$check|$disable|$hide|$inlinemenu|$about|$empty|$framedepth|$lines|$occdepth|$page|$totlines|$equalStructRefs|$web|$webinfo|$webrequesttype|$webresponsetype|$callup|$nlscase|$nlsformat|$nlsinternaltime|$nlslocale|$nlssortorder|$nlstimezone|$ude|getReferenceList|$status)\\b"
+                    "match": "(?i)(\\$)[a-z_A-Z0-9]*"
                 },
                 {
-                    "name": "variable.language.uniface",
-                    "match": "\\b(string|numeric|handle|boolean|struct|image|entity)\\b"
+                    "name": "keyword.operator.uniface",
+                    "match": "(#)\\b(include)\\b"
                 }
             ]
         },
@@ -32,11 +54,61 @@
             "end": "\"",
             "patterns": [
                 {
-                    "name": "constant.character.escape.uniface",
-                    "match": "%%"
+                    "begin": "\"",
+                    "beginCaptures": {
+                        "0": {
+                            "name": "punctuation.definition.string.begin.uniface"
+                        }
+                    },
+                    "end": "\"",
+                    "endCaptures": {
+                        "0": {
+                            "name": "punctuation.definition.string.end.uniface"
+                        }
+                    }
+                },
+                {
+                    "begin": "'",
+                    "beginCaptures": {
+                        "0": {
+                            "name": "punctuation.definition.string.begin.uniface"
+                        }
+                    },
+                    "end": "'",
+                    "endCaptures": {
+                        "0": {
+                            "name": "punctuation.definition.string.end.uniface"
+                        }
+                    },
+                    "name": "string.quoted.single.uniface"
+                },
+                {
+                    "match": "%%\"",
+                    "name": "constant.character.escape.uniface"
+                },
+                {
+                    "match": "%%",
+                    "name": "constant.character.escape.uniface"
+                },
+                {
+                    "match": "%%%",
+                    "name": "constant.character.escape.uniface"
                 }
             ]
+        },
+        "comments": {
+            "patterns": [
+                {
+                    "begin": ";",
+                    "end": "\\n",
+                    "name": "comment.line.character.uniface"
+                }
+            ]
+        },
+        "constants": {
+            "match": "(?i)(\\<)[a-z_A-Z0-9]*(\\>)",
+            "name": "constant.character.uniface"
         }
     },
-    "scopeName": "component.uniface"
+    "scopeName": "source.uniface"
 }
