@@ -29,44 +29,190 @@ const provideFormatter = (
 
   return [new vscode.TextEdit(range, formattedText)];
 };
-
 const formatTab = (lines: string[], options: vscode.FormattingOptions) => {
   let deepLevel = 0;
+  const formattedLines: string[] = [];
+  let previousLineWasBlank = false;
+  let isInContinuation = false;
+  let continuationIndent = 0;
 
-  const formattedLines = lines.map((line) => {
+  for (const element of lines) {
+    const line = element;
     const trimmedLine = line.trim();
+    const isBlankLine = trimmedLine === "";
 
-    if (trimmedLine.startsWith("#define")) {
-      return trimmedLine;
+    if (processBlankLine(isBlankLine, previousLineWasBlank, formattedLines)) {
+      previousLineWasBlank = isBlankLine;
+      continue;
     }
 
-    if (
-      trimmedLine.match(
-        /^(end|endif|endfor|endwhile|endvariables|endparams)(\s+\S+)?$/i
-      ) ||
-      trimmedLine.match(/^end\s*;/i)
-    ) {
-      if (deepLevel > 0) {
-        deepLevel--;
-      }
+    previousLineWasBlank = isBlankLine;
+
+    if (processDefineDirective(trimmedLine, formattedLines)) {
+      continue;
     }
 
-    const tabWidth = options.tabSize || 5;
-    const formattedLine = " ".repeat(deepLevel * tabWidth) + trimmedLine;
+    const isContinuationLine = trimmedLine.endsWith("%\\");
 
-    if (
-      trimmedLine.match(
-        /^(entry|trigger|if|operation|for|while|forentity|variables|params|forlist|forlist\/id)(\s+\S+)?$/i
-      ) ||
-      trimmedLine.match(
-        /^(entry|trigger|if|operation|for|while|variables|params|forlist|forlist\/id)\s*\(/g
-      )
-    ) {
-      deepLevel++;
-    }
+    deepLevel = adjustDepthForEndStatements(trimmedLine, deepLevel);
 
-    return formattedLine;
-  });
+    addFormattedLine(
+      formattedLines,
+      trimmedLine,
+      deepLevel,
+      isInContinuation,
+      continuationIndent
+    );
+
+    const continuationState = updateContinuationState(
+      isContinuationLine,
+      isInContinuation,
+      deepLevel
+    );
+    isInContinuation = continuationState.isInContinuation;
+    continuationIndent = continuationState.continuationIndent;
+
+    deepLevel = adjustDepthForStartStatements(trimmedLine, deepLevel);
+  }
 
   return formattedLines;
+};
+
+const processBlankLine = (
+  isBlankLine: boolean,
+  previousLineWasBlank: boolean,
+  formattedLines: string[]
+): boolean => {
+  if (!isBlankLine) {
+    return false;
+  }
+
+  if (previousLineWasBlank) {
+    return true;
+  }
+
+  formattedLines.push("");
+  return true;
+};
+
+const processDefineDirective = (
+  trimmedLine: string,
+  formattedLines: string[]
+): boolean => {
+  if (!trimmedLine.startsWith("#define")) {
+    return false;
+  }
+
+  formattedLines.push(trimmedLine);
+  return true;
+};
+
+const adjustDepthForEndStatements = (
+  trimmedLine: string,
+  deepLevel: number
+): number => {
+  const blockEndKeywords = [
+    "end",
+    "endif",
+    "endfor",
+    "endwhile",
+    "endvariables",
+    "endparams",
+  ];
+
+  const blockEndRegex = new RegExp(
+    `^(${blockEndKeywords.join("|")})(\\s+\\S+)?$`,
+    "i"
+  );
+
+  const blockEndCommentRegex = new RegExp(
+    `^(${blockEndKeywords.join("|")})\\s*;`,
+    "i"
+  );
+
+  if (
+    blockEndRegex.exec(trimmedLine) ||
+    blockEndCommentRegex.exec(trimmedLine)
+  ) {
+    if (deepLevel > 0) {
+      return deepLevel - 1;
+    }
+  }
+  return deepLevel;
+};
+
+const addFormattedLine = (
+  formattedLines: string[],
+  trimmedLine: string,
+  deepLevel: number,
+  isInContinuation: boolean,
+  continuationIndent: number
+): void => {
+  let formattedLine;
+
+  if (isInContinuation) {
+    formattedLine = "\t".repeat(continuationIndent) + "\t" + trimmedLine;
+  } else {
+    formattedLine = "\t".repeat(deepLevel) + trimmedLine;
+  }
+
+  formattedLines.push(formattedLine);
+};
+
+const updateContinuationState = (
+  isContinuationLine: boolean,
+  isInContinuation: boolean,
+  deepLevel: number
+): { isInContinuation: boolean; continuationIndent: number } => {
+  // Track start of continuation
+  if (isContinuationLine && !isInContinuation) {
+    return { isInContinuation: true, continuationIndent: deepLevel };
+  }
+
+  // Track end of continuation
+  if (!isContinuationLine && isInContinuation) {
+    return { isInContinuation: false, continuationIndent: 0 };
+  }
+
+  return {
+    isInContinuation,
+    continuationIndent: isInContinuation ? deepLevel : 0,
+  };
+};
+
+const adjustDepthForStartStatements = (
+  trimmedLine: string,
+  deepLevel: number
+): number => {
+  const blockStartKeywords = [
+    "entry",
+    "trigger",
+    "if",
+    "operation",
+    "for",
+    "while",
+    "forentity",
+    "variables",
+    "params",
+    "forlist",
+    "forlist/id",
+  ];
+
+  const blockStartRegex = new RegExp(
+    `^(${blockStartKeywords.join("|")})(\\s+\\S+)?$`,
+    "i"
+  );
+
+  const blockStartWithParenRegex = new RegExp(
+    `^(${blockStartKeywords.join("|")})\\s*\\(?`,
+    "g"
+  );
+
+  if (
+    blockStartRegex.exec(trimmedLine) ||
+    blockStartWithParenRegex.exec(trimmedLine)
+  ) {
+    return deepLevel + 1;
+  }
+  return deepLevel;
 };
