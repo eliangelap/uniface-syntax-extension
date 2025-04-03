@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.4.0](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.3.3...v1.4.0) (2025-04-03)
+
+
+### Features
+
+* **feature/formatter:** :construction: iniciado formatador ([84c8e97](https://github.com/eliangelap/uniface-syntax-extension/commit/84c8e97763662ed0fbd2ad9fe73c0c294df281cc))
+* **feature/formatter:** :sparkles: criado formatador ([abb9755](https://github.com/eliangelap/uniface-syntax-extension/commit/abb9755976db2768e1995096f9694078b0b68083))
+
 ### [1.3.3](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.3.2...v1.3.3) (2025-03-19)
 
 ### [1.3.1](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.3.0...v1.3.1) (2025-03-19)
