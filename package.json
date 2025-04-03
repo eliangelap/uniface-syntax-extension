@@ -85,9 +85,11 @@
     },
     "publisher": "eliangela",
     "engines": {
-        "vscode": "^1.98.0"
+        "vscode": "^1.98.0",
+        "node": "22.0.0"
     },
     "dependencies": {
         "standard-version": "^9.5.0"
-    }
+    },
+    "activationEvents": []
 }
