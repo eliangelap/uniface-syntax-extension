@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.5.1](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.5.0...v1.5.1) (2025-04-03)
+
+
+### Bug Fixes
+
+* :bug: fix activation events ([5bb92de](https://github.com/eliangelap/uniface-syntax-extension/commit/5bb92defed8b50c2efcfebec7dee849698b64cb7))
+
 ## [1.5.0](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.4.0...v1.5.0) (2025-04-03)
 
 
