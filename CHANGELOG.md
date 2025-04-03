@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.5.0](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.4.0...v1.5.0) (2025-04-03)
+
+
+### Features
+
+* :sparkles: formatter creation ([e3ddf17](https://github.com/eliangelap/uniface-syntax-extension/commit/e3ddf177194e063acff1051ca1463ba22f1f4c8e))
+
 ## [1.4.0](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.3.3...v1.4.0) (2025-04-03)
 
 
