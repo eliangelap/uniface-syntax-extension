@@ -14,6 +14,14 @@
             "endfor"
         ],
         [
+            "forlist",
+            "endfor"
+        ],
+        [
+            "forlist/id",
+            "endfor"
+        ],
+        [
             "forentity",
             "endfor"
         ],
@@ -48,6 +56,18 @@
         [
             "try",
             "endtry"
+        ],
+        [
+            "trigger",
+            "end"
+        ],
+        [
+            "ifdefined",
+            "endif"
+        ],
+        [
+            "startdefine",
+            "enddefine"
         ]
     ],
     // symbols that are auto closed when typing

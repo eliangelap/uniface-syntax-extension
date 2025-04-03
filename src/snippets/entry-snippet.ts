@@ -1,11 +1,12 @@
 import * as vscode from 'vscode';
+import { getFormattedCurrentDate } from '../util';
 
 export function createEntrySnippet() {
     vscode.window
         .showInputBox({
             title: 'Entry name',
             value: 'entry_1',
-            prompt: 'Enter the entry name...',
+            prompt: `Enter entry's name...`,
         })
         .then((value) => {
             if (!value) {
@@ -21,8 +22,8 @@ export function createEntrySnippet() {
 function getEntryText(entryName: string) {
     return `
 ;|
-; Autor: 
-; Data: 
+; Autor: ${process.env.USERNAME}
+; Data: ${getFormattedCurrentDate()}
 ; Função: 
 ;
 entry ${entryName}
