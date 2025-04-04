@@ -146,6 +146,8 @@ const adjustDepthForEndStatements = (
     return deepLevel;
 };
 
+const decreaseKeywords = ['else', 'elseif', 'case ', 'catch', 'elsecase'];
+
 const addFormattedLine = (
     formattedLines: string[],
     trimmedLine: string,
@@ -154,6 +156,10 @@ const addFormattedLine = (
     continuationIndent: number
 ): void => {
     let formattedLine;
+
+    if (decreaseKeywords.some((keyword) => trimmedLine.startsWith(keyword))) {
+        deepLevel--;
+    }
 
     if (isInContinuation) {
         formattedLine = '\t'.repeat(continuationIndent) + '\t' + trimmedLine;
