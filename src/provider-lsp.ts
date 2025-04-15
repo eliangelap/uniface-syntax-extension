@@ -61,9 +61,9 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
         if (matchParamsBlock) {
             const paramLines = matchParamsBlock[1].split('\n');
             for (const line of paramLines) {
-                const paramMatch = line
-                    .trim()
-                    .match(/(\$?\w+\$?)\s*:\s*(in|out|inout)/i);
+                const paramMatch = RegExp(
+                    /(\$?\w+\$?)\s*:\s*(in|out|inout)/i
+                ).exec(line.trim());
 
                 if (paramMatch) {
                     const item = new vscode.CompletionItem(
@@ -88,11 +88,8 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
         if (matchVariablesBlock) {
             const varLines = matchVariablesBlock[1].split('\n');
             for (const line of varLines) {
-                const varMatch = line
-                    .trim()
-                    .match(
-                        /(ANY|BOOLEAN|DATE|DATETIME|ENTITY|FLOAT|HANDLE|IMAGE|LINEARDATE|LINEARDATETIME|LINEARTIME|NUMERIC|OCCURRENCE|RAW|STRING|STRUCT|TIME|XMLSTREAM)\s+(\w+)/i
-                    );
+                const varMatch = RegExp(/(ANY|BOOLEAN|DATE|DATETIME|ENTITY|FLOAT|HANDLE|IMAGE|LINEARDATE|LINEARDATETIME|LINEARTIME|NUMERIC|OCCURRENCE|RAW|STRING|STRUCT|TIME|XMLSTREAM)\s+(\w+)/i).exec(line
+                    .trim());
                 if (varMatch) {
                     const variableNames = varMatch?.input
                         ?.replace(`${varMatch[1]}`, '')

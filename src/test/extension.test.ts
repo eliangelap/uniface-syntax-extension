@@ -1,15 +1,47 @@
 import * as assert from 'assert';
-
-// You can import and use all API from the 'vscode' module
-// as well as import your extension to test it
 import * as vscode from 'vscode';
-// import * as myExtension from '../../extension';
 
-suite('Extension Test Suite', () => {
-	vscode.window.showInformationMessage('Start all tests.');
+suite('Uniface CompletionItemProvider Test', () => {
+    test('Should suggest parameters from entry when using call', async () => {
+        const sampleCode = `
+entry minhaEntry
+params
+    param1 : in
+    param2 : out
+endparams
+end
 
-	test('Sample test', () => {
-		assert.strictEqual(-1, [1, 2, 3].indexOf(5));
-		assert.strictEqual(-1, [1, 2, 3].indexOf(0));
-	});
+call minhaEntry
+        `;
+
+        const doc = await vscode.workspace.openTextDocument({
+            content: sampleCode,
+            language: 'uniface',
+        });
+
+        // Posiciona o cursor logo após "call minhaEntry"
+        const callLine = doc.lineAt(doc.lineCount - 1);
+        const position = new vscode.Position(
+            callLine.lineNumber,
+            callLine.text.length
+        );
+
+        const completions =
+            await vscode.commands.executeCommand<vscode.CompletionList>(
+                'vscode.executeCompletionItemProvider',
+                doc.uri,
+                position
+            );
+
+        const labels = completions?.items.map((item) => item.label);
+
+        assert.ok(
+            labels?.includes('param1'),
+            'param1 deve estar presente nas sugestões'
+        );
+        assert.ok(
+            labels?.includes('param2'),
+            'param2 deve estar presente nas sugestões'
+        );
+    });
 });
