@@ -3,6 +3,8 @@ import { createOperationSnippet } from './snippets/operation-snippet';
 import { createEntrySnippet } from './snippets/entry-snippet';
 import { CompletionItemProvider } from './provider-lsp';
 import { formatterProvider } from './formatter';
+import { registerGoldInterceptor } from './gold/goldHandler';
+import { initGoldDecorator, registerGoldDecorationEvents, updateGoldDecorations } from './gold/goldDecorator';
 
 export function activate(context: vscode.ExtensionContext) {
     const operation = vscode.commands.registerCommand(
@@ -28,6 +30,14 @@ export function activate(context: vscode.ExtensionContext) {
         'uniface',
         formatterProvider()
     );
+
+    registerGoldInterceptor(context);
+    initGoldDecorator();
+    registerGoldDecorationEvents(context);
+
+    if (vscode.window.activeTextEditor) {
+        updateGoldDecorations(vscode.window.activeTextEditor);
+    }
 
     context.subscriptions.push(operation);
     context.subscriptions.push(entry);

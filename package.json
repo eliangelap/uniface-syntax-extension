@@ -2,7 +2,7 @@
     "name": "uniface-sintax-extension",
     "displayName": "uniface-sintax-extension",
     "description": "A VSCode extension for Uniface program language, with syntax highlighter and all powerful of VSCode resources",
-    "version": "1.5.2",
+    "version": "1.6.0",
     "scripts": {
         "vscode:prepublish": "npm run package",
         "compile": "npm run check-types && npm run lint && node esbuild.js",
@@ -15,7 +15,7 @@
         "pretest": "npm run compile-tests && npm run compile && npm run lint",
         "check-types": "tsc --noEmit",
         "lint": "eslint src",
-        "test": "vscode-test",
+        "test": "npx test/mocha",
         "release": "standard-version",
         "create:release": "vsce package"
     },
@@ -43,7 +43,8 @@
                     "uniface"
                 ],
                 "extensions": [
-                    ".uniface"
+                    ".uniface",
+                    ".proc"
                 ],
                 "configuration": "./language-configuration.json"
             }
@@ -80,6 +81,7 @@
         "@vscode/test-electron": "^2.4.1",
         "esbuild": "^0.25.0",
         "eslint": "^9.21.0",
+        "mocha": "^11.1.0",
         "npm-run-all": "^4.1.5",
         "typescript": "^5.7.3"
     },

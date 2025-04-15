@@ -36,8 +36,7 @@ const formatTab = (lines: string[], options: vscode.FormattingOptions) => {
     let isInContinuation = false;
     let continuationIndent = 0;
 
-    for (const element of lines) {
-        const line = element;
+    for (const line of lines) {
         const trimmedLine = line.trim();
         const isBlankLine = trimmedLine === '';
 
