@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.7.0](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.6.0...v1.7.0) (2025-04-15)
+
+
+### Features
+
+* **feature/entry-definition:** :sparkles: criado funcionalidade de ir para definição da entry ([26f1b80](https://github.com/eliangelap/uniface-syntax-extension/commit/26f1b800b490f24f85bae2f9d4b422b9b07e07a9))
+
 ## [1.6.0](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.5.2...v1.6.0) (2025-04-15)
 
 
