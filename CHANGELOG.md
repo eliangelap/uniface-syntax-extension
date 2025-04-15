@@ -2,6 +2,42 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.6.0](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.5.2...v1.6.0) (2025-04-15)
+
+
+### Features
+
+* 🎸 Gold support ([2d461fb](https://github.com/eliangelap/uniface-syntax-extension/commit/2d461fb04f370df922505b48b17d2c306e824f75))
+
+### [1.5.2](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.5.1...v1.5.2) (2025-04-04)
+
+
+### Bug Fixes
+
+* 🐛 fixed some levels ([810258c](https://github.com/eliangelap/uniface-syntax-extension/commit/810258c2953cb6ffa1f6fecfbeb8414cf916eb2a))
+
+### [1.5.1](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.5.0...v1.5.1) (2025-04-03)
+
+
+### Bug Fixes
+
+* :bug: fix activation events ([5bb92de](https://github.com/eliangelap/uniface-syntax-extension/commit/5bb92defed8b50c2efcfebec7dee849698b64cb7))
+
+## [1.5.0](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.4.0...v1.5.0) (2025-04-03)
+
+
+### Features
+
+* :sparkles: formatter creation ([e3ddf17](https://github.com/eliangelap/uniface-syntax-extension/commit/e3ddf177194e063acff1051ca1463ba22f1f4c8e))
+
+## [1.4.0](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.3.3...v1.4.0) (2025-04-03)
+
+
+### Features
+
+* **feature/formatter:** :construction: iniciado formatador ([84c8e97](https://github.com/eliangelap/uniface-syntax-extension/commit/84c8e97763662ed0fbd2ad9fe73c0c294df281cc))
+* **feature/formatter:** :sparkles: criado formatador ([abb9755](https://github.com/eliangelap/uniface-syntax-extension/commit/abb9755976db2768e1995096f9694078b0b68083))
+
 ### [1.3.3](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.3.2...v1.3.3) (2025-03-19)
 
 ### [1.3.1](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.3.0...v1.3.1) (2025-03-19)

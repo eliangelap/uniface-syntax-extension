@@ -32,10 +32,9 @@ This extension currently does not have customizable settings. Future versions ma
 
 3. Install dependencies (if necessary).
 4. Run the extension in development mode
-
-``` sh
-    code --extensionDevelopmentPath=.
-```
+    ``` sh
+        code --extensionDevelopmentPath=.
+    ```
 
 ## Contributions
 If you’d like to contribute, feel free to open an issue or submit a pull request.

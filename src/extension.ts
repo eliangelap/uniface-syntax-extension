@@ -1,7 +1,10 @@
 import * as vscode from 'vscode';
-import { createOperationSnippet } from './operation-snippet';
-import { createEntrySnippet } from './entry-snippet';
-import { completionItemProvider } from './provider-lsp';
+import { createOperationSnippet } from './snippets/operation-snippet';
+import { createEntrySnippet } from './snippets/entry-snippet';
+import { CompletionItemProvider } from './provider-lsp';
+import { formatterProvider } from './formatter';
+import { registerGoldInterceptor } from './gold/goldHandler';
+import { initGoldDecorator, registerGoldDecorationEvents, updateGoldDecorations } from './gold/goldDecorator';
 
 export function activate(context: vscode.ExtensionContext) {
     const operation = vscode.commands.registerCommand(
@@ -20,12 +23,26 @@ export function activate(context: vscode.ExtensionContext) {
 
     const provider = vscode.languages.registerCompletionItemProvider(
         'uniface',
-        completionItemProvider()
+        new CompletionItemProvider()
     );
+
+    const formatter = vscode.languages.registerDocumentFormattingEditProvider(
+        'uniface',
+        formatterProvider()
+    );
+
+    registerGoldInterceptor(context);
+    initGoldDecorator();
+    registerGoldDecorationEvents(context);
+
+    if (vscode.window.activeTextEditor) {
+        updateGoldDecorations(vscode.window.activeTextEditor);
+    }
 
     context.subscriptions.push(operation);
     context.subscriptions.push(entry);
     context.subscriptions.push(provider);
+    context.subscriptions.push(formatter);
 }
 
 // This method is called when your extension is deactivated

@@ -1,11 +1,12 @@
 import * as vscode from 'vscode';
+import { getFormattedCurrentDate } from '../util';
 
 export function createOperationSnippet() {
     vscode.window
         .showInputBox({
             title: 'Operation name',
             value: 'operation_1',
-            prompt: 'Enter the name of the operation',
+            prompt: `Enter operation's name...`,
         })
         .then((value) => {
             if (!value) {
@@ -21,8 +22,8 @@ export function createOperationSnippet() {
 function getOperationText(operationName: string) {
     return `
 ;|
-; Autor: 
-; Data: 
+; Autor: ${process.env.USERNAME}
+; Data: ${getFormattedCurrentDate()}
 ; Função: 
 ;
 operation ${operationName}
