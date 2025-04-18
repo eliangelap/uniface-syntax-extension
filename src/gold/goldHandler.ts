@@ -15,10 +15,14 @@ export function registerGoldInterceptor(context: vscode.ExtensionContext) {
     context.subscriptions.push(
         vscode.workspace.onDidChangeTextDocument((event) => {
             const editor = vscode.window.activeTextEditor;
-            if (!editor || event.document !== editor.document) return;
+            if (!editor || event.document !== editor.document) {
+                return;
+            }
 
             const change = event.contentChanges[0];
-            if (!change || change.text.length !== 1) return;
+            if (!change || change.text.length !== 1) {
+                return;
+            }
 
             const cursor = change.range.start;
             const lineText = editor.document.lineAt(cursor.line).text;
@@ -44,4 +48,3 @@ export function registerGoldInterceptor(context: vscode.ExtensionContext) {
         })
     );
 }
-
