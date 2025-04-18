@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 
-export class FunctionNode extends vscode.TreeItem {
+class FunctionNode extends vscode.TreeItem {
     constructor(public readonly label: string, public readonly line: number) {
         super(label, vscode.TreeItemCollapsibleState.None);
         this.command = {
@@ -11,7 +11,7 @@ export class FunctionNode extends vscode.TreeItem {
     }
 }
 
-export class FunctionTreeProvider
+class FunctionTreeProvider
     implements vscode.TreeDataProvider<FunctionNode>
 {
     private _onDidChangeTreeData: vscode.EventEmitter<
@@ -92,4 +92,50 @@ export class FunctionTreeProvider
     getChildren(): Thenable<FunctionNode[]> {
         return Promise.resolve(this.list);
     }
+}
+
+export function registerTreeDataProvider(context: vscode.ExtensionContext) {
+    const functionTreeProvider = new FunctionTreeProvider();
+    const treeView = vscode.window.createTreeView('unifaceFunctions', {
+        treeDataProvider: functionTreeProvider,
+    });
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand(
+            'uniface.navigateToFunction',
+            (line: number) => {
+                const editor = vscode.window.activeTextEditor;
+                if (editor) {
+                    const position = new vscode.Position(line, 0);
+                    editor.selection = new vscode.Selection(position, position);
+                    editor.revealRange(new vscode.Range(position, position));
+                }
+            }
+        )
+    );
+
+    vscode.workspace.onDidOpenTextDocument((doc) => {
+        if (doc.languageId === 'uniface') {
+            functionTreeProvider.refresh(doc);
+        }
+    });
+
+    vscode.window.onDidChangeActiveTextEditor((editor) => {
+        if (editor && editor.document.languageId === 'uniface') {
+            functionTreeProvider.refresh(editor.document);
+        }
+    });
+
+    vscode.workspace.onDidChangeTextDocument((e) => {
+        const editor = vscode.window.activeTextEditor;
+        if (editor && e.document === editor.document) {
+            functionTreeProvider.refresh(editor.document);
+        }
+    });
+
+    if (vscode.window.activeTextEditor) {
+        functionTreeProvider.refresh(vscode.window.activeTextEditor.document);
+    }
+
+    context.subscriptions.push(treeView);
 }
