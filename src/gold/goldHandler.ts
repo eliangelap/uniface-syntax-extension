@@ -28,9 +28,10 @@ export function registerGoldInterceptor(context: vscode.ExtensionContext) {
             const lineText = editor.document.lineAt(cursor.line).text;
 
             const lineUpToCursor = lineText.slice(0, cursor.character + 1);
+            const isInString = lineText.slice(0, cursor.character).includes('"');
 
             for (const [combo, asciiChar] of Object.entries(goldSequences)) {
-                if (lineUpToCursor.endsWith(combo)) {
+                if (lineUpToCursor.endsWith(combo) && isInString) {
                     const startPos = new vscode.Position(
                         cursor.line,
                         cursor.character - (combo.length - 1)

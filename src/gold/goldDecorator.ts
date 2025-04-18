@@ -1,72 +1,104 @@
 import * as vscode from 'vscode';
 
-const goldCharacters: Record<number, { display: string }> = {
-    27: { display: ';' },
-    18: { display: '=' },
-    21: { display: '!' },
-    20: { display: '<' },
-    19: { display: '>' },
-    22: { display: '&' },
-    23: { display: '|' },
-    17: { display: '?' },
-};
+interface GoldCharacter {
+    ascii: number;
+    display: string;
+}
 
-let goldDecorations: Map<number, vscode.TextEditorDecorationType>;
+class GoldCharacterRegistry {
+    private characters: GoldCharacter[] = [
+        { ascii: 27, display: ';' },
+        { ascii: 18, display: '=' },
+        { ascii: 21, display: '!' },
+        { ascii: 20, display: '<' },
+        { ascii: 19, display: '>' },
+        { ascii: 22, display: '&' },
+        { ascii: 23, display: '|' },
+        { ascii: 17, display: '?' },
+    ];
 
-export function initGoldDecorator() {
-    goldDecorations = new Map();
+    private decorations: Map<number, vscode.TextEditorDecorationType> =
+        new Map();
 
-    for (const [ascii, { display }] of Object.entries(goldCharacters)) {
-        const decoration = vscode.window.createTextEditorDecorationType({
-            before: {
-                contentText: display,
-                color: 'black',
+    constructor() {
+        this.initializeDecorations();
+    }
+
+    private initializeDecorations() {
+        for (const { ascii, display } of this.characters) {
+            const decoration = vscode.window.createTextEditorDecorationType({
+                before: {
+                    contentText: display,
+                    color: 'black',
+                    backgroundColor: 'orange',
+                    fontWeight: 'bold',
+                    margin: '0 1px',
+                },
                 backgroundColor: 'orange',
-                fontWeight: 'bold',
-                margin: '0 1px',
-            },
-            backgroundColor: 'orange',
-            textDecoration: 'none; display: none;',
-        });
+                textDecoration: 'none; display: none;',
+            });
 
-        goldDecorations.set(Number(ascii), decoration);
+            this.decorations.set(ascii, decoration);
+        }
+    }
+
+    public getDecoration(
+        ascii: number
+    ): vscode.TextEditorDecorationType | undefined {
+        return this.decorations.get(ascii);
+    }
+
+    public getAllAsciiCodes(): number[] {
+        return Array.from(this.decorations.keys());
     }
 }
 
-export function updateGoldDecorations(editor: vscode.TextEditor) {
-    const text = editor.document.getText();
+class GoldDecorator {
+    constructor(private readonly registry: GoldCharacterRegistry) {}
 
-    for (const [ascii, decoration] of goldDecorations.entries()) {
-        const decorations: vscode.DecorationOptions[] = [];
+    public apply(editor: vscode.TextEditor): void {
+        const text = editor.document.getText();
 
-        for (let i = 0; i < text.length; i++) {
-            if (text.charCodeAt(i) === ascii) {
-                const pos = editor.document.positionAt(i);
-                const range = new vscode.Range(pos, pos.translate(0, 1));
-                decorations.push({
-                    range,
-                    hoverMessage: `Caractere ASCII ${ascii}`,
-                });
+        for (const ascii of this.registry.getAllAsciiCodes()) {
+            const decoration = this.registry.getDecoration(ascii);
+            if (!decoration) {
+                continue;
             }
-        }
 
-        editor.setDecorations(decoration, decorations);
+            const decorations: vscode.DecorationOptions[] = [];
+
+            for (let i = 0; i < text.length; i++) {
+                if (text.charCodeAt(i) === ascii) {
+                    const pos = editor.document.positionAt(i);
+                    const range = new vscode.Range(pos, pos.translate(0, 1));
+                    decorations.push({
+                        range,
+                        hoverMessage: `Caractere ASCII ${ascii}`,
+                    });
+                }
+            }
+
+            editor.setDecorations(decoration, decorations);
+        }
     }
 }
 
 export function registerGoldDecorationEvents(context: vscode.ExtensionContext) {
-    const update = (editor?: vscode.TextEditor) => {
+    const registry = new GoldCharacterRegistry();
+    const decorator = new GoldDecorator(registry);
+
+    const updateEditor = (editor?: vscode.TextEditor) => {
         if (editor) {
-            updateGoldDecorations(editor);
+            decorator.apply(editor);
         }
     };
 
     context.subscriptions.push(
-        vscode.window.onDidChangeActiveTextEditor(update),
+        vscode.window.onDidChangeActiveTextEditor(updateEditor),
         vscode.workspace.onDidChangeTextDocument((e) => {
             const editor = vscode.window.activeTextEditor;
             if (editor && e.document === editor.document) {
-                update(editor);
+                updateEditor(editor);
             }
         }),
         vscode.workspace.onDidOpenTextDocument((doc) => {
@@ -74,8 +106,10 @@ export function registerGoldDecorationEvents(context: vscode.ExtensionContext) {
                 (e) => e.document === doc
             );
             if (editor) {
-                update(editor);
+                updateEditor(editor);
             }
         })
     );
+
+    updateEditor(vscode.window.activeTextEditor);
 }

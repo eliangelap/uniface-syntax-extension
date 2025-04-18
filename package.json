@@ -115,7 +115,5 @@
     "dependencies": {
         "standard-version": "^9.5.0"
     },
-    "activationEvents": [
-        "*"
-    ]
+    "activationEvents": []
 }
