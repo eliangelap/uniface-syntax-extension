@@ -2,7 +2,7 @@
     "name": "uniface-sintax-extension",
     "displayName": "uniface-sintax-extension",
     "description": "A VSCode extension for Uniface program language, with syntax highlighter and all powerful of VSCode resources",
-    "version": "1.6.0",
+    "version": "1.9.0",
     "scripts": {
         "vscode:prepublish": "npm run package",
         "compile": "npm run check-types && npm run lint && node esbuild.js",
@@ -57,6 +57,10 @@
             {
                 "command": "uniface-extension.entry",
                 "title": "Uniface: Create new Entry"
+            },
+            {
+                "command": "uniface.navigateToFunction",
+                "title": "Uniface: Go to function"
             }
         ],
         "grammars": [
@@ -65,7 +69,25 @@
                 "scopeName": "source.uniface",
                 "path": "./syntaxes/uniface.tmLanguage.json"
             }
-        ]
+        ],
+        "viewsContainers": {
+            "activitybar": [
+                {
+                    "id": "unifaceSidebar",
+                    "title": "Uniface",
+                    "icon": "media/rocket.svg"
+                }
+            ]
+        },
+        "views": {
+            "unifaceSidebar": [
+                {
+                    "id": "unifaceFunctions",
+                    "name": "Function List",
+                    "icon": "media/rocket.svg"
+                }
+            ]
+        }
     },
     "repository": {
         "type": "git",
@@ -93,5 +115,7 @@
     "dependencies": {
         "standard-version": "^9.5.0"
     },
-    "activationEvents": []
+    "activationEvents": [
+        "*"
+    ]
 }

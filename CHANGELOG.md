@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.9.0](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.8.0...v1.9.0) (2025-04-18)
+
+
+### Features
+
+* 🎸 add function list sidebar ([8d74f6e](https://github.com/eliangelap/uniface-syntax-extension/commit/8d74f6ef79c1e2177e3f6c49ed9ed2af2211544a))
+* 🎸 add function list sidebar ([#17](https://github.com/eliangelap/uniface-syntax-extension/issues/17)) ([b8a1d6c](https://github.com/eliangelap/uniface-syntax-extension/commit/b8a1d6c01b067b058d6a39d5dec0db03c835e85a))
+
+## [1.8.0](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.6.0...v1.8.0) (2025-04-15)
+
+
+### Features
+
+* **feature/entry-definition:** :sparkles: criado funcionalidade de ir para definição da entry ([26f1b80](https://github.com/eliangelap/uniface-syntax-extension/commit/26f1b800b490f24f85bae2f9d4b422b9b07e07a9))
+
+## [1.7.0](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.6.0...v1.7.0) (2025-04-15)
+
+
+### Features
+
+* **feature/entry-definition:** :sparkles: criado funcionalidade de ir para definição da entry ([26f1b80](https://github.com/eliangelap/uniface-syntax-extension/commit/26f1b800b490f24f85bae2f9d4b422b9b07e07a9))
+
 ## [1.6.0](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.5.2...v1.6.0) (2025-04-15)
 
 
