@@ -2,7 +2,7 @@
     "name": "uniface-sintax-extension",
     "displayName": "uniface-sintax-extension",
     "description": "A VSCode extension for Uniface program language, with syntax highlighter and all powerful of VSCode resources",
-    "version": "1.9.2",
+    "version": "1.9.3",
     "scripts": {
         "vscode:prepublish": "npm run package",
         "compile": "npm run check-types && npm run lint && node esbuild.js",
