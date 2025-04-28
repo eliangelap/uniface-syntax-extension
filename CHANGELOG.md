@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.9.3](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.9.1...v1.9.3) (2025-04-28)
+
+
+### Bug Fixes
+
+* 🐛 Remove comments in autocomplete ([c3f3c6b](https://github.com/eliangelap/uniface-syntax-extension/commit/c3f3c6bb5424d00be14a6a8bd9c0165e4d2d274d))
+* 🐛 Remove comments in autocomplete ([#23](https://github.com/eliangelap/uniface-syntax-extension/issues/23)) ([0db8200](https://github.com/eliangelap/uniface-syntax-extension/commit/0db82005a2b5f725658845c540316dab01e2a07c))
+
+### [1.9.2](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.9.1...v1.9.2) (2025-04-28)
+
+
+### Bug Fixes
+
+* 🐛 Remove comments in autocomplete ([c3f3c6b](https://github.com/eliangelap/uniface-syntax-extension/commit/c3f3c6bb5424d00be14a6a8bd9c0165e4d2d274d))
+* 🐛 Remove comments in autocomplete ([#23](https://github.com/eliangelap/uniface-syntax-extension/issues/23)) ([0db8200](https://github.com/eliangelap/uniface-syntax-extension/commit/0db82005a2b5f725658845c540316dab01e2a07c))
+
+### [1.9.1](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.9.0...v1.9.1) (2025-04-18)
+
 ## [1.9.0](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.8.0...v1.9.0) (2025-04-18)
 
 
