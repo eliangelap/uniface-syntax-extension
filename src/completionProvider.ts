@@ -6,13 +6,14 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
         position: vscode.Position
     ): string {
         const text = document.getText();
+        const textLower = text.toLowerCase();
         const cursorOffset = document.offsetAt(position);
 
         // Localiza o início do bloco (entry|trigger) antes do cursor
-        let blockStart = text.lastIndexOf('entry ', cursorOffset);
-        const triggerStart = text.lastIndexOf('trigger ', cursorOffset);
-        const operationStart = text.lastIndexOf('operation ', cursorOffset);
-        const functionStart = text.lastIndexOf('function ', cursorOffset);
+        let blockStart = textLower.lastIndexOf('entry ', cursorOffset);
+        const triggerStart = textLower.lastIndexOf('trigger ', cursorOffset);
+        const operationStart = textLower.lastIndexOf('operation ', cursorOffset);
+        const functionStart = textLower.lastIndexOf('function ', cursorOffset);
 
         blockStart = Math.max(
             blockStart,
@@ -26,13 +27,13 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
         }
 
         // Localiza o fim do bloco (end) depois do cursor
-        let blockEnd = text.indexOf('end', cursorOffset);
+        let blockEnd = textLower.indexOf('end', cursorOffset);
 
         if (blockEnd < 0) {
-            blockEnd = text.length;
+            blockEnd = textLower.length;
         }
 
-        const subString = text.substring(blockStart, blockEnd);
+        const subString = textLower.substring(blockStart, blockEnd);
 
         if (
             !subString.includes('variables') &&
@@ -88,6 +89,10 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
         if (matchVariablesBlock) {
             const varLines = matchVariablesBlock[1].split('\n');
             for (const line of varLines) {
+                if (line.startsWith(';')) {
+                    continue;
+                }
+
                 const varMatch = RegExp(/(ANY|BOOLEAN|DATE|DATETIME|ENTITY|FLOAT|HANDLE|IMAGE|LINEARDATE|LINEARDATETIME|LINEARTIME|NUMERIC|OCCURRENCE|RAW|STRING|STRUCT|TIME|XMLSTREAM)\s+(\w+)/i).exec(line
                     .trim());
                 if (varMatch) {
@@ -97,7 +102,7 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
                     if (variableNames) {
                         for (const variableName of variableNames) {
                             const item = new vscode.CompletionItem(
-                                variableName.trim(),
+                                variableName.trim().split(';')[0],
                                 vscode.CompletionItemKind.Variable
                             );
                             variables.push(item);
