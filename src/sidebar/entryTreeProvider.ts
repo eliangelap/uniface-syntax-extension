@@ -44,7 +44,8 @@ class FunctionTreeProvider
             const lineText = document.lineAt(line).text.trim();
 
             if (
-                !validKeywords.some((keyword) => lineText.startsWith(keyword))
+                !validKeywords.some((keyword) => 
+                    lineText.toLowerCase().startsWith(keyword))
             ) {
                 continue;
             }

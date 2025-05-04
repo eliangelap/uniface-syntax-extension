@@ -17,7 +17,7 @@ export class GetBlockList {
 
             if (block !== null) {
                 blocks.push(block);
-                i += block.text.split('\n').length;
+                i += block.lines.length;
             }
         }
 

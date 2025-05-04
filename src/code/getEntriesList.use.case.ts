@@ -1,4 +1,4 @@
-import * as vscode from 'vscode';
+import * as vscode from "vscode";
 
 export class GetEntriesList {
     public execute(
@@ -9,11 +9,15 @@ export class GetEntriesList {
         const entries: string[] =
             document.getText().match(/entry\s+(\w+)/gi) || [];
 
-        const lineText = document.lineAt(position).text;
+        const lineText = document.lineAt(position).text.trim();
 
-        if (lineText.includes('call')) {
+        if (lineText.startsWith("call")) {
             const entryItems = entries.map((entry) => {
-                const entryName = entry.replace('entry', '').trim();
+                const entryName = entry
+                    .trim()
+                    .split(" ")[1]
+                    .trim()
+                    .split(";")[0];
                 return new vscode.CompletionItem(
                     entryName,
                     vscode.CompletionItemKind.Method

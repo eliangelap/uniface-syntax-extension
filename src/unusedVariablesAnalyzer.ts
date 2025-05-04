@@ -1,71 +1,81 @@
-import * as vscode from 'vscode';
+import * as vscode from "vscode";
+import { GetBlockAroundPostion } from "./code/getBlockAroundPosition.use.case";
+import {
+    GetVariablesFromBlock,
+} from "./code/getVariablesFromBlock.use.case";
 
 export class UnifaceUnusedVariableAnalyzer {
     private diagnostics: vscode.DiagnosticCollection;
 
     constructor() {
-        this.diagnostics = vscode.languages.createDiagnosticCollection('uniface');
+        this.diagnostics =
+            vscode.languages.createDiagnosticCollection("uniface");
     }
 
     public analyzeDocument(document: vscode.TextDocument): void {
-        if (document.languageId !== 'uniface') return;
+        if (document.languageId !== "uniface") {
+            return;
+        }
 
-        const text = document.getText();
-        const lines = text.split('\n');
+        const editor = vscode.window.activeTextEditor;
+        const position = editor?.selection.active;
+        if (!position) {
+            return;
+        }
 
-        const declaredVariables: { name: string; line: number }[] = [];
+        const block = new GetBlockAroundPostion().execute(document, position);
+        if (!block) {
+            return;
+        }
+
+        const declaredVariables = new GetVariablesFromBlock().execute(block);
+        const textLines = document.getText().split("\n");
+
+        const blockLines = block.lines;
         const usedVariables = new Set<string>();
 
-        let insideVariables = false;
+        let isOutsideVariableBlock: boolean = false;
 
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i].trim();
+        for (const line of blockLines) {
+            const trimmedLine = line.trim();
 
-            // Detecta início do bloco de variáveis
-            if (/^variables\b/i.test(line)) {
-                insideVariables = true;
+            if (/^endvariables\b/i.test(trimmedLine)) {
+                isOutsideVariableBlock = true;
                 continue;
             }
 
-            // Detecta fim do bloco de variáveis
-            if (/^endvariables\b/i.test(line)) {
-                insideVariables = false;
+            if (!isOutsideVariableBlock) {
                 continue;
             }
 
-            // Coleta variáveis declaradas
-            if (insideVariables) {
-                const match = line.match(/^\s*(?:string|numeric|boolean)\s+(\w+)/i);
-                if (match) {
-                    declaredVariables.push({ name: match[1], line: i });
-                }
-                continue;
-            }
-
-            // Coleta variáveis usadas
             for (const variable of declaredVariables) {
-                const regex = new RegExp(`\\b${this.escapeRegExp(variable.name)}\\b`);
-                if (regex.test(line)) {
+                const regex = new RegExp(`\\b${variable.name}\\b`);
+                if (regex.test(trimmedLine)) {
                     usedVariables.add(variable.name);
                 }
             }
         }
 
-        // Cria warnings
-        const diagnostics: vscode.Diagnostic[] = declaredVariables
-            .filter((v) => !usedVariables.has(v.name))
-            .map((v) => {
-                const range = new vscode.Range(
-                    new vscode.Position(v.line, 0),
-                    new vscode.Position(v.line, lines[v.line].length)
-                );
+        const diagnostics: vscode.Diagnostic[] = [];
 
-                return new vscode.Diagnostic(
+        const ununsedVariables = declaredVariables.filter(
+            (v) => !usedVariables.has(v.name)
+        );
+
+        for (const ununsedVariable of ununsedVariables) {
+            const range = new vscode.Range(
+                new vscode.Position(ununsedVariable.line, 0),
+                new vscode.Position(ununsedVariable.line, textLines[ununsedVariable.line].length)
+            );
+
+            diagnostics.push(
+                new vscode.Diagnostic(
                     range,
-                    `Variável "${v.name}" declarada mas não utilizada.`,
+                    `Variable "${ununsedVariable.name}" is declared but is not used.`,
                     vscode.DiagnosticSeverity.Warning
-                );
-            });
+                )
+            );
+        }
 
         this.diagnostics.set(document.uri, diagnostics);
     }
@@ -76,9 +86,5 @@ export class UnifaceUnusedVariableAnalyzer {
 
     public dispose(): void {
         this.diagnostics.dispose();
-    }
-
-    private escapeRegExp(text: string): string {
-        return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     }
 }

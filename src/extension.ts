@@ -8,7 +8,6 @@ import { registerTreeDataProvider } from './sidebar/entryTreeProvider';
 import { EntryCreator } from './snippets/entryCreator';
 import { OperationCreator } from './snippets/operationCreator';
 import { UnifaceUnusedVariableAnalyzer } from './unusedVariablesAnalyzer';
-import { UndeclaredVariableAnalyzer } from './undeclaredVariableAnalyzer';
 
 export function activate(context: vscode.ExtensionContext) {
     const editor = vscode.window.activeTextEditor;
@@ -54,11 +53,11 @@ export function activate(context: vscode.ExtensionContext) {
         ),
         variableAnalyzer
     );
-    const analyzer = new UndeclaredVariableAnalyzer();
 
-    vscode.workspace.onDidOpenTextDocument((doc) => analyzer.analyzeDocument(doc));
-    vscode.workspace.onDidChangeTextDocument((e) => analyzer.analyzeDocument(e.document));
-    vscode.workspace.onDidCloseTextDocument((doc) => analyzer.clearDiagnostics(doc));
+    // const analyzer = new UndeclaredVariableAnalyzer();
+    // vscode.workspace.onDidOpenTextDocument((doc) => analyzer.analyzeDocument(doc));
+    // vscode.workspace.onDidChangeTextDocument((e) => analyzer.analyzeDocument(e.document));
+    // vscode.workspace.onDidCloseTextDocument((doc) => analyzer.clearDiagnostics(doc));
 }
 
 export function deactivate() {

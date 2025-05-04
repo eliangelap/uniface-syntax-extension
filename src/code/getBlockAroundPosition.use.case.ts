@@ -3,6 +3,7 @@ import * as vscode from 'vscode';
 export interface BlockCode {
     text: string;
     startLine: number;
+    lines: string[];
 }
 
 export class GetBlockAroundPostion {
@@ -30,6 +31,7 @@ export class GetBlockAroundPostion {
         return {
             text: blockText,
             startLine: blockStart,
+            lines: blockText.split('\n'),
         };
     }
 
