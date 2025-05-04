@@ -41,6 +41,8 @@ This extension currently does not have customizable settings. Future versions ma
 ```
 
 ## Contributions
+Thanks for Matheus Santos de Andrade (https://github.com/matheusa1) for your contribution and helping on development.
+
 If you’d like to contribute, feel free to open an issue or submit a pull request.
 
 **Enjoy!**

@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
-import { getFormattedCurrentDate } from '../util';
+import { GetCurrentDate } from '../util/getCurrentData.use.case';
+import { GetFormattedDate } from '../util/getFormattedDate.use.case';
 
 export class EntryCreator {
     private readonly editor: vscode.TextEditor | undefined;
@@ -28,7 +29,8 @@ export class EntryCreator {
 
     private buildEntrySnippet(entryName: string): vscode.SnippetString {
         const author = process.env.USERNAME ?? 'unknown';
-        const date = getFormattedCurrentDate();
+        const currentDate = new GetCurrentDate().execute();
+        const date = new GetFormattedDate().execute(currentDate);
 
         const entryCode = [
             ';|',

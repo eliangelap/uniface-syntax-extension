@@ -20,16 +20,6 @@
         "create:release": "vsce package"
     },
     "pricing": "Free",
-    "contributors": [
-        {
-            "name": "Eliangela Menezes Palharini Paes",
-            "url": "https://github.com/eliangelap"
-        },
-        {
-            "name": "Matheus Santos de Andrade",
-            "url": "https://github.com/matheusa1"
-        }
-    ],
     "main": "./dist/extension.js",
     "categories": [
         "Programming Languages"
@@ -94,20 +84,30 @@
         "url": "https://github.com/eliangelap/uniface-syntax-extension.git"
     },
     "devDependencies": {
-        "@types/mocha": "^10.0.10",
         "@types/node": "20.x",
         "@types/vscode": "^1.98.0",
         "@typescript-eslint/eslint-plugin": "^8.25.0",
         "@typescript-eslint/parser": "^8.25.0",
-        "@vscode/test-cli": "^0.0.10",
-        "@vscode/test-electron": "^2.4.1",
         "esbuild": "^0.25.0",
         "eslint": "^9.21.0",
-        "mocha": "^11.1.0",
         "npm-run-all": "^4.1.5",
         "typescript": "^5.7.3"
     },
     "publisher": "eliangela",
+    "author": {
+        "email": "eliangela@eliangela.dev.br",
+        "name": "Eliangela"
+    },
+    "contributors": [
+        {
+            "name": "Eliangela Menezes Palharini Paes",
+            "url": "https://github.com/eliangelap"
+        },
+        {
+            "name": "Matheus Santos de Andrade",
+            "url": "https://github.com/matheusa1"
+        }
+    ],
     "engines": {
         "vscode": "^1.98.0",
         "node": "22.0.0"
