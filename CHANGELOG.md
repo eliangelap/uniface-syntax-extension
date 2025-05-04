@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.10.0](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.9.4...v1.10.0) (2025-05-04)
+
+
+### Features
+
+* 🎸 add ununsed variable detector ([38b3e09](https://github.com/eliangelap/uniface-syntax-extension/commit/38b3e098724714b8d45376c51ce6f58bd251e3c6))
+* 🎸 undeclared variable ([b9afcdc](https://github.com/eliangelap/uniface-syntax-extension/commit/b9afcdc6a9a2a71bcce43867fc698ed5716de4b7))
+
 ### [1.9.4](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.9.3...v1.9.4) (2025-04-28)
 
 ### [1.9.3](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.9.1...v1.9.3) (2025-04-28)
