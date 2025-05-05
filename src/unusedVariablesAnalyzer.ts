@@ -58,20 +58,20 @@ export class UnifaceUnusedVariableAnalyzer {
 
         const diagnostics: vscode.Diagnostic[] = [];
 
-        const ununsedVariables = declaredVariables.filter(
+        const unusedVariables = declaredVariables.filter(
             (v) => !usedVariables.has(v.name)
         );
 
-        for (const ununsedVariable of ununsedVariables) {
+        for (const unusedVariable of unusedVariables) {
             const range = new vscode.Range(
-                new vscode.Position(ununsedVariable.line, 0),
-                new vscode.Position(ununsedVariable.line, textLines[ununsedVariable.line].length)
+                new vscode.Position(unusedVariable.line, 0),
+                new vscode.Position(unusedVariable.line, textLines[unusedVariable.line].length)
             );
 
             diagnostics.push(
                 new vscode.Diagnostic(
                     range,
-                    `Variable "${ununsedVariable.name}" is declared but is not used.`,
+                    `Variable "${unusedVariable.name}" is declared but is not used.`,
                     vscode.DiagnosticSeverity.Warning
                 )
             );
