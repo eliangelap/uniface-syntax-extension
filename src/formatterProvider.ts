@@ -106,7 +106,7 @@ class UnifaceFormatter {
             'endtry',
         ];
 
-        const pattern = `^(${endKeywords.join('|')})(\\s+\\S+)?\\s*(;.*)?$`;
+        const pattern = `^(${endKeywords.join('|')})(\\s+.*)?\\s*(;.*)?$`;
         if (new RegExp(pattern, 'i').test(trimmed)) {
             this.deepLevel = Math.max(this.deepLevel - 1, 0);
         }
