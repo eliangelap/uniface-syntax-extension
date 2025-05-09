@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.10.2](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.10.1...v1.10.2) (2025-05-09)
+
+
+### Bug Fixes
+
+* 🐛 single line IF ([fde91d0](https://github.com/eliangelap/uniface-syntax-extension/commit/fde91d01c1edd4396088695d7a7882dded40a59c))
+* 🐛 single line IF fix ([377f67f](https://github.com/eliangelap/uniface-syntax-extension/commit/377f67fb53fde9f647da17206a72df9d2b08919d))
+
 ### [1.10.1](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.10.0...v1.10.1) (2025-05-06)
 
 

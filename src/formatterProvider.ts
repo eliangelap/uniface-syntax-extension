@@ -1,4 +1,9 @@
-import * as vscode from 'vscode';
+import * as vscode from "vscode";
+
+interface CommentedLine {
+    code: string;
+    comment: string;
+}
 
 export const formatterProvider = (): vscode.DocumentFormattingEditProvider => {
     return {
@@ -43,13 +48,14 @@ class UnifaceFormatter {
     private continuationIndent = 0;
 
     constructor(text: string, private options: vscode.FormattingOptions) {
-        this.lines = text.split('\n');
+        this.lines = text.split("\n");
     }
 
     public format(): string {
         for (const line of this.lines) {
             const trimmed = line.trim();
-            const isBlank = trimmed === '';
+
+            const isBlank = trimmed === "";
 
             if (this.handleBlankLine(isBlank)) {
                 continue;
@@ -58,7 +64,12 @@ class UnifaceFormatter {
                 continue;
             }
 
-            const isContinuation = trimmed.endsWith('%\\');
+            const isContinuation = trimmed.endsWith("%\\");
+
+            if (this.handleSingleLineIf(trimmed)) {
+                console.log(trimmed);
+                continue;
+            }
 
             this.adjustDepthForEnd(trimmed);
             this.addFormattedLine(trimmed);
@@ -66,7 +77,73 @@ class UnifaceFormatter {
             this.adjustDepthForStart(trimmed);
         }
 
-        return this.formattedLines.join('\n');
+        return this.formattedLines.join("\n");
+    }
+
+    private handleSingleLineIf(trimmed: string): boolean {
+        if (trimmed.startsWith(';')) {
+            return false;
+        }
+
+        let commentedLine;
+
+        if (trimmed.includes(";")) {
+            commentedLine = this.extractComment(trimmed);
+            if (commentedLine) {
+                trimmed = commentedLine?.code;
+            }
+        }
+
+        if (trimmed.endsWith("%\\")) {
+            return false;
+        }
+
+        if (trimmed.endsWith(")")) {
+            return false;
+        }
+
+        const inlineIfMatch = RegExp(
+            /^if\s+\((?![^)]*\$)([^)]+)\)\s+(.+?)(?:\s*;.*)?$/i
+        ).exec(trimmed);
+
+        if (!inlineIfMatch) {
+            return false;
+        }
+
+        this.addFormattedLine(`if (${inlineIfMatch[1]}) ${commentedLine?.comment}`);
+        this.deepLevel++;
+        this.addFormattedLine(inlineIfMatch[2]);
+        this.deepLevel--;
+        this.addFormattedLine(`endif`);
+
+        return true;
+    }
+
+    private extractComment(trimmed: string): CommentedLine | null {
+        let isInString: boolean = false;
+
+        for (let i = 0; i < trimmed.length; i++) {
+            const char = trimmed[i];
+
+            if ((char === `"` || char === `'`) && !isInString) {
+                isInString = true;
+                continue;
+            }
+
+            if ((char === `"` || char === `'`) && isInString) {
+                isInString = false;
+                continue;
+            }
+
+            if (!isInString && char === ";") {
+                return {
+                    code: trimmed.substring(0, i).trim(),
+                    comment: trimmed.substring(i).trim(),
+                };
+            }
+        }
+
+        return null;
     }
 
     private handleBlankLine(isBlank: boolean): boolean {
@@ -78,13 +155,13 @@ class UnifaceFormatter {
             return true;
         }
 
-        this.formattedLines.push('');
+        this.formattedLines.push("");
         this.previousLineWasBlank = true;
         return true;
     }
 
     private handleDefineDirective(trimmed: string): boolean {
-        if (!trimmed.startsWith('#define')) {
+        if (!trimmed.startsWith("#define")) {
             return false;
         }
 
@@ -95,47 +172,47 @@ class UnifaceFormatter {
 
     private adjustDepthForEnd(trimmed: string): void {
         const endKeywords = [
-            'end',
-            'endif',
-            'endfor',
-            'endwhile',
-            'endvariables',
-            'endparams',
-            'until',
-            'endselectcase',
-            'endtry',
+            "end",
+            "endif",
+            "endfor",
+            "endwhile",
+            "endvariables",
+            "endparams",
+            "until",
+            "endselectcase",
+            "endtry",
         ];
 
-        const pattern = `^(${endKeywords.join('|')})(\\s+.*)?\\s*(;.*)?$`;
-        if (new RegExp(pattern, 'i').test(trimmed)) {
+        const pattern = `^(${endKeywords.join("|")})(\\s+.*)?\\s*(;.*)?$`;
+        if (new RegExp(pattern, "i").test(trimmed)) {
             this.deepLevel = Math.max(this.deepLevel - 1, 0);
         }
     }
 
     private adjustDepthForStart(trimmed: string): void {
         const startKeywords = [
-            'entry',
-            'trigger',
-            'if',
-            'operation',
-            'for',
-            'repeat',
-            'while',
-            'forentity',
-            'variables',
-            'params',
-            'forlist',
-            'forlist/id',
-            'selectcase',
-            'try',
+            "entry",
+            "trigger",
+            "if",
+            "operation",
+            "for",
+            "repeat",
+            "while",
+            "forentity",
+            "variables",
+            "params",
+            "forlist",
+            "forlist/id",
+            "selectcase",
+            "try",
         ];
 
-        const pattern = `^(${startKeywords.join('|')})(\\s+\\S+)?`;
-        const parenPattern = `^(${startKeywords.join('|')})\\s*\\(?`;
+        const pattern = `^(${startKeywords.join("|")})(\\s+\\S+)?`;
+        const parenPattern = `^(${startKeywords.join("|")})\\s*\\(?`;
 
         if (
-            new RegExp(pattern, 'i').test(trimmed) ||
-            new RegExp(parenPattern, 'g').test(trimmed)
+            new RegExp(pattern, "i").test(trimmed) ||
+            new RegExp(parenPattern, "g").test(trimmed)
         ) {
             this.deepLevel++;
         }
@@ -143,11 +220,11 @@ class UnifaceFormatter {
 
     private addFormattedLine(trimmed: string): void {
         const decreaseKeywords = [
-            'else',
-            'elseif',
-            'case ',
-            'catch',
-            'elsecase',
+            "else",
+            "elseif",
+            "case ",
+            "catch",
+            "elsecase",
         ];
 
         const inDecreaseKeyword = decreaseKeywords.some((k) =>
@@ -158,8 +235,8 @@ class UnifaceFormatter {
             : this.deepLevel;
 
         const indent = this.isInContinuation
-            ? '\t'.repeat(this.continuationIndent) + '\t'
-            : '\t'.repeat(tabCount);
+            ? "\t".repeat(this.continuationIndent) + "\t"
+            : "\t".repeat(tabCount);
 
         this.formattedLines.push(indent + trimmed);
         this.previousLineWasBlank = false;

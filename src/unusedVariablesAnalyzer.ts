@@ -49,8 +49,7 @@ export class UnifaceUnusedVariableAnalyzer {
             }
 
             for (const variable of declaredVariables) {
-                const regex = new RegExp(`\\b${variable.name}\\b`);
-                if (regex.test(trimmedLine)) {
+                if (trimmedLine.toLowerCase().includes(variable.name.toLowerCase())) {
                     usedVariables.add(variable.name);
                 }
             }
