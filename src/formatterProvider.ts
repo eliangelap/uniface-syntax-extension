@@ -80,8 +80,8 @@ class UnifaceFormatter {
         return this.formattedLines.join("\n");
     }
 
-    private handleSingleLineIf(trimmed: string) {
-        if (trimmed.endsWith("%\\")) {
+    private handleSingleLineIf(trimmed: string): boolean {
+        if (trimmed.startsWith(';')) {
             return false;
         }
 
@@ -94,11 +94,17 @@ class UnifaceFormatter {
             }
         }
 
+        if (trimmed.endsWith("%\\")) {
+            return false;
+        }
+
+        if (trimmed.endsWith(")")) {
+            return false;
+        }
+
         const inlineIfMatch = RegExp(
             /^if\s+\((?![^)]*\$)([^)]+)\)\s+(.+?)(?:\s*;.*)?$/i
         ).exec(trimmed);
-
-        // if   ((v_qt_resto + qt_produto.pfat_resitem) < 0) ;;; tem que tratar esse tipo de condição
 
         if (!inlineIfMatch) {
             return false;
@@ -131,8 +137,8 @@ class UnifaceFormatter {
 
             if (!isInString && char === ";") {
                 return {
-                    code: trimmed.substring(0, i),
-                    comment: trimmed.substring(i),
+                    code: trimmed.substring(0, i).trim(),
+                    comment: trimmed.substring(i).trim(),
                 };
             }
         }
