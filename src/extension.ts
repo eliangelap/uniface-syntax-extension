@@ -45,7 +45,7 @@ export function activate(context: vscode.ExtensionContext) {
         ),
         vscode.languages.registerSignatureHelpProvider(
             { language: "uniface" },
-            new UnifaceSignatureHelpProvider(document),
+            new UnifaceSignatureHelpProvider(),
             "(",
             ",",
             ", "
