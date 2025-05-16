@@ -1,48 +1,65 @@
-import * as vscode from 'vscode';
-import { CompletionItemProvider } from './completionProvider';
-import { formatterProvider } from './formatterProvider';
-import { registerGoldInterceptor } from './gold/goldHandler';
-import { registerGoldDecorationEvents } from './gold/goldDecorator';
-import { UnifaceDefinitionProvider } from './definition/entryDefinition';
-import { EntryCreator } from './snippets/entryCreator';
-import { OperationCreator } from './snippets/operationCreator';
-import { registerTreeDataProvider } from './sidebar/functionTreeProvider';
+import * as vscode from "vscode";
+import { CompletionItemProvider } from "./completionProvider";
+import { UnifaceDefinitionProvider } from "./definition/entryDefinition";
+import { formatterProvider } from "./formatterProvider";
+import { registerGoldDecorationEvents } from "./gold/goldDecorator";
+import { registerGoldInterceptor } from "./gold/goldHandler";
+import { registerTreeDataProvider } from "./sidebar/entryTreeProvider";
+import { EntryCreator } from "./snippets/entryCreator";
+import { OperationCreator } from "./snippets/operationCreator";
+import { UnifaceUnusedVariableAnalyzer } from "./unusedVariablesAnalyzer";
+import { UnifaceSignatureHelpProvider } from "./signatureHelpProvider";
 
 export function activate(context: vscode.ExtensionContext) {
+    const editor = vscode.window.activeTextEditor;
+
+    let document = editor?.document;
+    if (document?.languageId !== "uniface") {
+        return;
+    }
+
     registerGoldInterceptor(context);
     registerGoldDecorationEvents(context);
     registerTreeDataProvider(context);
 
+    const variableAnalyzer = new UnifaceUnusedVariableAnalyzer();
+
     context.subscriptions.push(
-        vscode.commands.registerCommand('uniface-extension.entry', () => {
+        vscode.commands.registerCommand("uniface-extension.entry", () => {
             new EntryCreator().promptAndInsert();
-        })
-    );
-
-    context.subscriptions.push(
-        vscode.commands.registerCommand('uniface-extension.operation', () => {
+        }),
+        vscode.commands.registerCommand("uniface-extension.operation", () => {
             new OperationCreator().promptAndInsert();
-        })
-    );
-
-    context.subscriptions.push(
+        }),
         vscode.languages.registerCompletionItemProvider(
-            'uniface',
+            "uniface",
             new CompletionItemProvider()
-        )
-    );
-
-    context.subscriptions.push(
+        ),
         vscode.languages.registerDocumentFormattingEditProvider(
-            'uniface',
+            "uniface",
             formatterProvider()
-        )
-    );
-    context.subscriptions.push(
+        ),
         vscode.languages.registerDefinitionProvider(
-            'uniface',
+            "uniface",
             new UnifaceDefinitionProvider()
-        )
+        ),
+        vscode.languages.registerSignatureHelpProvider(
+            { language: "uniface" },
+            new UnifaceSignatureHelpProvider(document),
+            "(",
+            ",",
+            ", "
+        ),
+        vscode.workspace.onDidOpenTextDocument((doc) =>
+            variableAnalyzer.analyzeDocument(doc)
+        ),
+        vscode.workspace.onDidChangeTextDocument((e) =>
+            variableAnalyzer.analyzeDocument(e.document)
+        ),
+        vscode.workspace.onDidCloseTextDocument((doc) =>
+            variableAnalyzer.clearDiagnostics(doc)
+        ),
+        variableAnalyzer
     );
 }
 

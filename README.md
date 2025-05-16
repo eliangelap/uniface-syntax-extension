@@ -1,12 +1,13 @@
 # Uniface README
 
-This is a **VSCode plugin** for the **Uniface** programming language. It provides **syntax highlighting**, **autocomplete**, and several **developer-friendly features**, enhancing the development experience within Visual Studio Code.
+This is a **VSCode plugin** for the **Uniface** programming language. It provides **syntax highlighting**, **autocomplete**, **signature help**, and several **developer-friendly features**, enhancing the development experience within Visual Studio Code.
 
 ## Features
 
 - **Syntax Highlighting**: Improves code readability with proper syntax coloring.
 - **Autocomplete**: Smart suggestions to speed up coding.
 - **Function Navigation**: Use `Ctrl+Click` to quickly jump to `operations`, `entries`, `functions`, or `triggers`.
+- **Signature Help**: Displays parameter hints for built-in `ProcScript functions` (e.g., `$date`, `$msg`) and user-defined `entries`, with support for active parameter highlighting as you type.
 - **Sidebar Explorer**: Dedicated Uniface panel listing all declared `operations`, `entries`, `functions`, and `triggers`.
 - **GOLD Key Support**: Recognizes `GOLD` key combinations (e.g., `+;`) and replaces them with the appropriate control characters (e.g., ASCII 27).
 - **Code Formatting**: Format Uniface code using `Alt+Shift+F`.
@@ -41,6 +42,8 @@ This extension currently does not have customizable settings. Future versions ma
 ```
 
 ## Contributions
+Thanks for Matheus Santos de Andrade (https://github.com/matheusa1) for your contribution and helping on development.
+
 If you’d like to contribute, feel free to open an issue or submit a pull request.
 
 **Enjoy!**

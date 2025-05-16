@@ -2,6 +2,39 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.11.0](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.10.2...v1.11.0) (2025-05-16)
+
+
+### Features
+
+* 🎸 Parameters helper and code refactoring ([439490e](https://github.com/eliangelap/uniface-syntax-extension/commit/439490e987b483713fe3ac8b70527ccfa40be217))
+
+### [1.10.2](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.10.1...v1.10.2) (2025-05-09)
+
+
+### Bug Fixes
+
+* 🐛 single line IF ([fde91d0](https://github.com/eliangelap/uniface-syntax-extension/commit/fde91d01c1edd4396088695d7a7882dded40a59c))
+* 🐛 single line IF fix ([377f67f](https://github.com/eliangelap/uniface-syntax-extension/commit/377f67fb53fde9f647da17206a72df9d2b08919d))
+
+### [1.10.1](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.10.0...v1.10.1) (2025-05-06)
+
+
+### Bug Fixes
+
+* 🐛 Fix formatting ([571ab6b](https://github.com/eliangelap/uniface-syntax-extension/commit/571ab6bd170b424187df1789817e5967dd6599c0))
+* 🐛 Fix formatting ([#30](https://github.com/eliangelap/uniface-syntax-extension/issues/30)) ([85e3588](https://github.com/eliangelap/uniface-syntax-extension/commit/85e35883e2d0f51ed7eaddf60f7413b71968ddcd))
+
+## [1.10.0](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.9.4...v1.10.0) (2025-05-04)
+
+
+### Features
+
+* 🎸 add ununsed variable detector ([38b3e09](https://github.com/eliangelap/uniface-syntax-extension/commit/38b3e098724714b8d45376c51ce6f58bd251e3c6))
+* 🎸 undeclared variable ([b9afcdc](https://github.com/eliangelap/uniface-syntax-extension/commit/b9afcdc6a9a2a71bcce43867fc698ed5716de4b7))
+
+### [1.9.4](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.9.3...v1.9.4) (2025-04-28)
+
 ### [1.9.3](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.9.1...v1.9.3) (2025-04-28)
 
 
