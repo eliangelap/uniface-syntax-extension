@@ -1,8 +1,10 @@
 import * as vscode from "vscode";
 import { GetBlockAroundPostion } from "./code/getBlockAroundPosition.use.case";
 import {
+    DeclaredVariable,
     GetVariablesFromBlock,
 } from "./code/getVariablesFromBlock.use.case";
+import { CodeAnalyzer } from "./util/codeAnalyzer.use.case";
 
 export class UnifaceUnusedVariableAnalyzer {
     private diagnostics: vscode.DiagnosticCollection;
@@ -32,28 +34,10 @@ export class UnifaceUnusedVariableAnalyzer {
         const textLines = document.getText().split("\n");
 
         const blockLines = block.lines;
-        const usedVariables = new Set<string>();
-
-        let isOutsideVariableBlock: boolean = false;
-
-        for (const line of blockLines) {
-            const trimmedLine = line.trim();
-
-            if (/^endvariables\b/i.test(trimmedLine)) {
-                isOutsideVariableBlock = true;
-                continue;
-            }
-
-            if (!isOutsideVariableBlock) {
-                continue;
-            }
-
-            for (const variable of declaredVariables) {
-                if (trimmedLine.toLowerCase().includes(variable.name.toLowerCase())) {
-                    usedVariables.add(variable.name);
-                }
-            }
-        }
+        const usedVariables = this.getUsedVariables(
+            blockLines,
+            declaredVariables
+        );
 
         const diagnostics: vscode.Diagnostic[] = [];
 
@@ -64,7 +48,10 @@ export class UnifaceUnusedVariableAnalyzer {
         for (const ununsedVariable of ununsedVariables) {
             const range = new vscode.Range(
                 new vscode.Position(ununsedVariable.line, 0),
-                new vscode.Position(ununsedVariable.line, textLines[ununsedVariable.line].length)
+                new vscode.Position(
+                    ununsedVariable.line,
+                    textLines[ununsedVariable.line].length
+                )
             );
 
             diagnostics.push(
@@ -77,6 +64,51 @@ export class UnifaceUnusedVariableAnalyzer {
         }
 
         this.diagnostics.set(document.uri, diagnostics);
+    }
+
+    private getUsedVariables(
+        blockLines: string[],
+        declaredVariables: DeclaredVariable[]
+    ): Set<string> {
+        const usedVariables = new Set<string>();
+        let isAfterVarBlock: boolean = false;
+
+        for (const line of blockLines) {
+            const trimmedLine = line.trim();
+
+            if (/^endvariables\b/i.test(trimmedLine)) {
+                isAfterVarBlock = true;
+                continue;
+            }
+
+            if (!isAfterVarBlock) {
+                continue;
+            }
+
+            for (const variable of declaredVariables) {
+                if (CodeAnalyzer.isComment(trimmedLine)) {
+                    continue;
+                }
+
+                const name = variable.name;
+                const pattern = new RegExp(
+                    `\\b${this.escapeRegExp(name)}\\b`,
+                    "i"
+                );
+                if (pattern.test(line)) {
+                    usedVariables.add(name);
+                }
+            }
+        }
+
+        return usedVariables;
+    }
+
+    /**
+     * Escapa caracteres especiais para usar dentro de um RegExp dinâmico.
+     */
+    private escapeRegExp(text: string): string {
+        return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     }
 
     public clearDiagnostics(document: vscode.TextDocument): void {

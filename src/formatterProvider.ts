@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import { endKeywordsRegex, ifInlineRegex, startKeywordsRegex } from "./regExpConstants";
+import { CodeAnalyzer } from './util/codeAnalyzer.use.case';
 
 interface CommentedLine {
     code: string;
@@ -82,7 +83,7 @@ class UnifaceFormatter {
     }
 
     private handleSingleLineIf(trimmed: string): boolean {
-        if (trimmed.startsWith(";")) {
+        if (CodeAnalyzer.isComment(trimmed)) {
             return false;
         }
 

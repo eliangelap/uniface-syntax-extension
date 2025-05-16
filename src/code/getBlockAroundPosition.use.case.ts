@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { blockEndRegex, blockStartRegex } from '../regExpConstants';
+import { CodeAnalyzer } from '../util/codeAnalyzer.use.case';
 
 export interface BlockCode {
     text: string;
@@ -44,7 +45,7 @@ export class GetBlockAroundPostion {
 
         for (let i = position.line; i < lines.length; i++) {
             const line = lines[i].trim().toLowerCase();
-            if (line.startsWith(';')) {
+            if (CodeAnalyzer.isComment(line)) {
                 continue;
             }
 
@@ -69,7 +70,7 @@ export class GetBlockAroundPostion {
         for (let i = position.line; i >= 0; i--) {
             const line = lines[i].toLowerCase().trim();
 
-            if (line.startsWith(';') || line.startsWith('#') || line === '') {
+            if (CodeAnalyzer.isComment(line) || line.startsWith('#') || line === '') {
                 continue;
             }
 
