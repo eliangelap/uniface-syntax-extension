@@ -1,4 +1,5 @@
 import { variableRegex } from "../regExpConstants";
+import { CodeAnalyzer } from '../util/codeAnalyzer.use.case';
 import { BlockCode } from "./getBlockAroundPosition.use.case";
 
 export interface DeclaredItem {
@@ -55,7 +56,7 @@ export class GetVariablesFromBlock {
                 ?.split(",");
             if (variableNames) {
                 for (const variableName of variableNames) {
-                    if (variableName.startsWith(";")) {
+                    if (CodeAnalyzer.isComment(variableName)) {
                         continue;
                     }
 
