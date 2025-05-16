@@ -1,24 +1,12 @@
 import * as vscode from "vscode";
-import {
-    GetUnifaceProcFunctionList,
-    ProcFunction,
-} from "./code/getUnifaceProcFunctionList.use.case";
+import { GetUnifaceProcFunctionList } from "./code/getUnifaceProcFunctionList.use.case";
 import { GetEntriesList } from "./code/getEntriesList.use.case";
-import { DeclaredModule } from "./code/getVariablesFromBlock.use.case";
 import { GetParametersFromBlock } from "./code/getParametersFromBlock.use.case";
 import { GetBlockAroundPostion } from "./code/getBlockAroundPosition.use.case";
 
 export class UnifaceSignatureHelpProvider
     implements vscode.SignatureHelpProvider
 {
-    private procFunctions: ProcFunction[];
-    private entries: DeclaredModule[];
-
-    constructor(document: vscode.TextDocument) {
-        this.procFunctions = new GetUnifaceProcFunctionList().execute();
-        this.entries = new GetEntriesList().execute(document);
-    }
-
     provideSignatureHelp(
         document: vscode.TextDocument,
         position: vscode.Position,
@@ -84,7 +72,8 @@ export class UnifaceSignatureHelpProvider
         currentExpression: string,
         signatureInformation: vscode.SignatureInformation
     ) {
-        const procFunction = this.procFunctions.find(
+        const procFunctions = new GetUnifaceProcFunctionList().execute();
+        const procFunction = procFunctions.find(
             (value) => value.name === currentExpression
         );
 
@@ -110,7 +99,8 @@ export class UnifaceSignatureHelpProvider
         currentExpression: string,
         signatureInformation: vscode.SignatureInformation
     ) {
-        const entry = this.entries.find(
+        const entries = new GetEntriesList().execute(document);
+        const entry = entries.find(
             (value) =>
                 value.name.toLowerCase() === currentExpression.toLowerCase()
         );
@@ -142,7 +132,6 @@ export class UnifaceSignatureHelpProvider
                 new vscode.ParameterInformation(param.name)
             );
         }
-
     }
 
     private getActiveParameter(
