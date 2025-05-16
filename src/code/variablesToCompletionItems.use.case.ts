@@ -7,7 +7,7 @@ export class VariablesToCompletionItems {
         for (let declaredVariable of declaredVariables) {
             const variableName = declaredVariable.name;
             const completionItem = new vscode.CompletionItem(
-                variableName,
+                `${declaredVariable.dataType} ${variableName}`,
                 vscode.CompletionItemKind.Variable
             );
 
@@ -15,9 +15,7 @@ export class VariablesToCompletionItems {
                 ? variableName.substring(1)
                 : variableName;
 
-            completionItems.push(
-                completionItem
-            );
+            completionItems.push(completionItem);
         }
 
         return completionItems;
