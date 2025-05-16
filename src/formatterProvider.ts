@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { endKeywordsRegex, ifInlineRegex, startKeywordsRegex } from "./regExpConstants";
 
 interface CommentedLine {
     code: string;
@@ -81,7 +82,7 @@ class UnifaceFormatter {
     }
 
     private handleSingleLineIf(trimmed: string): boolean {
-        if (trimmed.startsWith(';')) {
+        if (trimmed.startsWith(";")) {
             return false;
         }
 
@@ -102,15 +103,13 @@ class UnifaceFormatter {
             return false;
         }
 
-        const inlineIfMatch = RegExp(
-            /^if\s+\((?![^)]*\$)([^)]+)\)\s+(.+?)(?:\s*;.*)?$/i
-        ).exec(trimmed);
+        const inlineIfMatch = RegExp(ifInlineRegex).exec(trimmed);
 
         if (!inlineIfMatch) {
             return false;
         }
 
-        this.addFormattedLine(`if (${inlineIfMatch[1]}) ${commentedLine?.comment}`);
+        this.addFormattedLine(`if (${inlineIfMatch[1]}) ${commentedLine?.comment ?? ''}`);
         this.deepLevel++;
         this.addFormattedLine(inlineIfMatch[2]);
         this.deepLevel--;
@@ -171,49 +170,13 @@ class UnifaceFormatter {
     }
 
     private adjustDepthForEnd(trimmed: string): void {
-        const endKeywords = [
-            "end",
-            "endif",
-            "endfor",
-            "endwhile",
-            "endvariables",
-            "endparams",
-            "until",
-            "endselectcase",
-            "endtry",
-        ];
-
-        const pattern = `^(${endKeywords.join("|")})(\\s+.*)?\\s*(;.*)?$`;
-        if (new RegExp(pattern, "i").test(trimmed)) {
+        if (RegExp(endKeywordsRegex, "gi").test(trimmed)) {
             this.deepLevel = Math.max(this.deepLevel - 1, 0);
         }
     }
 
     private adjustDepthForStart(trimmed: string): void {
-        const startKeywords = [
-            "entry",
-            "trigger",
-            "if",
-            "operation",
-            "for",
-            "repeat",
-            "while",
-            "forentity",
-            "variables",
-            "params",
-            "forlist",
-            "forlist/id",
-            "selectcase",
-            "try",
-        ];
-
-        const pattern = `^(${startKeywords.join("|")})(\\s+\\S+)?`;
-        const parenPattern = `^(${startKeywords.join("|")})\\s*\\(?`;
-
-        if (
-            new RegExp(pattern, "i").test(trimmed) ||
-            new RegExp(parenPattern, "g").test(trimmed)
-        ) {
+        if (RegExp(startKeywordsRegex, "gi").test(trimmed)) {
             this.deepLevel++;
         }
     }
@@ -228,7 +191,7 @@ class UnifaceFormatter {
         ];
 
         const inDecreaseKeyword = decreaseKeywords.some((k) =>
-            trimmed.startsWith(k)
+            trimmed.toLowerCase().startsWith(k)
         );
         const tabCount = inDecreaseKeyword
             ? this.deepLevel - 1

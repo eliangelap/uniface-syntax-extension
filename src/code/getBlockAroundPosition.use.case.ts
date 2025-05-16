@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { blockEndRegex, blockStartRegex } from '../regExpConstants';
 
 export interface BlockCode {
     text: string;
@@ -7,10 +8,6 @@ export interface BlockCode {
 }
 
 export class GetBlockAroundPostion {
-    private blockEndRegex =
-        /^\s*end\b(?!if|for|while|variables|params|selectcase|try)/i;
-    private blockStartRegex = /^\s*(entry|operation|trigger|function)\b/i;
-
     public execute(
         document: vscode.TextDocument,
         position: vscode.Position
@@ -51,7 +48,7 @@ export class GetBlockAroundPostion {
                 continue;
             }
 
-            if (this.blockEndRegex.test(line)) {
+            if (blockEndRegex.test(line)) {
                 return i;
             }
         }
@@ -76,11 +73,11 @@ export class GetBlockAroundPostion {
                 continue;
             }
 
-            if (this.blockEndRegex.test(line)) {
+            if (blockEndRegex.test(line)) {
                 return null;
             }
 
-            if (this.blockStartRegex.test(line)) {
+            if (blockStartRegex.test(line)) {
                 return i;
             }
         }

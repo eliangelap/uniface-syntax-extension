@@ -1,31 +1,13 @@
 import * as vscode from "vscode";
+import { DeclaredModule } from "./getVariablesFromBlock.use.case";
+import { GetDeclaredModulesList } from './getDeclaredModulesList.use.case';
 
 export class GetEntriesList {
-    public execute(
-        document: vscode.TextDocument,
-        position: vscode.Position
-    ): vscode.CompletionItem[] {
-        const completions = [];
-        const entries: string[] =
-            document.getText().match(/entry\s+(\w+)/gi) || [];
+    public execute(document: vscode.TextDocument): DeclaredModule[] {
+        const modules = new GetDeclaredModulesList().execute(document);
 
-        const lineText = document.lineAt(position).text.trim();
-
-        if (lineText.startsWith("call")) {
-            const entryItems = entries.map((entry) => {
-                const entryName = entry
-                    .trim()
-                    .split(" ")[1]
-                    .trim()
-                    .split(";")[0];
-                return new vscode.CompletionItem(
-                    entryName,
-                    vscode.CompletionItemKind.Method
-                );
-            });
-            completions.push(...entryItems);
-        }
-
-        return completions;
+        return modules.filter((declaredModule) => {
+            return declaredModule.scriptModuleType === 'entry';
+        });
     }
 }

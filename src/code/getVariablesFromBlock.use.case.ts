@@ -1,8 +1,15 @@
-import { BlockCode } from './getBlockAroundPosition.use.case';
+import { variableRegex } from "../regExpConstants";
+import { BlockCode } from "./getBlockAroundPosition.use.case";
 
-export interface DeclaredVariable {
+export interface DeclaredItem {
     name: string;
     line: number;
+}
+export interface DeclaredVariable extends DeclaredItem {
+    dataType: string;
+}
+export interface DeclaredModule extends DeclaredItem {
+    scriptModuleType: string;
 }
 
 export class GetVariablesFromBlock {
@@ -14,8 +21,8 @@ export class GetVariablesFromBlock {
         for (let i = 0; i < block.lines.length; i++) {
             const line = block.lines[i].trim();
             const lineLower = line.toLowerCase();
-            
-            if (lineLower === 'variables') {
+
+            if (lineLower === "variables") {
                 inVariableBlock = true;
                 continue;
             }
@@ -24,7 +31,7 @@ export class GetVariablesFromBlock {
                 continue;
             }
 
-            if (lineLower === 'endvariables') {
+            if (lineLower === "endvariables") {
                 break;
             }
 
@@ -34,25 +41,27 @@ export class GetVariablesFromBlock {
         return variables;
     };
 
-    private extractVariables = (lineString: string, lineNumber: number): DeclaredVariable[] => {
+    private extractVariables = (
+        codeLine: string,
+        lineNumber: number
+    ): DeclaredVariable[] => {
         const variables = [];
 
-        const varMatch = RegExp(
-            /(ANY|BOOLEAN|DATE|DATETIME|ENTITY|FLOAT|HANDLE|IMAGE|LINEARDATE|LINEARDATETIME|LINEARTIME|NUMERIC|OCCURRENCE|RAW|STRING|STRUCT|TIME|XMLSTREAM)\s+(\w+)/i
-        ).exec(lineString.trim());
-        
+        const varMatch = RegExp(variableRegex, "i").exec(codeLine.trim());
+
         if (varMatch) {
             const variableNames = varMatch?.input
-                ?.replace(`${varMatch[1]}`, '')
-                ?.split(',');
+                ?.replace(`${varMatch[1]}`, "")
+                ?.split(",");
             if (variableNames) {
                 for (const variableName of variableNames) {
-                    if (variableName.startsWith(';')) {
+                    if (variableName.startsWith(";")) {
                         continue;
                     }
 
                     const item = {
-                        name: variableName.trim().split(';')[0],
+                        dataType: varMatch[1],
+                        name: variableName.trim().split(";")[0],
                         line: lineNumber,
                     };
                     variables.push(item);
