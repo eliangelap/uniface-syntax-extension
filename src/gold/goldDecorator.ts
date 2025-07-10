@@ -15,6 +15,7 @@ class GoldCharacterRegistry {
         { ascii: 22, display: '&' },
         { ascii: 23, display: '|' },
         { ascii: 17, display: '?' },
+        { ascii: 16, display: '*' },
     ];
 
     private decorations: Map<number, vscode.TextEditorDecorationType> =

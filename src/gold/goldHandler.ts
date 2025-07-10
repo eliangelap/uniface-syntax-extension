@@ -9,6 +9,7 @@ const goldSequences: Record<string, string> = {
     '+&': '\x16',
     '+|': '\x17',
     '+?': '\x11',
+    '+*': '\x10',
 };
 
 export function registerGoldInterceptor(context: vscode.ExtensionContext) {
