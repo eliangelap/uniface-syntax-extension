@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.11.4](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.11.3...v1.11.4) (2025-07-10)
+
+
+### Bug Fixes
+
+* 🐛 fixed gold-asterisk ([00a8013](https://github.com/eliangelap/uniface-syntax-extension/commit/00a80131ee6bb080415317547bbe263c9310ca17)), closes [#41](https://github.com/eliangelap/uniface-syntax-extension/issues/41)
+
 ### [1.11.3](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.11.2...v1.11.3) (2025-07-10)
 
 
