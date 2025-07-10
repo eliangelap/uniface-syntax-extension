@@ -23,6 +23,7 @@ class FunctionTreeProvider implements vscode.TreeDataProvider<FunctionNode> {
     private list: FunctionNode[] = [];
 
     refresh(document: vscode.TextDocument) {
+        this.list = [];
         const declaredModules = new GetDeclaredModulesList().execute(document);
 
         for (const module of declaredModules) {
