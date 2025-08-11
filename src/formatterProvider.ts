@@ -1,6 +1,10 @@
 import * as vscode from "vscode";
-import { endKeywordsRegex, ifInlineRegex, startKeywordsRegex } from "./regExpConstants";
-import { CodeAnalyzer } from './util/codeAnalyzer.use.case';
+import {
+    endKeywordsRegex,
+    ifInlineRegex,
+    startKeywordsRegex,
+} from "./regExpConstants";
+import { CodeAnalyzer } from "./util/codeAnalyzer.use.case";
 
 interface CommentedLine {
     code: string;
@@ -55,7 +59,7 @@ class UnifaceFormatter {
 
     public format(): string {
         for (const line of this.lines) {
-            const trimmed = line.trim();
+            let trimmed = line.trim();
 
             const isBlank = trimmed === "";
 
@@ -73,6 +77,8 @@ class UnifaceFormatter {
                 continue;
             }
 
+            trimmed = this.updateFieldSyntax(trimmed);
+
             this.adjustDepthForEnd(trimmed);
             this.addFormattedLine(trimmed);
             this.updateContinuationState(isContinuation);
@@ -80,6 +86,24 @@ class UnifaceFormatter {
         }
 
         return this.formattedLines.join("\n");
+    }
+
+    private updateFieldSyntax(trimmed: string): string {
+        const fieldMatch = /^\s*fieldsyntax\s+/i.test(trimmed);
+
+        if (fieldMatch) {
+            const parts = trimmed.split(/\s+/);
+
+            let [_, field, fieldSyntax, ...rest] = parts;
+
+            field = field.replace(/,/g, "");
+
+            return `$fieldsyntax(${field}) = ${fieldSyntax} ${rest.join(
+                " "
+            )} \n;  ${trimmed}`;
+        }
+
+        return trimmed;
     }
 
     private handleSingleLineIf(trimmed: string): boolean {
@@ -110,7 +134,9 @@ class UnifaceFormatter {
             return false;
         }
 
-        this.addFormattedLine(`if (${inlineIfMatch[1]}) ${commentedLine?.comment ?? ''}`);
+        this.addFormattedLine(
+            `if (${inlineIfMatch[1]}) ${commentedLine?.comment ?? ""}`
+        );
         this.deepLevel++;
         this.addFormattedLine(inlineIfMatch[2]);
         this.deepLevel--;
