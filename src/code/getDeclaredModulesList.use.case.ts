@@ -3,7 +3,7 @@ import { DeclaredModule } from "./getVariablesFromBlock.use.case";
 
 export class GetDeclaredModulesList {
     public execute(document: vscode.TextDocument): DeclaredModule[] {
-        const text = document.getText().trim();
+        const text = document.getText();
         const regex = /\b(entry|operation|function|trigger)\s+(\w+)/gi;
 
         const declaredModules = [];

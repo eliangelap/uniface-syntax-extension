@@ -11,13 +11,6 @@ import { UnifaceUnusedVariableAnalyzer } from "./unusedVariablesAnalyzer";
 import { UnifaceSignatureHelpProvider } from "./signatureHelpProvider";
 
 export function activate(context: vscode.ExtensionContext) {
-    const editor = vscode.window.activeTextEditor;
-
-    let document = editor?.document;
-    if (document?.languageId !== "uniface") {
-        return;
-    }
-
     registerGoldInterceptor(context);
     registerGoldDecorationEvents(context);
     registerTreeDataProvider(context);

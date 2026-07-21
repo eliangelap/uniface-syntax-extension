@@ -69,7 +69,6 @@ class UnifaceFormatter {
             const isContinuation = trimmed.endsWith("%\\");
 
             if (this.handleSingleLineIf(trimmed)) {
-                console.log(trimmed);
                 continue;
             }
 

@@ -54,4 +54,4 @@ const startKeywords = [
 export const startKeywordsRegex = `^(${startKeywords.join("|")})\\s*\\(?`; 
 
 export const blockEndRegex = /^\s*end\b(?!if|for|while|variables|params|selectcase|try)/i;
-export const blockStartRegex = /^\s*(entry|operation|trigger|function)\b/i;
+export const blockStartRegex = /^\s*(entry|operation|trigger|function)\s+\w+\b/i;
