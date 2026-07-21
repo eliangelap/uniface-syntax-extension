@@ -15,7 +15,7 @@
         "pretest": "npm run compile-tests && npm run compile && npm run lint",
         "check-types": "tsc --noEmit",
         "lint": "eslint src",
-        "test": "npx test/mocha",
+        "test": "vscode-test",
         "release": "standard-version",
         "create:release": "vsce package"
     },
@@ -84,14 +84,17 @@
         "url": "https://github.com/eliangelap/uniface-syntax-extension.git"
     },
     "devDependencies": {
-        "@types/node": "20.x",
-        "@types/vscode": "^1.98.0",
-        "@typescript-eslint/eslint-plugin": "^8.25.0",
-        "@typescript-eslint/parser": "^8.25.0",
-        "esbuild": "^0.25.0",
-        "eslint": "^9.21.0",
-        "npm-run-all": "^4.1.5",
-        "typescript": "^5.7.3"
+        "@types/mocha": "^10.0.10",
+        "@types/node": "26.x",
+        "@types/vscode": "^1.125.0",
+        "@typescript-eslint/eslint-plugin": "8.65.0",
+        "@typescript-eslint/parser": "8.65.0",
+        "@vscode/test-cli": "^0.0.15",
+        "@vscode/test-electron": "^3.0.0",
+        "esbuild": "0.28.1",
+        "eslint": "10.7.0",
+        "npm-run-all": "4.1.5",
+        "typescript": "6.0.3"
     },
     "publisher": "eliangela",
     "author": {
@@ -109,11 +112,11 @@
         }
     ],
     "engines": {
-        "vscode": "^1.98.0",
-        "node": "22.0.0"
+        "vscode": "^1.125.0",
+        "node": "24.14.0"
     },
     "dependencies": {
-        "standard-version": "^9.5.0"
+        "standard-version": "9.5.0"
     },
     "icon": "media/rocket.png",
     "activationEvents": []
