@@ -26,13 +26,18 @@ suite('Uniface TextMate grammar', () => {
         const grammar = JSON.parse(fs.readFileSync(getGrammarPath(), 'utf8')) as {
             repository: { strings: { patterns: TextMatePattern[] } };
         };
-        const stringPattern = grammar.repository.strings.patterns[0];
+        const stringPatterns = grammar.repository.strings.patterns;
 
-        assert.strictEqual(stringPattern.name, 'string.quoted.double.uniface');
-        assert.strictEqual(stringPattern.begin, '"');
-        assert.strictEqual(stringPattern.end, '"');
+        const doubleQuotePattern = stringPatterns.find(
+            (pattern) => pattern.begin === '"' && pattern.end === '"'
+        );
+        assert.ok(doubleQuotePattern, 'Expected a double-quoted string pattern.');
+        assert.strictEqual(doubleQuotePattern.name, 'string.quoted.double.uniface');
+        assert.strictEqual(doubleQuotePattern.begin, '"');
+        assert.strictEqual(doubleQuotePattern.end, '"');
+
         assert.strictEqual(
-            stringPattern.patterns?.some((pattern) => pattern.begin === "'"),
+            stringPatterns.some((pattern) => pattern.begin === "'"),
             false
         );
     });
