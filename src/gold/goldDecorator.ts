@@ -18,8 +18,7 @@ class GoldCharacterRegistry {
         { ascii: 16, display: '*' },
     ];
 
-    private decorations: Map<number, vscode.TextEditorDecorationType> =
-        new Map();
+    private decorations: Map<number, vscode.TextEditorDecorationType> = new Map();
 
     constructor() {
         this.initializeDecorations();
@@ -43,9 +42,7 @@ class GoldCharacterRegistry {
         }
     }
 
-    public getDecoration(
-        ascii: number
-    ): vscode.TextEditorDecorationType | undefined {
+    public getDecoration(ascii: number): vscode.TextEditorDecorationType | undefined {
         return this.decorations.get(ascii);
     }
 
@@ -103,9 +100,7 @@ export function registerGoldDecorationEvents(context: vscode.ExtensionContext) {
             }
         }),
         vscode.workspace.onDidOpenTextDocument((doc) => {
-            const editor = vscode.window.visibleTextEditors.find(
-                (e) => e.document === doc
-            );
+            const editor = vscode.window.visibleTextEditors.find((e) => e.document === doc);
             if (editor) {
                 updateEditor(editor);
             }

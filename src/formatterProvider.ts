@@ -1,5 +1,5 @@
-import * as vscode from "vscode";
-import { endKeywordsRegex, ifInlineRegex, startKeywordsRegex } from "./regExpConstants";
+import * as vscode from 'vscode';
+import { endKeywordsRegex, ifInlineRegex, startKeywordsRegex } from './regExpConstants';
 import { CodeAnalyzer } from './util/codeAnalyzer.use.case';
 
 interface CommentedLine {
@@ -19,9 +19,7 @@ export const formatterProvider = (): vscode.DocumentFormattingEditProvider => {
     };
 };
 
-class UnifaceFormatterProvider
-    implements vscode.DocumentFormattingEditProvider
-{
+class UnifaceFormatterProvider implements vscode.DocumentFormattingEditProvider {
     provideDocumentFormattingEdits(
         document: vscode.TextDocument,
         options: vscode.FormattingOptions,
@@ -32,10 +30,7 @@ class UnifaceFormatterProvider
 
         const firstLine = document.lineAt(0);
         const lastLine = document.lineAt(document.lineCount - 1);
-        const range = new vscode.Range(
-            firstLine.range.start,
-            lastLine.range.end
-        );
+        const range = new vscode.Range(firstLine.range.start, lastLine.range.end);
 
         return [new vscode.TextEdit(range, formattedText)];
     }
@@ -49,15 +44,18 @@ class UnifaceFormatter {
     private isInContinuation = false;
     private continuationIndent = 0;
 
-    constructor(text: string, private options: vscode.FormattingOptions) {
-        this.lines = text.split("\n");
+    constructor(
+        text: string,
+        private options: vscode.FormattingOptions
+    ) {
+        this.lines = text.split('\n');
     }
 
     public format(): string {
         for (const line of this.lines) {
             const trimmed = line.trim();
 
-            const isBlank = trimmed === "";
+            const isBlank = trimmed === '';
 
             if (this.handleBlankLine(isBlank)) {
                 continue;
@@ -66,10 +64,9 @@ class UnifaceFormatter {
                 continue;
             }
 
-            const isContinuation = trimmed.endsWith("%\\");
+            const isContinuation = trimmed.endsWith('%\\');
 
             if (this.handleSingleLineIf(trimmed)) {
-                console.log(trimmed);
                 continue;
             }
 
@@ -79,7 +76,7 @@ class UnifaceFormatter {
             this.adjustDepthForStart(trimmed);
         }
 
-        return this.formattedLines.join("\n");
+        return this.formattedLines.join('\n');
     }
 
     private handleSingleLineIf(trimmed: string): boolean {
@@ -89,18 +86,18 @@ class UnifaceFormatter {
 
         let commentedLine;
 
-        if (trimmed.includes(";")) {
+        if (trimmed.includes(';')) {
             commentedLine = this.extractComment(trimmed);
             if (commentedLine) {
                 trimmed = commentedLine?.code;
             }
         }
 
-        if (trimmed.endsWith("%\\")) {
+        if (trimmed.endsWith('%\\')) {
             return false;
         }
 
-        if (trimmed.endsWith(")")) {
+        if (trimmed.endsWith(')')) {
             return false;
         }
 
@@ -135,7 +132,7 @@ class UnifaceFormatter {
                 continue;
             }
 
-            if (!isInString && char === ";") {
+            if (!isInString && char === ';') {
                 return {
                     code: trimmed.substring(0, i).trim(),
                     comment: trimmed.substring(i).trim(),
@@ -155,13 +152,13 @@ class UnifaceFormatter {
             return true;
         }
 
-        this.formattedLines.push("");
+        this.formattedLines.push('');
         this.previousLineWasBlank = true;
         return true;
     }
 
     private handleDefineDirective(trimmed: string): boolean {
-        if (!trimmed.startsWith("#define")) {
+        if (!trimmed.startsWith('#define')) {
             return false;
         }
 
@@ -171,36 +168,26 @@ class UnifaceFormatter {
     }
 
     private adjustDepthForEnd(trimmed: string): void {
-        if (RegExp(endKeywordsRegex, "gi").test(trimmed)) {
+        if (RegExp(endKeywordsRegex, 'gi').test(trimmed)) {
             this.deepLevel = Math.max(this.deepLevel - 1, 0);
         }
     }
 
     private adjustDepthForStart(trimmed: string): void {
-        if (RegExp(startKeywordsRegex, "gi").test(trimmed)) {
+        if (RegExp(startKeywordsRegex, 'gi').test(trimmed)) {
             this.deepLevel++;
         }
     }
 
     private addFormattedLine(trimmed: string): void {
-        const decreaseKeywords = [
-            "else",
-            "elseif",
-            "case ",
-            "catch",
-            "elsecase",
-        ];
+        const decreaseKeywords = ['else', 'elseif', 'case ', 'catch', 'elsecase'];
 
-        const inDecreaseKeyword = decreaseKeywords.some((k) =>
-            trimmed.toLowerCase().startsWith(k)
-        );
-        const tabCount = inDecreaseKeyword
-            ? this.deepLevel - 1
-            : this.deepLevel;
+        const inDecreaseKeyword = decreaseKeywords.some((k) => trimmed.toLowerCase().startsWith(k));
+        const tabCount = inDecreaseKeyword ? this.deepLevel - 1 : this.deepLevel;
 
         const indent = this.isInContinuation
-            ? "\t".repeat(this.continuationIndent) + "\t"
-            : "\t".repeat(tabCount);
+            ? '\t'.repeat(this.continuationIndent) + '\t'
+            : '\t'.repeat(tabCount);
 
         this.formattedLines.push(indent + trimmed);
         this.previousLineWasBlank = false;
