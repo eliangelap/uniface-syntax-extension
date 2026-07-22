@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.12.1](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.12.0...v1.12.1) (2026-07-22)
+
+
+### Bug Fixes
+
+* **27:** 🐛 atualiza diagnósticos ao trocar de editor ([6a706df](https://github.com/eliangelap/uniface-syntax-extension/commit/6a706df4cc992f10387801a8d698add12c3bb957))
+* **sintaxe:** 🐛 corrige aspas simples em strings ([8a1ff24](https://github.com/eliangelap/uniface-syntax-extension/commit/8a1ff24702e218065cd070426e64f3ad3355506e))
+
 ## [1.12.0](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.11.6...v1.12.0) (2026-07-22)
 
 
