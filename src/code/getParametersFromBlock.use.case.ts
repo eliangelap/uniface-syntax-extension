@@ -15,7 +15,7 @@ export class GetParametersFromBlock {
         for (let i = 0; i < block.lines.length; i++) {
             const lineText = block.lines[i].trim();
 
-            if (CodeAnalyzer.isComment(lineText)) {
+            if (CodeAnalyzer.isLineCommented(lineText)) {
                 continue;
             }
 

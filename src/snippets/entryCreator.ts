@@ -1,26 +1,59 @@
 import * as vscode from 'vscode';
-import { GetCurrentDate } from '../util/getCurrentData.use.case';
+import { GetCurrentDate } from '../util/getCurrentDate.use.case';
 import { GetFormattedDate } from '../util/getFormattedDate.use.case';
+import { EntryTemplateRenderer } from './renderers/entryTemplateRenderer';
+
+interface EntryCreatorDependencies {
+    getActiveTextEditor(): vscode.TextEditor | undefined;
+    showInputBox(options: vscode.InputBoxOptions): Thenable<string | undefined>;
+    showErrorMessage(message: string): Thenable<string | undefined>;
+}
+
+const defaultDependencies: EntryCreatorDependencies = {
+    getActiveTextEditor: () => vscode.window.activeTextEditor,
+    showInputBox: (options) => vscode.window.showInputBox(options),
+    showErrorMessage: (message) => vscode.window.showErrorMessage(message),
+};
+
+export function isValidEntryName(entryName: string): boolean {
+    return /^\w+$/.test(entryName);
+}
 
 export class EntryCreator {
-    private readonly editor: vscode.TextEditor | undefined;
-
-    constructor() {
-        this.editor = vscode.window.activeTextEditor;
-    }
+    constructor(private readonly dependencies: EntryCreatorDependencies = defaultDependencies) {}
 
     public async promptAndInsert(): Promise<void> {
-        const entryName = await this.askEntryName();
-        if (!entryName || !this.editor) {
+        const inputName = await this.askEntryName();
+        if (inputName === undefined) {
+            return;
+        }
+
+        const entryName = inputName.trim();
+        if (!isValidEntryName(entryName)) {
+            await this.dependencies.showErrorMessage(
+                'The entry name must contain only letters, numbers, or underscores.'
+            );
+            return;
+        }
+
+        const editor = this.dependencies.getActiveTextEditor();
+        if (!editor || editor.document.languageId !== 'uniface') {
+            await this.dependencies.showErrorMessage(
+                'Open a Uniface document to insert an entry.'
+            );
             return;
         }
 
         const snippet = this.buildEntrySnippet(entryName);
-        this.editor.insertSnippet(snippet);
+        const wasInserted = await editor.insertSnippet(snippet);
+
+        if (!wasInserted) {
+            await this.dependencies.showErrorMessage('Unable to insert the entry.');
+        }
     }
 
     private async askEntryName(): Promise<string | undefined> {
-        return vscode.window.showInputBox({
+        return this.dependencies.showInputBox({
             title: 'Entry name',
             value: 'entry_1',
             prompt: `Enter entry's name...`,
@@ -32,30 +65,6 @@ export class EntryCreator {
         const currentDate = new GetCurrentDate().execute();
         const date = new GetFormattedDate().execute(currentDate);
 
-        const entryCode = [
-            ';|',
-            `; Autor: ${author}`,
-            `; Data: ${date}`,
-            '; Função: ',
-            ';',
-            `entry ${entryName}`,
-            '    params',
-            '        string  pLsEntrada   : in',
-            '        string  pLsSaida     : out',
-            '                \\$t_ds_erro\\$  : out',
-            '    endparams',
-            '    variables',
-            '        string  vDsContexto',
-            '    endvariables',
-            '',
-            `    vDsContexto = "%%^<\\$componentname>, <\\$trigger>, ${entryName}"`,
-            '',
-            '    ; Enter your code here...',
-            '',
-            '    return 0',
-            `end ;${entryName}`,
-        ].join('\n');
-
-        return new vscode.SnippetString(entryCode);
+        return new EntryTemplateRenderer().render({ entryName, author, date });
     }
 }

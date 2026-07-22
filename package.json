@@ -1,6 +1,6 @@
 {
-    "name": "uniface-sintax-extension",
-    "displayName": "uniface-sintax-extension",
+    "name": "uniface-syntax-extension",
+    "displayName": "uniface-syntax-extension",
     "description": "A VSCode extension for Uniface program language, with syntax highlighter and all powerful of VSCode resources",
     "version": "1.11.5",
     "scripts": {
@@ -26,6 +26,23 @@
         "Programming Languages"
     ],
     "contributes": {
+        "configuration": {
+            "title": "Uniface",
+            "properties": {
+                "uniface.snippets.entryTemplate": {
+                    "type": "string",
+                    "editPresentation": "multilineText",
+                    "default": ";|\n; Author: {{author}}\n; Date: {{date}}\n; Description: \n;\nentry {{entryName}}\n    params\n        string  pLsEntrada   : in\n        string  pLsSaida     : out\n                \\$t_ds_erro\\$  : out\n    endparams\n    variables\n        string  vDsContexto\n    endvariables\n\n    vDsContexto = \"%%^<\\$componentname>, <\\$trigger>, {{entryName}}\"\n\n    ; Enter your code here...\n\n    return 0\nend ;{{entryName}}",
+                    "description": "Multiline text used to generate a new entry. Supports {{entryName}}, {{author}}, {{date}}, and VS Code snippet placeholders."
+                },
+                "uniface.snippets.operationTemplate": {
+                    "type": "string",
+                    "editPresentation": "multilineText",
+                    "default": ";|\n; Author: {{author}}\n; Date: {{date}}\n; Description: \n;\noperation {{operationName}}\n    params\n        string  pLsEntrada   : in\n        string  pLsSaida     : out\n                \\$t_ds_erro\\$  : out\n    endparams\n    variables\n        string  vDsContexto\n    endvariables\n\n    vDsContexto = \"%%^<\\$componentname>, <\\$trigger>, {{operationName}}\"\n\n    ; Enter your code here...\n\n    return 0\nend ;{{operationName}}",
+                    "description": "Multiline text used to generate a new operation. Supports {{operationName}}, {{author}}, {{date}}, and VS Code snippet placeholders."
+                }
+            }
+        },
         "languages": [
             {
                 "id": "uniface",

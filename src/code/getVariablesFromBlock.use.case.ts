@@ -1,5 +1,4 @@
 import { variableRegex } from '../regExpConstants';
-import { CodeAnalyzer } from '../util/codeAnalyzer.use.case';
 import { BlockCode } from './getBlockAroundPosition.use.case';
 import { DeclaredItem } from './types/declaredModule';
 
@@ -10,14 +9,12 @@ export interface DeclaredVariable extends DeclaredItem {
 export class GetVariablesFromBlock {
     public execute = (block: BlockCode): DeclaredVariable[] => {
         let inVariableBlock = false;
-        const variables = [];
+        const variables: DeclaredVariable[] = [];
         const blockStartLine = block.startLine;
 
         for (let i = 0; i < block.lines.length; i++) {
             const line = block.lines[i].trim();
-            const lineLower = line.toLowerCase();
-
-            if (lineLower === 'variables') {
+            if (/^variables\b(?:\s*;.*)?$/i.test(line)) {
                 inVariableBlock = true;
                 continue;
             }
@@ -26,7 +23,7 @@ export class GetVariablesFromBlock {
                 continue;
             }
 
-            if (lineLower === 'endvariables') {
+            if (/^endvariables\b(?:\s*;.*)?$/i.test(line)) {
                 break;
             }
 
@@ -37,26 +34,26 @@ export class GetVariablesFromBlock {
     };
 
     private extractVariables = (codeLine: string, lineNumber: number): DeclaredVariable[] => {
-        const variables = [];
+        const variables: DeclaredVariable[] = [];
+        const declaration = codeLine.split(';', 1)[0].trim();
+        const varMatch = RegExp(`^${variableRegex}`, 'i').exec(declaration);
 
-        const varMatch = RegExp(variableRegex, 'i').exec(codeLine.trim());
+        if (!varMatch) {
+            return variables;
+        }
 
-        if (varMatch) {
-            const variableNames = varMatch?.input?.replace(`${varMatch[1]}`, '')?.split(',');
-            if (variableNames) {
-                for (const variableName of variableNames) {
-                    if (CodeAnalyzer.isComment(variableName)) {
-                        continue;
-                    }
+        const variableNames = declaration
+            .slice(varMatch[1].length)
+            .split(',')
+            .map((name) => name.trim())
+            .filter((name) => /^\w+$/.test(name));
 
-                    const item = {
-                        dataType: varMatch[1],
-                        name: variableName.trim().split(';')[0],
-                        line: lineNumber,
-                    };
-                    variables.push(item);
-                }
-            }
+        for (const name of variableNames) {
+            variables.push({
+                dataType: varMatch[1],
+                name,
+                line: lineNumber,
+            });
         }
 
         return variables;

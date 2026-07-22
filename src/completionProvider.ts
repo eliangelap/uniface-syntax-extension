@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { GetStatementList } from './code/getStatementList.use.case';
-import { GetBlockAroundPostion } from './code/getBlockAroundPosition.use.case';
+import { GetBlockAroundPosition } from './code/getBlockAroundPosition.use.case';
 import { GetEntriesCompletionList } from './code/getEntriesCompletionList.use.case';
 import { GetParametersFromBlock } from './code/getParametersFromBlock.use.case';
 import { GetUnifaceProcFunctionList } from './code/getUnifaceProcFunctionList.use.case';
@@ -14,7 +14,7 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
         const completions: vscode.CompletionItem[] = [];
         const lineText = document.lineAt(position).text.trim();
 
-        if (CodeAnalyzer.isComment(lineText)) {
+        if (CodeAnalyzer.isLineCommented(lineText)) {
             return [];
         }
 
@@ -24,7 +24,7 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
             return this.removeDuplicateCompletions(entries);
         }
 
-        const blockText = new GetBlockAroundPostion().execute(document, position);
+        const blockText = new GetBlockAroundPosition().execute(document, position);
 
         if (!blockText) {
             return [];
@@ -33,6 +33,7 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
         const parameters = new GetParametersFromBlock().execute(blockText);
         const variables = new GetVariablesFromBlock().execute(blockText);
         const reservedFunctions = new GetUnifaceProcFunctionList().execute();
+        const dollarPrefixedTokenRange = this.getDollarPrefixedTokenRange(document, position);
 
         completions.push(
             ...new StringListToCompletionItems().execute(
@@ -40,20 +41,42 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
                 vscode.CompletionItemKind.Keyword
             )
         );
-        completions.push(...new VariablesToCompletionItems().execute(parameters));
-        completions.push(...new VariablesToCompletionItems().execute(variables));
+        completions.push(
+            ...new VariablesToCompletionItems().execute(
+                [...parameters, ...variables],
+                dollarPrefixedTokenRange ?? undefined
+            )
+        );
 
-        if (lineText.includes('$')) {
-            completions.push(
-                ...new StringListToCompletionItems().execute(
-                    reservedFunctions.map((proc) => proc.name),
-                    vscode.CompletionItemKind.Method
-                )
+        if (dollarPrefixedTokenRange) {
+            const procFunctionCompletions = new StringListToCompletionItems().execute(
+                reservedFunctions.map((proc) => proc.name),
+                vscode.CompletionItemKind.Method
             );
+
+            for (const completion of procFunctionCompletions) {
+                completion.range = dollarPrefixedTokenRange;
+            }
+
+            completions.push(...procFunctionCompletions);
         }
 
         return this.removeDuplicateCompletions(completions);
     };
+
+    private getDollarPrefixedTokenRange(
+        document: vscode.TextDocument,
+        position: vscode.Position
+    ): vscode.Range | null {
+        const textBeforeCursor = document.lineAt(position).text.slice(0, position.character);
+        const match = /\$\w*$/.exec(textBeforeCursor);
+
+        if (!match || match.index === undefined) {
+            return null;
+        }
+
+        return new vscode.Range(position.line, match.index, position.line, position.character);
+    }
 
     private removeDuplicateCompletions(
         completions: vscode.CompletionItem[]

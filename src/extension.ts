@@ -7,8 +7,23 @@ import { registerGoldInterceptor } from './gold/goldHandler';
 import { registerTreeDataProvider } from './sidebar/entryTreeProvider';
 import { EntryCreator } from './snippets/entryCreator';
 import { OperationCreator } from './snippets/operationCreator';
-import { UnifaceUnusedVariableAnalyzer } from './unusedVariablesAnalyzer';
+import { UnifaceUnusedVariableAnalyzer } from './unusedVariables/unusedVariablesAnalyzer';
 import { UnifaceSignatureHelpProvider } from './signatureHelpProvider';
+
+interface PromptAndInsert {
+    promptAndInsert(): Promise<void>;
+}
+
+export function runPromptAndInsert(creator: PromptAndInsert): Promise<void> {
+    return creator.promptAndInsert();
+}
+
+export function shouldAnalyzeDocument(
+    editor: vscode.TextEditor | undefined,
+    document: vscode.TextDocument
+): boolean {
+    return document.languageId === 'uniface' && editor?.document === document;
+}
 
 export function activate(context: vscode.ExtensionContext) {
     registerGoldInterceptor(context);
@@ -19,10 +34,10 @@ export function activate(context: vscode.ExtensionContext) {
 
     context.subscriptions.push(
         vscode.commands.registerCommand('uniface-extension.entry', () => {
-            new EntryCreator().promptAndInsert();
+            return runPromptAndInsert(new EntryCreator());
         }),
         vscode.commands.registerCommand('uniface-extension.operation', () => {
-            new OperationCreator().promptAndInsert();
+            return runPromptAndInsert(new OperationCreator());
         }),
         vscode.languages.registerCompletionItemProvider('uniface', new CompletionItemProvider()),
         vscode.languages.registerDocumentFormattingEditProvider('uniface', formatterProvider()),
@@ -31,18 +46,24 @@ export function activate(context: vscode.ExtensionContext) {
             { language: 'uniface' },
             new UnifaceSignatureHelpProvider(),
             '(',
-            ',',
-            ', '
+            ','
         ),
-        vscode.workspace.onDidOpenTextDocument((doc) => variableAnalyzer.analyzeDocument(doc)),
-        vscode.workspace.onDidChangeTextDocument((e) =>
-            variableAnalyzer.analyzeDocument(e.document)
-        ),
+        vscode.workspace.onDidOpenTextDocument((doc) => {
+            if (shouldAnalyzeDocument(vscode.window.activeTextEditor, doc)) {
+                variableAnalyzer.analyzeDocument(doc);
+            }
+        }),
+        vscode.workspace.onDidChangeTextDocument((e) => {
+            const editor = vscode.window.activeTextEditor;
+            if (shouldAnalyzeDocument(editor, e.document)) {
+                variableAnalyzer.analyzeDocument(e.document);
+            }
+        }),
         vscode.workspace.onDidCloseTextDocument((doc) => variableAnalyzer.clearDiagnostics(doc)),
         variableAnalyzer
     );
 }
 
 export function deactivate() {
-    vscode.window.showInformationMessage("I am very sad! :'(");
+    return undefined;
 }
