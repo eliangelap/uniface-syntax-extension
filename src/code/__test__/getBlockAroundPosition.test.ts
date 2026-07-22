@@ -2,7 +2,7 @@ import * as assert from 'node:assert';
 import * as vscode from 'vscode';
 import { GetBlockAroundPosition } from '../getBlockAroundPosition.use.case';
 
-suite('GetBlockAroundPostion', () => {
+suite('GetBlockAroundPosition', () => {
     test('finds a valid module block from an internal position', async () => {
         const document = await vscode.workspace.openTextDocument({
             content: 'entry validEntry\nvariables\nstring value\nendvariables\nend\n',
