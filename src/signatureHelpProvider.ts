@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { GetUnifaceProcFunctionList } from './code/getUnifaceProcFunctionList.use.case';
 import { GetEntriesList } from './code/getEntriesList.use.case';
 import { GetParametersFromBlock } from './code/getParametersFromBlock.use.case';
-import { GetBlockAroundPostion } from './code/getBlockAroundPosition.use.case';
+import { GetBlockAroundPosition } from './code/getBlockAroundPosition.use.case';
 
 export class UnifaceSignatureHelpProvider implements vscode.SignatureHelpProvider {
     provideSignatureHelp(
@@ -88,7 +88,7 @@ export class UnifaceSignatureHelpProvider implements vscode.SignatureHelpProvide
 
         const position = new vscode.Position(entry.line, 0);
 
-        const block = new GetBlockAroundPostion().execute(document, position);
+        const block = new GetBlockAroundPosition().execute(document, position);
         if (!block) {
             return null;
         }

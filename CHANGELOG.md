@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.12.0](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.11.6...v1.12.0) (2026-07-22)
+
+
+### Features
+
+* **27:** ✨ detecta variáveis não declaradas ([8525186](https://github.com/eliangelap/uniface-syntax-extension/commit/8525186163b7765a0d32802f63c2af327d5356c1))
+
+### [1.11.6](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.11.5...v1.11.6) (2026-07-22)
+
+### Features
+
+- **autocomplete:** ✨ aprimora análise e formatação Uniface ([5cd22d7](https://github.com/eliangelap/uniface-syntax-extension/commit/5cd22d7b75c6c7b9463f187c8eec748655af14c1))
+- **editor:** ✨ aprimora assistência de código Uniface ([b5287d4](https://github.com/eliangelap/uniface-syntax-extension/commit/b5287d4814f6bae2d467ba696bbf7cc0b3b484a4))
+
+### Bug Fixes
+
+- **parser:** 🐛 corrigida identificação de blocos Uniface ([ca09705](https://github.com/eliangelap/uniface-syntax-extension/commit/ca09705e3e1eb1decc6789a22ac3ac62dd4fe508))
+
 ### [1.11.5](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.11.4...v1.11.5) (2025-07-10)
 
 ### Bug Fixes

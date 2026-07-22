@@ -1,15 +1,15 @@
 import * as assert from 'node:assert';
 import * as vscode from 'vscode';
-import { GetBlockAroundPostion } from '../getBlockAroundPosition.use.case';
+import { GetBlockAroundPosition } from '../getBlockAroundPosition.use.case';
 
-suite('GetBlockAroundPostion', () => {
+suite('GetBlockAroundPosition', () => {
     test('finds a valid module block from an internal position', async () => {
         const document = await vscode.workspace.openTextDocument({
             content: 'entry validEntry\nvariables\nstring value\nendvariables\nend\n',
             language: 'uniface',
         });
 
-        const block = new GetBlockAroundPostion().execute(document, new vscode.Position(2, 0));
+        const block = new GetBlockAroundPosition().execute(document, new vscode.Position(2, 0));
 
         assert.deepStrictEqual(block, {
             text: 'entry validEntry\nvariables\nstring value\nendvariables\nend',
@@ -24,7 +24,7 @@ suite('GetBlockAroundPostion', () => {
             language: 'uniface',
         });
 
-        const block = new GetBlockAroundPostion().execute(document, new vscode.Position(0, 0));
+        const block = new GetBlockAroundPosition().execute(document, new vscode.Position(0, 0));
 
         assert.strictEqual(block, null);
     });
@@ -35,7 +35,7 @@ suite('GetBlockAroundPostion', () => {
             language: 'uniface',
         });
 
-        const block = new GetBlockAroundPostion().execute(document, new vscode.Position(2, 0));
+        const block = new GetBlockAroundPosition().execute(document, new vscode.Position(2, 0));
 
         assert.strictEqual(block, null);
     });
@@ -46,7 +46,7 @@ suite('GetBlockAroundPostion', () => {
             language: 'uniface',
         });
 
-        const block = new GetBlockAroundPostion().execute(document, new vscode.Position(1, 0));
+        const block = new GetBlockAroundPosition().execute(document, new vscode.Position(1, 0));
 
         assert.strictEqual(block, null);
     });

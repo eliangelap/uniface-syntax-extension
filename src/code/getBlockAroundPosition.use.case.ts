@@ -8,7 +8,7 @@ export interface BlockCode {
     lines: string[];
 }
 
-export class GetBlockAroundPostion {
+export class GetBlockAroundPosition {
     public execute(document: vscode.TextDocument, position: vscode.Position): BlockCode | null {
         const blockStart = this.findStartLineOfBlock(document, position);
         if (blockStart === null) {
@@ -42,7 +42,7 @@ export class GetBlockAroundPostion {
 
         for (let i = position.line; i < lines.length; i++) {
             const line = lines[i].trim().toLowerCase();
-            if (CodeAnalyzer.isComment(line)) {
+            if (CodeAnalyzer.isLineCommented(line)) {
                 continue;
             }
 
@@ -67,7 +67,7 @@ export class GetBlockAroundPostion {
         for (let i = position.line; i >= 0; i--) {
             const line = lines[i].toLowerCase().trim();
 
-            if (CodeAnalyzer.isComment(line) || line.startsWith('#') || line === '') {
+            if (CodeAnalyzer.isLineCommented(line) || line.startsWith('#') || line === '') {
                 continue;
             }
 

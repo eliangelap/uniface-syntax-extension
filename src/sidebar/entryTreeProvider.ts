@@ -45,41 +45,41 @@ class FunctionTreeProvider implements vscode.TreeDataProvider<FunctionNode> {
     }
 }
 
-export function registerTreeDataProvider(context: vscode.ExtensionContext) {
+export function registerTreeDataProvider(
+    context: vscode.ExtensionContext,
+    navigationCommand = 'uniface.navigateToFunction'
+) {
     const functionTreeProvider = new FunctionTreeProvider();
     const treeView = vscode.window.createTreeView('unifaceFunctions', {
         treeDataProvider: functionTreeProvider,
     });
 
     context.subscriptions.push(
-        vscode.commands.registerCommand('uniface.navigateToFunction', (line: number) => {
+        vscode.commands.registerCommand(navigationCommand, (line: number) => {
             const editor = vscode.window.activeTextEditor;
             if (editor) {
                 const position = new vscode.Position(line, 0);
                 editor.selection = new vscode.Selection(position, position);
                 editor.revealRange(new vscode.Range(position, position));
             }
+        }),
+        vscode.workspace.onDidOpenTextDocument((doc) => {
+            if (doc.languageId === 'uniface') {
+                functionTreeProvider.refresh(doc);
+            }
+        }),
+        vscode.window.onDidChangeActiveTextEditor((editor) => {
+            if (editor && editor.document.languageId === 'uniface') {
+                functionTreeProvider.refresh(editor.document);
+            }
+        }),
+        vscode.workspace.onDidChangeTextDocument((e) => {
+            const editor = vscode.window.activeTextEditor;
+            if (editor && e.document === editor.document) {
+                functionTreeProvider.refresh(editor.document);
+            }
         })
     );
-
-    vscode.workspace.onDidOpenTextDocument((doc) => {
-        if (doc.languageId === 'uniface') {
-            functionTreeProvider.refresh(doc);
-        }
-    });
-
-    vscode.window.onDidChangeActiveTextEditor((editor) => {
-        if (editor && editor.document.languageId === 'uniface') {
-            functionTreeProvider.refresh(editor.document);
-        }
-    });
-
-    vscode.workspace.onDidChangeTextDocument((e) => {
-        const editor = vscode.window.activeTextEditor;
-        if (editor && e.document === editor.document) {
-            functionTreeProvider.refresh(editor.document);
-        }
-    });
 
     if (vscode.window.activeTextEditor) {
         functionTreeProvider.refresh(vscode.window.activeTextEditor.document);

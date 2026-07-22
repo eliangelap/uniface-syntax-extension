@@ -6,16 +6,13 @@ import { DeclaredVariable } from './getVariablesFromBlock.use.case';
 export class GetParametersFromBlock {
     public execute = (block: BlockCode): DeclaredVariable[] => {
         const parameters: DeclaredVariable[] = [];
-        const parameterRegex = RegExp(
-            `^${variableRegex}\\s*:\\s*(in|out|inout)\\b`,
-            'i'
-        );
+        const parameterRegex = RegExp(`^${variableRegex}\\s*:\\s*(in|out|inout)\\b`, 'i');
         let inParametersBlock = false;
 
         for (let i = 0; i < block.lines.length; i++) {
             const lineText = block.lines[i].trim();
 
-            if (CodeAnalyzer.isComment(lineText)) {
+            if (CodeAnalyzer.isLineCommented(lineText)) {
                 continue;
             }
 

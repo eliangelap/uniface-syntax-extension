@@ -1,4 +1,4 @@
-const variableTypes = [
+export const variableTypes = [
     'any',
     'boolean',
     'date',

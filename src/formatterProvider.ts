@@ -80,7 +80,7 @@ class UnifaceFormatter {
     }
 
     private handleSingleLineIf(trimmed: string): boolean {
-        if (CodeAnalyzer.isComment(trimmed)) {
+        if (CodeAnalyzer.isLineCommented(trimmed)) {
             return false;
         }
 

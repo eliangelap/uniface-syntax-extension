@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { GetEntriesList } from '../code/getEntriesList.use.case';
 
 export class UnifaceDefinitionProvider implements vscode.DefinitionProvider {
     public provideDefinition(
@@ -6,37 +7,39 @@ export class UnifaceDefinitionProvider implements vscode.DefinitionProvider {
         position: vscode.Position,
         token: vscode.CancellationToken
     ): vscode.ProviderResult<vscode.Definition> {
-        const line = document.lineAt(position.line);
-        const lineText = line.text;
-
-        if (!lineText.toLowerCase().includes('call ')) {
+        if (token.isCancellationRequested) {
             return null;
         }
 
-        const callMatch = /call\s+(\w+)/i.exec(lineText);
-        if (!callMatch) {
-            return null;
-        }
+        const lineText = document.lineAt(position.line).text;
+        const codeLine = lineText.split(';', 1)[0];
+        const callRegex = /\bcall\s+(\w+)\b/gi;
+        let callMatch: RegExpExecArray | null;
 
-        const functionName = callMatch[1];
+        while ((callMatch = callRegex.exec(codeLine)) !== null) {
+            const entryName = callMatch[1];
+            const entryNameStart = callMatch.index + callMatch[0].lastIndexOf(entryName);
+            const entryNameEnd = entryNameStart + entryName.length;
 
-        const wordRange = document.getWordRangeAtPosition(position);
-        if (!wordRange) {
-            return null;
-        }
-        const word = document.getText(wordRange);
+            if (position.character < entryNameStart || position.character > entryNameEnd) {
+                continue;
+            }
 
-        if (word !== functionName) {
-            return null;
-        }
+            const entry = new GetEntriesList()
+                .execute(document)
+                .find(
+                    (declaredEntry) => declaredEntry.name.toLowerCase() === entryName.toLowerCase()
+                );
 
-        const fullText = document.getText();
-        const entryRegex = new RegExp(`entry\\s+${functionName}\\b`, 'i');
-        const entryMatch = entryRegex.exec(fullText);
+            if (!entry) {
+                return null;
+            }
 
-        if (entryMatch) {
-            const entryPos = document.positionAt(entryMatch.index);
-            return new vscode.Location(document.uri, entryPos);
+            const entryLine = document.lineAt(entry.line);
+            return new vscode.Location(
+                document.uri,
+                new vscode.Position(entry.line, entryLine.firstNonWhitespaceCharacterIndex)
+            );
         }
 
         return null;

@@ -50,4 +50,65 @@ suite('CompletionItemProvider', () => {
             completions.every((completion) => completion.kind === vscode.CompletionItemKind.Method)
         );
     });
+
+    test('replaces the current proc function token with its dollar prefix', async () => {
+        const document = await vscode.workspace.openTextDocument({
+            content: 'entry sampleEntry\n    $ab\nend\n',
+            language: 'uniface',
+        });
+        const position = new vscode.Position(1, 7);
+
+        const completions = new CompletionItemProvider().provideCompletionItems(
+            document,
+            position
+        ) as vscode.CompletionItem[];
+        const aboutCompletion = completions.find((completion) => completion.label === '$about');
+
+        assert.ok(aboutCompletion);
+        assert.strictEqual(aboutCompletion.insertText, '$about');
+        assert.deepStrictEqual(aboutCompletion.range, new vscode.Range(1, 4, 1, 7));
+    });
+
+    test('does not list proc functions outside their cursor context', async () => {
+        const document = await vscode.workspace.openTextDocument({
+            content: 'entry sampleEntry\nvalue = \nend\n',
+            language: 'uniface',
+        });
+
+        const completions = new CompletionItemProvider().provideCompletionItems(
+            document,
+            new vscode.Position(1, 8)
+        ) as vscode.CompletionItem[];
+
+        assert.ok(
+            completions.every((completion) => completion.kind !== vscode.CompletionItemKind.Method)
+        );
+    });
+
+    test('does not duplicate parameter and variable suggestions with the same name', async () => {
+        const document = await vscode.workspace.openTextDocument({
+            content: [
+                'entry sampleEntry',
+                'params',
+                'string sharedName : in',
+                'endparams',
+                'variables',
+                'numeric sharedName',
+                'endvariables',
+                '',
+                'end',
+            ].join('\n'),
+            language: 'uniface',
+        });
+
+        const completions = new CompletionItemProvider().provideCompletionItems(
+            document,
+            new vscode.Position(7, 0)
+        ) as vscode.CompletionItem[];
+        const sharedNameCompletions = completions.filter(
+            (completion) => completion.insertText === 'sharedName'
+        );
+
+        assert.strictEqual(sharedNameCompletions.length, 1);
+    });
 });
