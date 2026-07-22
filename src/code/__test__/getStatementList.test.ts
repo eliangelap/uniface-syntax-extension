@@ -13,7 +13,7 @@ suite('GetStatementList', () => {
     test('includes representative statements', () => {
         const statements = new GetStatementList().execute();
 
-        for (const statement of ['call', 'if', 'return', 'while']) {
+        for (const statement of ['call', 'if', 'return', 'to', 'while']) {
             assert.ok(statements.includes(statement));
         }
     });

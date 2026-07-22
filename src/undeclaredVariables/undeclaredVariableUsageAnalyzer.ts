@@ -9,9 +9,13 @@ export interface UndeclaredVariableUsage {
 }
 
 export class UndeclaredVariableUsageAnalyzer {
+    private readonly statements = new Set(
+        new GetStatementList().execute().map((statement) => statement.toLowerCase())
+    );
+
     private readonly ignoredWords = new Set(
         [
-            ...new GetStatementList().execute(),
+            ...this.statements,
             ...variableTypes,
             'in',
             'inout',
@@ -27,6 +31,7 @@ export class UndeclaredVariableUsageAnalyzer {
         declaredNames: Iterable<string>
     ): UndeclaredVariableUsage[] {
         const declared = new Set([...declaredNames].map((name) => name.toLowerCase()));
+        this.addDefinedConstants(block.lines, declared);
         const usages: UndeclaredVariableUsage[] = [];
         let isInsideDeclaration = false;
 
@@ -48,16 +53,28 @@ export class UndeclaredVariableUsageAnalyzer {
                 continue;
             }
 
-            const code = this.getCodeOutsideStringsAndComments(line);
+            if (/^#(?:include|define)\b/i.test(trimmedLine)) {
+                continue;
+            }
+
+            const code = this.getCodeOutsideStringsAndComments(line).replace(/<[^>]*>/g, (constant) =>
+                ' '.repeat(constant.length)
+            );
+            const callFunctionNameStart = this.getCallFunctionNameStart(code);
+            const statementModifierStart = this.getStatementModifierStart(code);
             const tokenRegex = /\b[A-Za-z_]\w*\b/g;
             let match: RegExpExecArray | null;
 
             while ((match = tokenRegex.exec(code)) !== null) {
                 const name = match[0];
                 const previousCharacter = code[match.index - 1];
+                const isStructField = code.slice(match.index - 2, match.index) === '->';
 
                 if (
                     previousCharacter === '$' ||
+                    isStructField ||
+                    match.index === callFunctionNameStart ||
+                    match.index === statementModifierStart ||
                     declared.has(name.toLowerCase()) ||
                     this.ignoredWords.has(name.toLowerCase())
                 ) {
@@ -77,6 +94,33 @@ export class UndeclaredVariableUsageAnalyzer {
         }
 
         return usages;
+    }
+
+    private addDefinedConstants(lines: string[], declared: Set<string>): void {
+        for (const line of lines) {
+            const definition = /^\s*#define\s+([A-Za-z_]\w*)\b/i.exec(line);
+            if (definition) {
+                declared.add(definition[1].toLowerCase());
+            }
+        }
+    }
+
+    private getCallFunctionNameStart(code: string): number | undefined {
+        const call = /^\s*call\s+([A-Za-z_]\w*)\b/i.exec(code);
+        if (!call) {
+            return undefined;
+        }
+
+        return call.index + call[0].length - call[1].length;
+    }
+
+    private getStatementModifierStart(code: string): number | undefined {
+        const statementModifier = /^\s*([A-Za-z_]\w*)\s*\/([A-Za-z_]\w*)\b/i.exec(code);
+        if (!statementModifier || !this.statements.has(statementModifier[1].toLowerCase())) {
+            return undefined;
+        }
+
+        return statementModifier.index + statementModifier[0].length - statementModifier[2].length;
     }
 
     private getCodeOutsideStringsAndComments(line: string): string {

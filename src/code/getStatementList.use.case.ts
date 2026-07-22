@@ -148,6 +148,7 @@ export class GetStatementList {
             'structToJson',
             'structToXml',
             'structToXml/schema',
+            'to',
             'throw',
             'throw/list',
             'throws',
