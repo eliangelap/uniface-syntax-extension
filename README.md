@@ -1,49 +1,94 @@
-# Uniface README
+# Uniface Syntax Extension
 
-This is a **VSCode plugin** for the **Uniface** programming language. It provides **syntax highlighting**, **autocomplete**, **signature help**, and several **developer-friendly features**, enhancing the development experience within Visual Studio Code.
+A Visual Studio Code extension for Uniface and ProcScript files. It adds language support for `.uniface` and `.proc` files, plus editor tools that help navigate, write, format, and inspect Uniface code.
 
 ## Features
 
-- **Syntax Highlighting**: Improves code readability with proper syntax coloring.
-- **Autocomplete**: Smart suggestions to speed up coding.
-- **Function Navigation**: Use `Ctrl+Click` to quickly jump to `operations`, `entries`, `functions`, or `triggers`.
-- **Signature Help**: Displays parameter hints for built-in `ProcScript functions` (e.g., `$date`, `$msg`) and user-defined `entries`, with support for active parameter highlighting as you type.
-- **Sidebar Explorer**: Dedicated Uniface panel listing all declared `operations`, `entries`, `functions`, and `triggers`.
-- **GOLD Key Support**: Recognizes `GOLD` key combinations (e.g., `+;`) and replaces them with the appropriate control characters (e.g., ASCII 27).
-- **Code Formatting**: Format Uniface code using `Alt+Shift+F`.
-- **VSCode Integration**: Leverages native VSCode tools with full Uniface language support.
+### Language support
+
+- Syntax highlighting through the `source.uniface` grammar.
+- Language configuration for Uniface and ProcScript files.
+- Code formatting through VS Code's **Format Document** command.
+
+### Completion and signature help
+
+- Completion for `entry` declarations after `call`.
+- Completion for parameters and variables declared in the current block.
+- Completion for built-in ProcScript functions when typing `$`.
+- Signature help for built-in ProcScript functions and called entries, including the active parameter.
+
+### Navigation and explorer
+
+- Go to Definition for entries referenced by `call`.
+- A dedicated **Uniface** activity-bar view that lists declared `trigger`, `operation`, `entry`, and `function` modules.
+- Select an item in the view to jump to its declaration.
+
+### Authoring assistance
+
+- **Uniface: Create new Entry** inserts a documented entry template with parameters, variables, and return handling.
+- **Uniface: Create new Operation** inserts an operation template with the same baseline structure.
+- Diagnostics highlight variables declared in the current block that are not used after the `variables` section.
+
+### GOLD key support
+
+- Recognizes GOLD sequences typed inside double-quoted strings and replaces them with the corresponding control character.
+- Displays supported GOLD control characters with a visible decoration in the editor.
+
+Supported sequences include `+;`, `+=`, `+!`, `+<`, `+>`, `+&`, `+|`, `+?`, and `+*`.
+
+## Commands
+
+| Command                         | Description                                              |
+| ------------------------------- | -------------------------------------------------------- |
+| `Uniface: Create new Operation` | Prompts for a name and inserts an operation template.    |
+| `Uniface: Create new Entry`     | Prompts for a name and inserts an entry template.        |
+| `Uniface: Go to function`       | Opens the selected declaration from the Uniface sidebar. |
 
 ## Requirements
 
-- **Visual Studio Code** installed (minimum recommended version: 1.98.0)
-- **Uniface Extension** (this plugin)
-- Additional dependencies, if any.
+- Visual Studio Code `^1.125.0`.
+- Node.js `24.14.0` for local development.
 
-## Extension Settings
+The extension currently has no user-configurable settings.
 
-This extension currently does not have customizable settings. Future versions may include options to adjust syntax highlighting, formatting, and GOLD key behavior.
+## Development
 
-## Installation
-
-1. Clone this repository:
 ```sh
-    git clone https://github.com/eliangelap/uniface-syntax-extension.git
+git clone https://github.com/eliangelap/uniface-syntax-extension.git
+cd uniface-syntax-extension
+npm install
 ```
 
-2. Navigate to the project folder:
+Open the project in VS Code and press `F5` to launch an Extension Development Host. You can also run:
+
 ```sh
-    cd uniface-syntax-extension
+code --extensionDevelopmentPath=.
 ```
 
-3. Install dependencies (if necessary).
-4. Run the extension in development mode:
+### Available scripts
+
+| Script                | Description                                                          |
+| --------------------- | -------------------------------------------------------------------- |
+| `npm run check-types` | Runs TypeScript type checking without emitting files.                |
+| `npm run lint`        | Lints the source files.                                              |
+| `npm run compile`     | Type-checks, lints, and bundles the extension with esbuild.          |
+| `npm run watch`       | Watches TypeScript and esbuild changes.                              |
+| `npm run package`     | Creates a production bundle in `dist/`.                              |
+| `npm test`            | Compiles the project and runs the extension tests in a VS Code host. |
+| `npm run release`     | Creates a version and changelog update with standard-version.        |
+
+Tests live next to the code they cover, inside `__test__` directories. For example, tests for `src/code/getDeclaredModulesList.use.case.ts` are located in `src/code/__test__/`.
+
+## Contributing
+
+Issues and pull requests are welcome. Before opening a pull request, run:
+
 ```sh
-    code --extensionDevelopmentPath=.
+npm run check-types
+npm run lint
+npm test
 ```
 
-## Contributions
-Thanks for Matheus Santos de Andrade (https://github.com/matheusa1) for your contribution and helping on development.
+## License
 
-If you’d like to contribute, feel free to open an issue or submit a pull request.
-
-**Enjoy!**
+This project is distributed under the [LICENSE](LICENSE) in this repository.

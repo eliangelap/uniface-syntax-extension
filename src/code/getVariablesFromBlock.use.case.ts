@@ -1,16 +1,10 @@
-import { variableRegex } from "../regExpConstants";
+import { variableRegex } from '../regExpConstants';
 import { CodeAnalyzer } from '../util/codeAnalyzer.use.case';
-import { BlockCode } from "./getBlockAroundPosition.use.case";
+import { BlockCode } from './getBlockAroundPosition.use.case';
+import { DeclaredItem } from './types/declaredModule';
 
-export interface DeclaredItem {
-    name: string;
-    line: number;
-}
 export interface DeclaredVariable extends DeclaredItem {
     dataType: string;
-}
-export interface DeclaredModule extends DeclaredItem {
-    scriptModuleType: string;
 }
 
 export class GetVariablesFromBlock {
@@ -23,7 +17,7 @@ export class GetVariablesFromBlock {
             const line = block.lines[i].trim();
             const lineLower = line.toLowerCase();
 
-            if (lineLower === "variables") {
+            if (lineLower === 'variables') {
                 inVariableBlock = true;
                 continue;
             }
@@ -32,7 +26,7 @@ export class GetVariablesFromBlock {
                 continue;
             }
 
-            if (lineLower === "endvariables") {
+            if (lineLower === 'endvariables') {
                 break;
             }
 
@@ -42,18 +36,13 @@ export class GetVariablesFromBlock {
         return variables;
     };
 
-    private extractVariables = (
-        codeLine: string,
-        lineNumber: number
-    ): DeclaredVariable[] => {
+    private extractVariables = (codeLine: string, lineNumber: number): DeclaredVariable[] => {
         const variables = [];
 
-        const varMatch = RegExp(variableRegex, "i").exec(codeLine.trim());
+        const varMatch = RegExp(variableRegex, 'i').exec(codeLine.trim());
 
         if (varMatch) {
-            const variableNames = varMatch?.input
-                ?.replace(`${varMatch[1]}`, "")
-                ?.split(",");
+            const variableNames = varMatch?.input?.replace(`${varMatch[1]}`, '')?.split(',');
             if (variableNames) {
                 for (const variableName of variableNames) {
                     if (CodeAnalyzer.isComment(variableName)) {
@@ -62,7 +51,7 @@ export class GetVariablesFromBlock {
 
                     const item = {
                         dataType: varMatch[1],
-                        name: variableName.trim().split(";")[0],
+                        name: variableName.trim().split(';')[0],
                         line: lineNumber,
                     };
                     variables.push(item);

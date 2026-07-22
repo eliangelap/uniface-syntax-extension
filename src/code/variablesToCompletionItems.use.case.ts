@@ -1,5 +1,5 @@
-import * as vscode from "vscode";
-import { DeclaredVariable } from "./getVariablesFromBlock.use.case";
+import * as vscode from 'vscode';
+import { DeclaredVariable } from './getVariablesFromBlock.use.case';
 
 export class VariablesToCompletionItems {
     public execute(declaredVariables: DeclaredVariable[]) {
@@ -11,7 +11,7 @@ export class VariablesToCompletionItems {
                 vscode.CompletionItemKind.Variable
             );
 
-            completionItem.insertText = variableName.startsWith("$")
+            completionItem.insertText = variableName.startsWith('$')
                 ? variableName.substring(1)
                 : variableName;
 

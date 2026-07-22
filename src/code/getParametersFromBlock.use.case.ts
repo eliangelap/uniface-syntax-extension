@@ -1,39 +1,47 @@
-import { variableRegex } from "../regExpConstants";
-import { BlockCode } from "./getBlockAroundPosition.use.case";
-import { DeclaredVariable } from "./getVariablesFromBlock.use.case";
+import { variableRegex } from '../regExpConstants';
+import { CodeAnalyzer } from '../util/codeAnalyzer.use.case';
+import { BlockCode } from './getBlockAroundPosition.use.case';
+import { DeclaredVariable } from './getVariablesFromBlock.use.case';
 
 export class GetParametersFromBlock {
     public execute = (block: BlockCode): DeclaredVariable[] => {
-        const paramRegex = /params([\s\S]*?)endparams/gi;
-        const matchParamsBlock = paramRegex.exec(block.text);
-        const parameters = [];
+        const parameters: DeclaredVariable[] = [];
+        const parameterRegex = RegExp(
+            `^${variableRegex}\\s*:\\s*(in|out|inout)\\b`,
+            'i'
+        );
+        let inParametersBlock = false;
 
-        const lineStartBlock = block.startLine;
+        for (let i = 0; i < block.lines.length; i++) {
+            const lineText = block.lines[i].trim();
 
-        if (matchParamsBlock) {
-            const paramLines = matchParamsBlock[1].split("\n");
-            for (let i = 0; i < paramLines.length; i++) {
-                const lineText = paramLines[i];
-                const paramMatch = RegExp(
-                    /(\$?\w+\$?)\s*:\s*(in|out|inout)/i
-                ).exec(lineText.trim());
-
-                if (!paramMatch) {
-                    continue;
-                }
-
-                const varMatch = RegExp(variableRegex, "i").exec(lineText.trim());
-                if (!varMatch) {
-                    continue;
-                }
-
-                const item = {
-                    dataType: varMatch[1],
-                    name: varMatch[2].trim(),
-                    line: lineStartBlock + i,
-                };
-                parameters.push(item);
+            if (CodeAnalyzer.isComment(lineText)) {
+                continue;
             }
+
+            if (/^params\b(?:\s*;.*)?$/i.test(lineText)) {
+                inParametersBlock = true;
+                continue;
+            }
+
+            if (!inParametersBlock) {
+                continue;
+            }
+
+            if (/^endparams\b(?:\s*;.*)?$/i.test(lineText)) {
+                break;
+            }
+
+            const parameterMatch = parameterRegex.exec(lineText);
+            if (!parameterMatch) {
+                continue;
+            }
+
+            parameters.push({
+                dataType: parameterMatch[1],
+                name: parameterMatch[2],
+                line: block.startLine + i,
+            });
         }
 
         return parameters;

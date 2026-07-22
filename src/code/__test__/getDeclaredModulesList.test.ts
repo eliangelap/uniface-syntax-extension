@@ -1,60 +1,99 @@
-import * as assert from "node:assert";
-import * as vscode from "vscode";
-import { GetDeclaredModulesList } from "../getDeclaredModulesList.use.case";
+import * as assert from 'node:assert';
+import * as vscode from 'vscode';
+import { GetDeclaredModulesList } from '../getDeclaredModulesList.use.case';
 
-suite("GetDeclaredModulesList", () => {
-    test("lists modules when the document has no leading blank line", async () => {
+suite('GetDeclaredModulesList', () => {
+    test('lists modules when the document has no leading blank line', async () => {
         const document = await vscode.workspace.openTextDocument({
-            content: "operation firstOperation\n",
-            language: "uniface",
+            content: 'operation firstOperation\n',
+            language: 'uniface',
         });
 
         const modules = new GetDeclaredModulesList().execute(document);
 
         assert.deepStrictEqual(modules, [
             {
-                name: "firstOperation",
+                name: 'firstOperation',
                 line: 0,
-                scriptModuleType: "operation",
+                scriptModuleType: 'operation',
             },
         ]);
     });
 
-    test("lists modules when the document starts with a blank line", async () => {
+    test('lists modules when the document starts with a blank line', async () => {
         const document = await vscode.workspace.openTextDocument({
-            content: "\nentry firstEntry\nfunction secondFunction\n",
-            language: "uniface",
+            content: '\nentry firstEntry\nfunction secondFunction\n',
+            language: 'uniface',
         });
 
         const modules = new GetDeclaredModulesList().execute(document);
 
         assert.deepStrictEqual(modules, [
             {
-                name: "firstEntry",
+                name: 'firstEntry',
                 line: 1,
-                scriptModuleType: "entry",
+                scriptModuleType: 'entry',
             },
             {
-                name: "secondFunction",
+                name: 'secondFunction',
                 line: 2,
-                scriptModuleType: "function",
+                scriptModuleType: 'function',
             },
         ]);
     });
 
-    test("ignores module keywords outside the beginning of a line", async () => {
+    test('ignores module keywords outside the beginning of a line', async () => {
         const document = await vscode.workspace.openTextDocument({
-            content: "; entry ignoredEntry\nentry validEntry\n",
-            language: "uniface",
+            content: '; entry ignoredEntry\nentry validEntry\n',
+            language: 'uniface',
         });
 
         const modules = new GetDeclaredModulesList().execute(document);
 
         assert.deepStrictEqual(modules, [
             {
-                name: "validEntry",
+                name: 'validEntry',
                 line: 1,
-                scriptModuleType: "entry",
+                scriptModuleType: 'entry',
+            },
+        ]);
+    });
+
+    test('ignores module declarations in inline comments', async () => {
+        const document = await vscode.workspace.openTextDocument({
+            content: 'entry validEntry ; function ignoredFunction\n',
+            language: 'uniface',
+        });
+
+        const modules = new GetDeclaredModulesList().execute(document);
+
+        assert.deepStrictEqual(modules, [
+            {
+                name: 'validEntry',
+                line: 0,
+                scriptModuleType: 'entry',
+            },
+        ]);
+    });
+
+    test('preserves declaration order for modules with identical names', async () => {
+        const document = await vscode.workspace.openTextDocument({
+            content: 'function duplicated\nfunction duplicated\n',
+            language: 'uniface',
+        });
+
+        const modules = new GetDeclaredModulesList().execute(document);
+
+        assert.deepStrictEqual(modules, [
+            {
+                name: 'duplicated',
+                line: 0,
+                scriptModuleType: 'function',
+            },
+            {
+                name: 'duplicated',
+                line: 1,
+                scriptModuleType: 'function',
             },
         ]);
     });

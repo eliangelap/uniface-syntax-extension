@@ -9,10 +9,7 @@ export interface BlockCode {
 }
 
 export class GetBlockAroundPostion {
-    public execute(
-        document: vscode.TextDocument,
-        position: vscode.Position
-    ): BlockCode | null {
+    public execute(document: vscode.TextDocument, position: vscode.Position): BlockCode | null {
         const blockStart = this.findStartLineOfBlock(document, position);
         if (blockStart === null) {
             return null;

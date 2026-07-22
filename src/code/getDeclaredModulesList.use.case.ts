@@ -1,68 +1,63 @@
-import * as vscode from "vscode";
-import { DeclaredModule } from "./getVariablesFromBlock.use.case";
+import * as vscode from 'vscode';
+import { DeclaredModule } from './types/declaredModule';
 
 export class GetDeclaredModulesList {
     public execute(document: vscode.TextDocument): DeclaredModule[] {
         const text = document.getText();
-        const regex = /\b(entry|operation|function|trigger)\s+(\w+)/gi;
+        const regex = /^[\t ]*(entry|operation|function|trigger)\s+(\w+)/gim;
 
-        const declaredModules = [];
+        const declaredModules: DeclaredModule[] = [];
         const functions: DeclaredModule[] = [];
         const operations: DeclaredModule[] = [];
         const entries: DeclaredModule[] = [];
         const triggers: DeclaredModule[] = [];
 
-        const validKeywords = ["entry", "operation", "function", "trigger"];
-
         for (const match of text.matchAll(regex)) {
             const line = document.positionAt(match.index || 0).line;
-            const lineText = document.lineAt(line).text.trim();
-
-            if (
-                !validKeywords.some((keyword) =>
-                    lineText.toLowerCase().startsWith(keyword)
-                )
-            ) {
-                continue;
-            }
-
             const name = match[2];
 
             switch (match[1].toLowerCase()) {
-                case "operation":
+                case 'operation':
                     operations.push({
                         name,
                         line,
-                        scriptModuleType: "operation",
+                        scriptModuleType: 'operation',
                     });
                     break;
-                case "trigger":
+                case 'trigger':
                     triggers.push({
                         name,
                         line,
-                        scriptModuleType: "trigger",
+                        scriptModuleType: 'trigger',
                     });
                     break;
-                case "function":
+                case 'function':
                     functions.push({
                         name,
                         line,
-                        scriptModuleType: "function",
+                        scriptModuleType: 'function',
                     });
                     break;
-                case "entry":
+                case 'entry':
                 default:
-                    entries.push({ 
-                        name, 
-                        line, 
-                        scriptModuleType: "entry" 
+                    entries.push({
+                        name,
+                        line,
+                        scriptModuleType: 'entry',
                     });
                     break;
             }
         }
 
         const sortFunction = function (a: DeclaredModule, b: DeclaredModule) {
-            return a.name.toLowerCase() < b.name.toLowerCase() ? -1 : 1;
+            const aName = a.name.toLowerCase();
+            const bName = b.name.toLowerCase();
+
+            if (aName === bName) {
+                return 0;
+            }
+
+            return aName < bName ? -1 : 1;
         };
 
         functions.sort(sortFunction);

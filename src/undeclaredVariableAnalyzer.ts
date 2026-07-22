@@ -4,12 +4,11 @@ export class UndeclaredVariableAnalyzer {
     private diagnostics: vscode.DiagnosticCollection;
 
     constructor() {
-        this.diagnostics =
-            vscode.languages.createDiagnosticCollection('uniface-undeclared');
+        this.diagnostics = vscode.languages.createDiagnosticCollection('uniface-undeclared');
     }
 
     public analyzeDocument(document: vscode.TextDocument): void {
-        // 
+        //
     }
 
     public clearDiagnostics(document: vscode.TextDocument): void {
