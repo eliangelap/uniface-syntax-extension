@@ -9,6 +9,12 @@ import { EntryCreator } from './snippets/entryCreator';
 import { OperationCreator } from './snippets/operationCreator';
 import { UnifaceUnusedVariableAnalyzer } from './unusedVariables/unusedVariablesAnalyzer';
 import { UnifaceSignatureHelpProvider } from './signatureHelpProvider';
+import { UndeclaredVariableAnalyzer } from './undeclaredVariables/undeclaredVariableAnalyzer';
+import {
+    declareVariableCommand,
+    UndeclaredVariableQuickFixProvider,
+} from './undeclaredVariables/undeclaredVariableQuickFixProvider';
+import { DeclareVariableCommand } from './undeclaredVariables/declareVariableCommand';
 
 interface PromptAndInsert {
     promptAndInsert(): Promise<void>;
@@ -31,6 +37,8 @@ export function activate(context: vscode.ExtensionContext) {
     registerTreeDataProvider(context);
 
     const variableAnalyzer = new UnifaceUnusedVariableAnalyzer();
+    const undeclaredVariableAnalyzer = new UndeclaredVariableAnalyzer();
+    const declarationCommand = new DeclareVariableCommand();
 
     context.subscriptions.push(
         vscode.commands.registerCommand('uniface-extension.entry', () => {
@@ -39,9 +47,17 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand('uniface-extension.operation', () => {
             return runPromptAndInsert(new OperationCreator());
         }),
+        vscode.commands.registerCommand(declareVariableCommand, (uri, name, usageLine) => {
+            return declarationCommand.execute(uri, name, usageLine);
+        }),
         vscode.languages.registerCompletionItemProvider('uniface', new CompletionItemProvider()),
         vscode.languages.registerDocumentFormattingEditProvider('uniface', formatterProvider()),
         vscode.languages.registerDefinitionProvider('uniface', new UnifaceDefinitionProvider()),
+        vscode.languages.registerCodeActionsProvider(
+            'uniface',
+            new UndeclaredVariableQuickFixProvider(),
+            { providedCodeActionKinds: UndeclaredVariableQuickFixProvider.providedCodeActionKinds }
+        ),
         vscode.languages.registerSignatureHelpProvider(
             { language: 'uniface' },
             new UnifaceSignatureHelpProvider(),
@@ -51,16 +67,22 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.workspace.onDidOpenTextDocument((doc) => {
             if (shouldAnalyzeDocument(vscode.window.activeTextEditor, doc)) {
                 variableAnalyzer.analyzeDocument(doc);
+                undeclaredVariableAnalyzer.analyzeDocument(doc);
             }
         }),
         vscode.workspace.onDidChangeTextDocument((e) => {
             const editor = vscode.window.activeTextEditor;
             if (shouldAnalyzeDocument(editor, e.document)) {
                 variableAnalyzer.analyzeDocument(e.document);
+                undeclaredVariableAnalyzer.analyzeDocument(e.document);
             }
         }),
-        vscode.workspace.onDidCloseTextDocument((doc) => variableAnalyzer.clearDiagnostics(doc)),
-        variableAnalyzer
+        vscode.workspace.onDidCloseTextDocument((doc) => {
+            variableAnalyzer.clearDiagnostics(doc);
+            undeclaredVariableAnalyzer.clearDiagnostics(doc);
+        }),
+        variableAnalyzer,
+        undeclaredVariableAnalyzer
     );
 }
 
