@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.12.0](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.11.6...v1.12.0) (2026-07-22)
+
+
+### Features
+
+* **27:** ✨ detecta variáveis não declaradas ([8525186](https://github.com/eliangelap/uniface-syntax-extension/commit/8525186163b7765a0d32802f63c2af327d5356c1))
+
 ### [1.11.6](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.11.5...v1.11.6) (2026-07-22)
 
 ### Features
