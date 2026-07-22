@@ -77,6 +77,12 @@ export function activate(context: vscode.ExtensionContext) {
                 undeclaredVariableAnalyzer.analyzeDocument(e.document);
             }
         }),
+        vscode.window.onDidChangeActiveTextEditor((editor) => {
+            if (editor && shouldAnalyzeDocument(editor, editor.document)) {
+                variableAnalyzer.analyzeDocument(editor.document);
+                undeclaredVariableAnalyzer.analyzeDocument(editor.document);
+            }
+        }),
         vscode.workspace.onDidCloseTextDocument((doc) => {
             variableAnalyzer.clearDiagnostics(doc);
             undeclaredVariableAnalyzer.clearDiagnostics(doc);

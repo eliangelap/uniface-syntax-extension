@@ -42,8 +42,7 @@ breaks can be entered directly in the Settings editor.
 ```
 
 Available placeholders are `{{entryName}}`, `{{author}}`, and `{{date}}`. VS Code snippet
-placeholders such as `${1:default value}` are also supported. Existing array-based
-configuration values continue to work, but should be migrated to a multiline string.
+placeholders such as `${1:default value}` are also supported.
 
 #### Custom operation template
 
@@ -57,9 +56,6 @@ breaks can be entered directly in the Settings editor. It supports `{{operationN
     "uniface.snippets.operationTemplate": "; Author: {{author}}\noperation {{operationName}}\n    ${1:; Add your code here}\nend ;{{operationName}}"
 }
 ```
-
-Existing array-based configuration values continue to work, but should be migrated to a
-multiline string.
 
 ### GOLD key support
 
