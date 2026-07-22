@@ -45,7 +45,8 @@ suite('UnifaceDefinitionProvider', () => {
 
     test('resolves the call under the cursor when a line has multiple calls', async () => {
         const document = await vscode.workspace.openTextDocument({
-            content: 'entry firstEntry\nend\nentry secondEntry\nend\ncall firstEntry call secondEntry\n',
+            content:
+                'entry firstEntry\nend\nentry secondEntry\nend\ncall firstEntry call secondEntry\n',
             language: 'uniface',
         });
 

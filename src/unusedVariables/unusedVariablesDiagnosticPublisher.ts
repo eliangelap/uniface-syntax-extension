@@ -7,12 +7,11 @@ export interface UnusedVariablesDiagnosticPublisherContract {
     dispose(): void;
 }
 
-export class UnusedVariablesDiagnosticPublisher
-    implements UnusedVariablesDiagnosticPublisherContract
-{
+export class UnusedVariablesDiagnosticPublisher implements UnusedVariablesDiagnosticPublisherContract {
     constructor(
-        private readonly diagnostics: vscode.DiagnosticCollection =
-            vscode.languages.createDiagnosticCollection('uniface')
+        private readonly diagnostics: vscode.DiagnosticCollection = vscode.languages.createDiagnosticCollection(
+            'uniface'
+        )
     ) {}
 
     public publish(document: vscode.TextDocument, unusedVariables: DeclaredVariable[]): void {

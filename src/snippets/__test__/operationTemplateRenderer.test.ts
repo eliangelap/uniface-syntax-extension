@@ -31,7 +31,10 @@ suite('OperationTemplateRenderer', () => {
     });
 
     test('supports the legacy array format', () => {
-        const renderer = new OperationTemplateRenderer(() => ['operation {{operationName}}', 'end']);
+        const renderer = new OperationTemplateRenderer(() => [
+            'operation {{operationName}}',
+            'end',
+        ]);
 
         const snippet = renderer.render(data);
 

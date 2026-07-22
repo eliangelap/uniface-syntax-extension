@@ -21,8 +21,7 @@ const defaultDependencies: UnusedVariableAnalyzerDependencies = {
 
 export class UnifaceUnusedVariableAnalyzer implements vscode.Disposable {
     constructor(
-        private readonly publisher: UnusedVariablesDiagnosticPublisherContract =
-            new UnusedVariablesDiagnosticPublisher(),
+        private readonly publisher: UnusedVariablesDiagnosticPublisherContract = new UnusedVariablesDiagnosticPublisher(),
         private readonly usageAnalyzer = new VariableUsageAnalyzer(),
         private readonly dependencies: UnusedVariableAnalyzerDependencies = defaultDependencies
     ) {}

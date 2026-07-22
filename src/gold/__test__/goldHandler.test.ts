@@ -10,7 +10,10 @@ suite('GoldHandler', () => {
 
         assert.ok(getGoldReplacement(stringLine, stringLine.indexOf(';')));
         assert.ok(getGoldReplacement(commentedStringLine, commentedStringLine.indexOf(';', 1)));
-        assert.strictEqual(getGoldReplacement(commentedCodeLine, commentedCodeLine.lastIndexOf(';')), null);
+        assert.strictEqual(
+            getGoldReplacement(commentedCodeLine, commentedCodeLine.lastIndexOf(';')),
+            null
+        );
     });
 
     test('does not convert sequences outside strings or after a closed string', () => {

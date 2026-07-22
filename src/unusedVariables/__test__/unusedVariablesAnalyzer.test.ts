@@ -2,9 +2,7 @@ import * as assert from 'node:assert';
 import * as vscode from 'vscode';
 import { BlockCode } from '../../code/getBlockAroundPosition.use.case';
 import { DeclaredVariable } from '../../code/getVariablesFromBlock.use.case';
-import {
-    UnifaceUnusedVariableAnalyzer,
-} from '../unusedVariablesAnalyzer';
+import { UnifaceUnusedVariableAnalyzer } from '../unusedVariablesAnalyzer';
 import { UnusedVariablesDiagnosticPublisherContract } from '../unusedVariablesDiagnosticPublisher';
 
 class DiagnosticPublisherStub implements UnusedVariablesDiagnosticPublisherContract {
@@ -50,16 +48,15 @@ suite('UnifaceUnusedVariableAnalyzer', () => {
             language: 'uniface',
         });
         const publisher = new DiagnosticPublisherStub();
-        const analyzer = new UnifaceUnusedVariableAnalyzer(
-            publisher,
-            undefined,
-            {
-                getActiveTextEditor: () =>
-                    ({ document: otherDocument, selection: new vscode.Selection(0, 0, 0, 0) }) as unknown as vscode.TextEditor,
-                getBlock: () => null,
-                getVariables: () => [],
-            }
-        );
+        const analyzer = new UnifaceUnusedVariableAnalyzer(publisher, undefined, {
+            getActiveTextEditor: () =>
+                ({
+                    document: otherDocument,
+                    selection: new vscode.Selection(0, 0, 0, 0),
+                }) as unknown as vscode.TextEditor,
+            getBlock: () => null,
+            getVariables: () => [],
+        });
 
         analyzer.analyzeDocument(document);
 
@@ -72,16 +69,15 @@ suite('UnifaceUnusedVariableAnalyzer', () => {
             language: 'uniface',
         });
         const publisher = new DiagnosticPublisherStub();
-        const analyzer = new UnifaceUnusedVariableAnalyzer(
-            publisher,
-            undefined,
-            {
-                getActiveTextEditor: () =>
-                    ({ document, selection: new vscode.Selection(0, 0, 0, 0) }) as unknown as vscode.TextEditor,
-                getBlock: () => block,
-                getVariables: () => variables,
-            }
-        );
+        const analyzer = new UnifaceUnusedVariableAnalyzer(publisher, undefined, {
+            getActiveTextEditor: () =>
+                ({
+                    document,
+                    selection: new vscode.Selection(0, 0, 0, 0),
+                }) as unknown as vscode.TextEditor,
+            getBlock: () => block,
+            getVariables: () => variables,
+        });
 
         analyzer.analyzeDocument(document);
 

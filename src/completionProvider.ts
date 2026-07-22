@@ -85,9 +85,7 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
 
         return completions.filter((completion) => {
             const label =
-                typeof completion.label === 'string'
-                    ? completion.label
-                    : completion.label.label;
+                typeof completion.label === 'string' ? completion.label : completion.label.label;
             const normalizedLabel = label.toLowerCase();
 
             if (labels.has(normalizedLabel)) {

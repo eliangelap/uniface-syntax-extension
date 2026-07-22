@@ -15,10 +15,7 @@ suite('EntryTemplateRenderer', () => {
 
         const snippet = renderer.render(data);
 
-        assert.strictEqual(
-            snippet.value,
-            'entry sampleEntry\n; Ada - 2026-07-22\n${1:code}'
-        );
+        assert.strictEqual(snippet.value, 'entry sampleEntry\n; Ada - 2026-07-22\n${1:code}');
     });
 
     test('uses the default template when configuration is invalid or empty', () => {

@@ -130,22 +130,24 @@ export function registerGoldInterceptor(context: vscode.ExtensionContext) {
                 return;
             }
 
-            void editor.edit((editBuilder) => {
-                for (const range of ranges) {
-                    const replacement = getGoldReplacement(
-                        event.document.lineAt(range.start.line).text,
-                        range.end.character - 1
-                    );
+            void editor
+                .edit((editBuilder) => {
+                    for (const range of ranges) {
+                        const replacement = getGoldReplacement(
+                            event.document.lineAt(range.start.line).text,
+                            range.end.character - 1
+                        );
 
-                    if (replacement) {
-                        editBuilder.replace(range, replacement.replacement);
+                        if (replacement) {
+                            editBuilder.replace(range, replacement.replacement);
+                        }
                     }
-                }
-            }).then((success) => {
-                if (!success) {
-                    return;
-                }
-            });
+                })
+                .then((success) => {
+                    if (!success) {
+                        return;
+                    }
+                });
         })
     );
 }

@@ -20,7 +20,9 @@ export function isValidOperationName(operationName: string): boolean {
 }
 
 export class OperationCreator {
-    constructor(private readonly dependencies: OperationCreatorDependencies = defaultDependencies) {}
+    constructor(
+        private readonly dependencies: OperationCreatorDependencies = defaultDependencies
+    ) {}
 
     public async promptAndInsert(): Promise<void> {
         const inputName = await this.askOperationName();

@@ -55,7 +55,9 @@ function escapeSnippetValue(value: string): string {
 }
 
 export class OperationTemplateRenderer {
-    constructor(private readonly readTemplate: OperationTemplateReader = getConfiguredOperationTemplate) {}
+    constructor(
+        private readonly readTemplate: OperationTemplateReader = getConfiguredOperationTemplate
+    ) {}
 
     public render(data: OperationTemplateData): vscode.SnippetString {
         const configuredTemplate = this.readTemplate();

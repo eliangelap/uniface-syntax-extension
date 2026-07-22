@@ -25,9 +25,11 @@ export class UnifaceDefinitionProvider implements vscode.DefinitionProvider {
                 continue;
             }
 
-            const entry = new GetEntriesList().execute(document).find(
-                (declaredEntry) => declaredEntry.name.toLowerCase() === entryName.toLowerCase()
-            );
+            const entry = new GetEntriesList()
+                .execute(document)
+                .find(
+                    (declaredEntry) => declaredEntry.name.toLowerCase() === entryName.toLowerCase()
+                );
 
             if (!entry) {
                 return null;
