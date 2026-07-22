@@ -56,11 +56,9 @@
             ]
         },
         "strings": {
-            "name": "string.quoted.double.uniface",
-            "begin": "\"",
-            "end": "\"",
             "patterns": [
                 {
+                    "name": "string.quoted.double.uniface",
                     "begin": "\"",
                     "beginCaptures": {
                         "0": {
@@ -72,34 +70,21 @@
                         "0": {
                             "name": "punctuation.definition.string.end.uniface"
                         }
-                    }
-                },
-                {
-                    "begin": "'",
-                    "beginCaptures": {
-                        "0": {
-                            "name": "punctuation.definition.string.begin.uniface"
-                        }
                     },
-                    "end": "'",
-                    "endCaptures": {
-                        "0": {
-                            "name": "punctuation.definition.string.end.uniface"
+                    "patterns": [
+                        {
+                            "match": "%%%",
+                            "name": "constant.character.escape.uniface"
+                        },
+                        {
+                            "match": "%%\"",
+                            "name": "constant.character.escape.uniface"
+                        },
+                        {
+                            "match": "%%",
+                            "name": "constant.character.escape.uniface"
                         }
-                    },
-                    "name": "string.quoted.single.uniface"
-                },
-                {
-                    "match": "%%\"",
-                    "name": "constant.character.escape.uniface"
-                },
-                {
-                    "match": "%%",
-                    "name": "constant.character.escape.uniface"
-                },
-                {
-                    "match": "%%%",
-                    "name": "constant.character.escape.uniface"
+                    ]
                 }
             ]
         },
