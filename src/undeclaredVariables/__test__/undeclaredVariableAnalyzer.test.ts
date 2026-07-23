@@ -8,12 +8,15 @@ import { UndeclaredVariableUsage } from '../undeclaredVariableUsageAnalyzer';
 
 class DiagnosticPublisherStub implements UndeclaredVariablesDiagnosticPublisherContract {
     public usages: UndeclaredVariableUsage[] | undefined;
+    public clearedDocuments: vscode.TextDocument[] = [];
 
     public publish(_document: vscode.TextDocument, usages: UndeclaredVariableUsage[]): void {
         this.usages = usages;
     }
 
-    public clear(): void {}
+    public clear(document: vscode.TextDocument): void {
+        this.clearedDocuments.push(document);
+    }
 
     public dispose(): void {}
 }
@@ -145,5 +148,25 @@ suite('UndeclaredVariableAnalyzer', () => {
         analyzer.analyzeDocument(document);
 
         assert.deepStrictEqual(publisher.usages, []);
+    });
+
+    test('skips analysis when a block END is missing', async () => {
+        const document = await vscode.workspace.openTextDocument({
+            content: 'entry incomplete\nresult = undeclaredValue',
+            language: 'uniface',
+        });
+        const publisher = new DiagnosticPublisherStub();
+        const analyzer = new UndeclaredVariableAnalyzer(publisher, undefined, {
+            getBlocks: () => {
+                throw new Error('The block analyzer must not run');
+            },
+            getVariables: () => [],
+            getParameters: () => [],
+        });
+
+        analyzer.analyzeDocument(document);
+
+        assert.deepStrictEqual(publisher.clearedDocuments, [document]);
+        assert.strictEqual(publisher.usages, undefined);
     });
 });

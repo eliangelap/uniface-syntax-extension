@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { BlockCode } from '../code/getBlockAroundPosition.use.case';
 import { GetBlockList } from '../code/getBlockList.use.case';
+import { findMissingBlockEnds } from '../blockStructure/blockStructureAnalyzer';
 import { GetParametersFromBlock } from '../code/getParametersFromBlock.use.case';
 import { DeclaredVariable, GetVariablesFromBlock } from '../code/getVariablesFromBlock.use.case';
 import {
@@ -30,7 +31,10 @@ export class UndeclaredVariableAnalyzer implements vscode.Disposable {
     ) {}
 
     public analyzeDocument(document: vscode.TextDocument): void {
-        if (document.languageId !== 'uniface') {
+        if (
+            document.languageId !== 'uniface' ||
+            findMissingBlockEnds(document.getText().split(/\r?\n/)).length > 0
+        ) {
             this.publisher.clear(document);
             return;
         }

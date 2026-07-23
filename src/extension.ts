@@ -15,6 +15,8 @@ import {
     UndeclaredVariableQuickFixProvider,
 } from './undeclaredVariables/undeclaredVariableQuickFixProvider';
 import { DeclareVariableCommand } from './undeclaredVariables/declareVariableCommand';
+import { BlockStructureAnalyzer } from './blockStructure/blockStructureAnalyzer';
+import { DeclarationValidationAnalyzer } from './declarationValidation/declarationValidationAnalyzer';
 
 interface PromptAndInsert {
     promptAndInsert(): Promise<void>;
@@ -54,8 +56,15 @@ export function activate(context: vscode.ExtensionContext) {
 
     const variableAnalyzer = new UnifaceUnusedVariableAnalyzer();
     const undeclaredVariableAnalyzer = new UndeclaredVariableAnalyzer();
+    const blockStructureAnalyzer = new BlockStructureAnalyzer();
+    const declarationValidationAnalyzer = new DeclarationValidationAnalyzer();
     const declarationCommand = new DeclareVariableCommand();
-    const analyzers = [variableAnalyzer, undeclaredVariableAnalyzer];
+    const analyzers = [
+        variableAnalyzer,
+        undeclaredVariableAnalyzer,
+        blockStructureAnalyzer,
+        declarationValidationAnalyzer,
+    ];
     const analysisTimers = new Map<string, ReturnType<typeof setTimeout>>();
     const analyzeDocument = (document: vscode.TextDocument) => {
         analyzeOpenUnifaceDocuments([document], analyzers);
@@ -119,6 +128,8 @@ export function activate(context: vscode.ExtensionContext) {
             }
             variableAnalyzer.clearDiagnostics(doc);
             undeclaredVariableAnalyzer.clearDiagnostics(doc);
+            blockStructureAnalyzer.clearDiagnostics(doc);
+            declarationValidationAnalyzer.clearDiagnostics(doc);
         }),
         {
             dispose: () => {
@@ -129,7 +140,9 @@ export function activate(context: vscode.ExtensionContext) {
             },
         },
         variableAnalyzer,
-        undeclaredVariableAnalyzer
+        undeclaredVariableAnalyzer,
+        blockStructureAnalyzer,
+        declarationValidationAnalyzer
     );
 
     analyzeOpenUnifaceDocuments(vscode.workspace.textDocuments, analyzers);

@@ -96,4 +96,23 @@ suite('UnifaceUnusedVariableAnalyzer', () => {
 
         assert.deepStrictEqual(publisher.publishedVariables, [variables[1], secondUnused]);
     });
+
+    test('skips analysis when a block END is missing', async () => {
+        const document = await vscode.workspace.openTextDocument({
+            content: 'entry incomplete\nstring unusedValue',
+            language: 'uniface',
+        });
+        const publisher = new DiagnosticPublisherStub();
+        const analyzer = new UnifaceUnusedVariableAnalyzer(publisher, undefined, {
+            getBlocks: () => {
+                throw new Error('The block analyzer must not run');
+            },
+            getVariables: () => [],
+        });
+
+        analyzer.analyzeDocument(document);
+
+        assert.deepStrictEqual(publisher.clearedDocuments, [document]);
+        assert.strictEqual(publisher.publishedVariables, undefined);
+    });
 });
