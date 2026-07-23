@@ -138,5 +138,7 @@
         "standard-version": "^9.5.0"
     },
     "icon": "media/rocket.png",
-    "activationEvents": []
+    "activationEvents": [
+        "onLanguage:uniface"
+    ]
 }
