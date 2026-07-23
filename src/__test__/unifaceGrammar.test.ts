@@ -22,7 +22,7 @@ suite('Uniface TextMate grammar', () => {
         return path.join(extension.extensionPath, 'syntaxes', 'uniface.tmLanguage.json');
     }
 
-    test('treats only double quotes as string delimiters', () => {
+    test('treats double and single quotes as string delimiters', () => {
         const grammar = JSON.parse(fs.readFileSync(getGrammarPath(), 'utf8')) as {
             repository: { strings: { patterns: TextMatePattern[] } };
         };
@@ -36,10 +36,13 @@ suite('Uniface TextMate grammar', () => {
         assert.strictEqual(doubleQuotePattern.begin, '"');
         assert.strictEqual(doubleQuotePattern.end, '"');
 
-        assert.strictEqual(
-            stringPatterns.some((pattern) => pattern.begin === "'"),
-            false
+        const singleQuotePattern = stringPatterns.find(
+            (pattern) => pattern.begin === "'" && pattern.end === "'"
         );
+        assert.ok(singleQuotePattern, 'Expected a single-quoted string pattern.');
+        assert.strictEqual(singleQuotePattern.name, 'string.quoted.single.uniface');
+        assert.strictEqual(singleQuotePattern.begin, "'");
+        assert.strictEqual(singleQuotePattern.end, "'");
     });
 
     test('matches longer escapes before their prefixes', () => {
@@ -56,6 +59,21 @@ suite('Uniface TextMate grammar', () => {
         assert.deepStrictEqual(
             escapePatterns.map((pattern) => pattern.match),
             ['%%%', '%%"', '%%']
+        );
+    });
+
+    test('matches single-quote escapes without treating double quotes as delimiters', () => {
+        const grammar = JSON.parse(fs.readFileSync(getGrammarPath(), 'utf8')) as {
+            repository: { strings: { patterns: TextMatePattern[] } };
+        };
+        const singleQuotePattern = grammar.repository.strings.patterns.find(
+            (pattern) => pattern.begin === "'" && pattern.end === "'"
+        );
+        assert.ok(singleQuotePattern, 'Expected a single-quoted string pattern.');
+
+        assert.deepStrictEqual(
+            singleQuotePattern.patterns?.map((pattern) => pattern.match),
+            ['%%%', "%%'", '%%']
         );
     });
 });

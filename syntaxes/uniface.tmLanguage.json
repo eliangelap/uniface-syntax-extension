@@ -85,6 +85,35 @@
                             "name": "constant.character.escape.uniface"
                         }
                     ]
+                },
+                {
+                    "name": "string.quoted.single.uniface",
+                    "begin": "'",
+                    "beginCaptures": {
+                        "0": {
+                            "name": "punctuation.definition.string.begin.uniface"
+                        }
+                    },
+                    "end": "'",
+                    "endCaptures": {
+                        "0": {
+                            "name": "punctuation.definition.string.end.uniface"
+                        }
+                    },
+                    "patterns": [
+                        {
+                            "match": "%%%",
+                            "name": "constant.character.escape.uniface"
+                        },
+                        {
+                            "match": "%%'",
+                            "name": "constant.character.escape.uniface"
+                        },
+                        {
+                            "match": "%%",
+                            "name": "constant.character.escape.uniface"
+                        }
+                    ]
                 }
             ]
         },
