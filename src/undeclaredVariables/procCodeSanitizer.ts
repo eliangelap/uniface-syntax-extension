@@ -13,6 +13,7 @@ export class ProcCodeSanitizer {
     private getCodeOutsideStringsAndComments(line: string): string {
         let delimiter: '"' | "'" | null = null;
         let isEscaped = false;
+        let percentRun = 0;
         let code = '';
 
         for (const character of line) {
