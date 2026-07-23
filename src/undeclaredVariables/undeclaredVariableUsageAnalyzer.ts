@@ -58,7 +58,7 @@ export class UndeclaredVariableUsageAnalyzer {
             if (
                 isInsideDeclaration ||
                 /^(entry|operation|trigger|function)\b/i.test(trimmedLine) ||
-                /^#(?:include|define)\b/i.test(trimmedLine)
+                /^#(?:include|define|startdefine|enddefine)\b/i.test(trimmedLine)
             ) {
                 continue;
             }

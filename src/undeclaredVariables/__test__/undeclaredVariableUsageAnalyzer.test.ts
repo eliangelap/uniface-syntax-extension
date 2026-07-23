@@ -73,6 +73,18 @@ suite('UndeclaredVariableUsageAnalyzer', () => {
         assert.deepStrictEqual(usages, []);
     });
 
+    test('ignores startdefine and enddefine directives', () => {
+        const block: BlockCode = {
+            text: '',
+            startLine: 0,
+            lines: ['entry sample', '#startdefine CONTEXT', '#enddefine CONTEXT', 'end'],
+        };
+
+        const usages = new UndeclaredVariableUsageAnalyzer().getUndeclaredUsages(block, []);
+
+        assert.deepStrictEqual(usages, []);
+    });
+
     test('considers constants defined with #define declared in the block', () => {
         const block: BlockCode = {
             text: '',
