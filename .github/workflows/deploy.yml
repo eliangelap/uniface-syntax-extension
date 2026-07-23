@@ -69,7 +69,7 @@ jobs:
               run: gh release create "$TAG_NAME" "$VSIX_FILE" --target "$GITHUB_SHA" --title "$RELEASE_NAME" --generate-notes
 
     build-and-release:
-        if: github.event_name == 'release' && github.event.action == 'published'
+        if: github.event_name == 'release' && github.event.action == 'published' && github.actor != 'github-actions[bot]'
         runs-on: ubuntu-latest
         steps:
             - name: Checkout do código
