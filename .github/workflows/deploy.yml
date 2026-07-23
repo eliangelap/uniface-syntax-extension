@@ -50,8 +50,15 @@ jobs:
             - name: Encontrar o arquivo .vsix gerado
               id: get_vsix
               run: |
-                  VSIX_FILE=$(ls *.vsix)
-                  echo "file_name=$VSIX_FILE" >> "$GITHUB_OUTPUT"
+                  set -euo pipefail
+                  shopt -s nullglob
+                  VSIX_FILES=( *.vsix )
+                  if [ "${#VSIX_FILES[@]}" -ne 1 ]; then
+                    echo "Esperado exatamente 1 arquivo .vsix, encontrado: ${#VSIX_FILES[@]}"
+                    printf '%s\n' "${VSIX_FILES[@]}"
+                    exit 1
+                  fi
+                  echo "file_name=${VSIX_FILES[0]}" >> "$GITHUB_OUTPUT"
 
             - name: Criar release no GitHub
               env:
@@ -59,10 +66,10 @@ jobs:
                   TAG_NAME: ${{ steps.release.outputs.tag }}
                   RELEASE_NAME: ${{ steps.release.outputs.name }}
                   VSIX_FILE: ${{ steps.get_vsix.outputs.file_name }}
-              run: gh release create "$TAG_NAME" --target "$GITHUB_SHA" --title "$RELEASE_NAME" --generate-notes "$VSIX_FILE"
+              run: gh release create "$TAG_NAME" "$VSIX_FILE" --target "$GITHUB_SHA" --title "$RELEASE_NAME" --generate-notes
 
     build-and-release:
-        if: github.event_name == 'release' && github.event.action == 'published'
+        if: github.event_name == 'release' && github.event.action == 'published' && github.actor != 'github-actions[bot]'
         runs-on: ubuntu-latest
         steps:
             - name: Checkout do código
