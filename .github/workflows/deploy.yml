@@ -50,8 +50,15 @@ jobs:
             - name: Encontrar o arquivo .vsix gerado
               id: get_vsix
               run: |
-                  VSIX_FILE=$(ls *.vsix)
-                  echo "file_name=$VSIX_FILE" >> "$GITHUB_OUTPUT"
+                  set -euo pipefail
+                  shopt -s nullglob
+                  VSIX_FILES=( *.vsix )
+                  if [ "${#VSIX_FILES[@]}" -ne 1 ]; then
+                    echo "Esperado exatamente 1 arquivo .vsix, encontrado: ${#VSIX_FILES[@]}"
+                    printf '%s\n' "${VSIX_FILES[@]}"
+                    exit 1
+                  fi
+                  echo "file_name=${VSIX_FILES[0]}" >> "$GITHUB_OUTPUT"
 
             - name: Criar release no GitHub
               env:
