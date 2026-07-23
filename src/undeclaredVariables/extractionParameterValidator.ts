@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { DeclaredVariable } from '../code/getVariablesFromBlock.use.case';
+import { invalidExtractionParameterDiagnosticCode } from './undeclaredVariablesDiagnosticPublisher';
 import { UndeclaredVariableUsage } from './undeclaredVariableUsage';
 
 type ExtractionSourceType = 'date' | 'time' | 'datetime' | 'numeric';
