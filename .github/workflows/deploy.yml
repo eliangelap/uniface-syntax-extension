@@ -59,7 +59,7 @@ jobs:
                   TAG_NAME: ${{ steps.release.outputs.tag }}
                   RELEASE_NAME: ${{ steps.release.outputs.name }}
                   VSIX_FILE: ${{ steps.get_vsix.outputs.file_name }}
-              run: gh release create "$TAG_NAME" --target "$GITHUB_SHA" --title "$RELEASE_NAME" --generate-notes "$VSIX_FILE"
+              run: gh release create "$TAG_NAME" "$VSIX_FILE" --target "$GITHUB_SHA" --title "$RELEASE_NAME" --generate-notes
 
     build-and-release:
         if: github.event_name == 'release' && github.event.action == 'published'
