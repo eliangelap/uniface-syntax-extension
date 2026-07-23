@@ -333,4 +333,54 @@ suite('UndeclaredVariableUsageAnalyzer', () => {
             'Invalid extraction parameter "H" for date value "vDate".'
         );
     });
+
+    test('validates numeric extraction parameters', () => {
+        const block: BlockCode = {
+            text: '',
+            startLine: 0,
+            lines: [
+                'entry sample',
+                'vQtAplicacao = vQtAplicacao[round,2] + vQtAplicacao[trunc] + vQtAplicacao[F] + vQtAplicacao[R]',
+                'end',
+            ],
+        };
+
+        const usages = new UndeclaredVariableUsageAnalyzer().getUndeclaredUsages(
+            block,
+            ['vQtAplicacao'],
+            [],
+            [{ name: 'vQtAplicacao', dataType: 'numeric', line: 0 }]
+        );
+
+        assert.deepStrictEqual(usages, []);
+    });
+
+    test('reports invalid numeric extraction parameters while validating the variable root', () => {
+        const block: BlockCode = {
+            text: '',
+            startLine: 0,
+            lines: [
+                'entry sample',
+                'result = vQtAplicacao[round,texto] + vQtAplicacao[fraction,2] + missingValue[round,2]',
+                'end',
+            ],
+        };
+
+        const usages = new UndeclaredVariableUsageAnalyzer().getUndeclaredUsages(
+            block,
+            ['result', 'vQtAplicacao'],
+            [],
+            [{ name: 'vQtAplicacao', dataType: 'numeric', line: 0 }]
+        );
+
+        assert.deepStrictEqual(
+            usages.map((usage) => ({ name: usage.name, code: usage.diagnosticCode })),
+            [
+                { name: 'round,texto', code: 'uniface.invalidExtractionParameter' },
+                { name: 'fraction,2', code: 'uniface.invalidExtractionParameter' },
+                { name: 'missingValue', code: undefined },
+                { name: 'round', code: undefined },
+            ]
+        );
+    });
 });
