@@ -148,6 +148,29 @@ suite('UndeclaredVariableUsageAnalyzer', () => {
         );
     });
 
+    test('ignores struct fields passed to procfunctions while validating the struct root', () => {
+        const block: BlockCode = {
+            text: '',
+            startLine: 0,
+            lines: [
+                'entry sample',
+                'if ($status < 0 | ($number(vStcTemp->responseCode) != 200 & $number(vStcTemp->responseCode) != 201))',
+                '    $t_ds_erro$ = $concat("Código do erro ", vStcTemp->responseCode, " ", vStcTemp->restResponse, <DEF_CONTEXTO>)',
+                'endif',
+                'end',
+            ],
+        };
+        const usageAnalyzer = new UndeclaredVariableUsageAnalyzer();
+
+        assert.deepStrictEqual(usageAnalyzer.getUndeclaredUsages(block, ['vStcTemp']), []);
+        assert.deepStrictEqual(usageAnalyzer.getUndeclaredUsages(block, []).map((usage) => usage.name), [
+            'vStcTemp',
+            'vStcTemp',
+            'vStcTemp',
+            'vStcTemp',
+        ]);
+    });
+
     test('ignores to in for statements while validating the loop limit', () => {
         const block: BlockCode = {
             text: '',

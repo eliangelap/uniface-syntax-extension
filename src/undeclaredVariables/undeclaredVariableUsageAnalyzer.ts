@@ -95,9 +95,12 @@ export class UndeclaredVariableUsageAnalyzer {
             }
 
             const codeOutsideStringsAndComments = this.getCodeOutsideStringsAndComments(line)
-                .replace(/<[^>]*>/g, (constant) => ' '.repeat(constant.length))
+                .replace(/<[A-Za-z_]\w*>/g, (constant) => ' '.repeat(constant.length))
                 .replace(/\b[A-Za-z_]\w*\.[A-Za-z_]\w*(?:\/init\b)?/gi, (entityField) =>
                     ' '.repeat(entityField.length)
+                )
+                .replace(/(->\s*)([A-Za-z_]\w*)/g, (_access, operator, field) =>
+                    `${operator}${' '.repeat(field.length)}`
                 );
             const selectdbProjection = this.maskSelectdbProjection(
                 codeOutsideStringsAndComments,
