@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
-import { BlockCode, GetBlockAroundPosition } from '../code/getBlockAroundPosition.use.case';
+import { BlockCode } from '../code/getBlockAroundPosition.use.case';
+import { GetBlockList } from '../code/getBlockList.use.case';
 import { GetParametersFromBlock } from '../code/getParametersFromBlock.use.case';
 import { DeclaredVariable, GetVariablesFromBlock } from '../code/getVariablesFromBlock.use.case';
 import {
@@ -9,15 +10,13 @@ import {
 import { UndeclaredVariableUsageAnalyzer } from './undeclaredVariableUsageAnalyzer';
 
 interface UndeclaredVariableAnalyzerDependencies {
-    getActiveTextEditor(): vscode.TextEditor | undefined;
-    getBlock(document: vscode.TextDocument, position: vscode.Position): BlockCode | null;
+    getBlocks(document: vscode.TextDocument): BlockCode[];
     getVariables(block: BlockCode): DeclaredVariable[];
     getParameters(block: BlockCode): DeclaredVariable[];
 }
 
 const defaultDependencies: UndeclaredVariableAnalyzerDependencies = {
-    getActiveTextEditor: () => vscode.window.activeTextEditor,
-    getBlock: (document, position) => new GetBlockAroundPosition().execute(document, position),
+    getBlocks: (document) => new GetBlockList().execute(document),
     getVariables: (block) => new GetVariablesFromBlock().execute(block),
     getParameters: (block) => new GetParametersFromBlock().execute(block),
 };
@@ -31,29 +30,47 @@ export class UndeclaredVariableAnalyzer implements vscode.Disposable {
     ) {}
 
     public analyzeDocument(document: vscode.TextDocument): void {
-        const editor = this.dependencies.getActiveTextEditor();
-        if (document.languageId !== 'uniface' || editor?.document !== document) {
+        if (document.languageId !== 'uniface') {
             this.publisher.clear(document);
             return;
         }
 
-        const block = this.dependencies.getBlock(document, editor.selection.active);
-        if (!block) {
+        const blocks = this.dependencies.getBlocks(document);
+        if (blocks.length === 0) {
             this.publisher.clear(document);
             return;
         }
 
-        const declaredNames = [
-            ...this.dependencies.getVariables(block),
-            ...this.dependencies.getParameters(block),
-        ].map((variable) => variable.name);
-        const usages = this.usageAnalyzer.getUndeclaredUsages(block, declaredNames);
+        const returnValueFunctionNames = this.getReturnValueFunctionNames(blocks);
+        const usages = blocks.flatMap((block) => {
+            const declaredVariables = [
+                ...this.dependencies.getVariables(block),
+                ...this.dependencies.getParameters(block),
+            ];
+            const declaredNames = declaredVariables.map((variable) => variable.name);
+
+            return this.usageAnalyzer.getUndeclaredUsages(
+                block,
+                declaredNames,
+                returnValueFunctionNames,
+                declaredVariables
+            );
+        });
 
         this.publisher.publish(document, usages);
     }
 
     public clearDiagnostics(document: vscode.TextDocument): void {
         this.publisher.clear(document);
+    }
+
+    private getReturnValueFunctionNames(blocks: BlockCode[]): string[] {
+        return blocks.flatMap((block) => {
+            const functionName = /^\s*(?:entry|function)\s+([A-Za-z_]\w*)\b/i.exec(block.lines[0]);
+            const hasReturnValue = block.lines.some((line) => /^\s*returns\s+\w+\b/i.test(line));
+
+            return functionName && hasReturnValue ? [functionName[1]] : [];
+        });
     }
 
     public dispose(): void {

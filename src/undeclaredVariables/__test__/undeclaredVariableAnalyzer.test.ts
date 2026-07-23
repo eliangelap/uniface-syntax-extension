@@ -39,9 +39,7 @@ suite('UndeclaredVariableAnalyzer', () => {
         const publisher = new DiagnosticPublisherStub();
         const parameters: DeclaredVariable[] = [{ name: 'parameter', dataType: 'string', line: 2 }];
         const analyzer = new UndeclaredVariableAnalyzer(publisher, undefined, {
-            getActiveTextEditor: () =>
-                ({ document, selection: new vscode.Selection(4, 0, 4, 0) }) as unknown as vscode.TextEditor,
-            getBlock: () => block,
+            getBlocks: () => [block],
             getVariables: () => [],
             getParameters: () => parameters,
         });
@@ -49,5 +47,103 @@ suite('UndeclaredVariableAnalyzer', () => {
         analyzer.analyzeDocument(document);
 
         assert.deepStrictEqual(publisher.usages?.map((usage) => usage.name), ['result']);
+    });
+
+    test('publishes diagnostics from every block in the document', async () => {
+        const firstBlock: BlockCode = {
+            text: '',
+            startLine: 0,
+            lines: ['entry first', 'firstResult = 1', 'end'],
+        };
+        const secondBlock: BlockCode = {
+            text: '',
+            startLine: 3,
+            lines: ['operation second', 'secondResult = 1', 'end'],
+        };
+        const document = await vscode.workspace.openTextDocument({
+            content: [...firstBlock.lines, ...secondBlock.lines].join('\n'),
+            language: 'uniface',
+        });
+        const publisher = new DiagnosticPublisherStub();
+        const analyzer = new UndeclaredVariableAnalyzer(publisher, undefined, {
+            getBlocks: () => [firstBlock, secondBlock],
+            getVariables: () => [],
+            getParameters: () => [],
+        });
+
+        analyzer.analyzeDocument(document);
+
+        assert.deepStrictEqual(publisher.usages?.map((usage) => usage.name), [
+            'firstResult',
+            'secondResult',
+        ]);
+    });
+
+    test('ignores calls to entries that declare a return value', async () => {
+        const callerBlock: BlockCode = {
+            text: '',
+            startLine: 0,
+            lines: [
+                'entry caller',
+                'vStcReceituario->urlDownload = PLURLDOWNLOADREC() + noReturnFunction()',
+                'end',
+            ],
+        };
+        const returnValueFunctionBlock: BlockCode = {
+            text: '',
+            startLine: 3,
+            lines: ['entry plUrlDownloadRec', 'returns string', 'return ""', 'end'],
+        };
+        const noReturnFunctionBlock: BlockCode = {
+            text: '',
+            startLine: 7,
+            lines: ['entry noReturnFunction', 'return 0', 'end'],
+        };
+        const document = await vscode.workspace.openTextDocument({
+            content: [
+                ...callerBlock.lines,
+                ...returnValueFunctionBlock.lines,
+                ...noReturnFunctionBlock.lines,
+            ].join('\n'),
+            language: 'uniface',
+        });
+        const publisher = new DiagnosticPublisherStub();
+        const analyzer = new UndeclaredVariableAnalyzer(publisher, undefined, {
+            getBlocks: () => [callerBlock, returnValueFunctionBlock, noReturnFunctionBlock],
+            getVariables: (block) =>
+                block === callerBlock
+                    ? [{ name: 'vStcReceituario', dataType: 'struct', line: 1 }]
+                    : [],
+            getParameters: () => [],
+        });
+
+        analyzer.analyzeDocument(document);
+
+        assert.deepStrictEqual(publisher.usages?.map((usage) => usage.name), ['noReturnFunction']);
+    });
+
+    test('uses declared data types to validate extraction parameters', async () => {
+        const block: BlockCode = {
+            text: '',
+            startLine: 0,
+            lines: ['entry sample', 'result = vDtTransacao[h]', 'end'],
+        };
+        const document = await vscode.workspace.openTextDocument({
+            content: block.lines.join('\n'),
+            language: 'uniface',
+        });
+        const publisher = new DiagnosticPublisherStub();
+        const analyzer = new UndeclaredVariableAnalyzer(publisher, undefined, {
+            getBlocks: () => [block],
+            getVariables: () => [
+                { name: 'result', dataType: 'numeric', line: 1 },
+                { name: 'vDtTransacao', dataType: 'datetime', line: 1 },
+            ],
+            getParameters: () => [],
+        });
+
+        analyzer.analyzeDocument(document);
+
+        assert.deepStrictEqual(publisher.usages, []);
     });
 });

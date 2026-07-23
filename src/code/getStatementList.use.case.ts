@@ -68,6 +68,7 @@ export class GetStatementList {
             'forentity',
             'forlist',
             'forlist/id',
+            'from',
             'getitem',
             'getlistitems',
             'goto',

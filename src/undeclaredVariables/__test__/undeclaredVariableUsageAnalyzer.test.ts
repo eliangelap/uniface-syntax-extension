@@ -159,4 +159,155 @@ suite('UndeclaredVariableUsageAnalyzer', () => {
 
         assert.deepStrictEqual(usages.map((usage) => usage.name), ['limite']);
     });
+
+    test('ignores operation names in activate statements while validating arguments', () => {
+        const block: BlockCode = {
+            text: '',
+            startLine: 0,
+            lines: [
+                'entry sample',
+                'activate $instancename.atualizaStatusReceitaDigital(vStcEntrada, $t_ds_erro$)',
+                'activate vNmInstancia.alteraStatusReceitaPend(pStcEntrada, "", "")',
+                'activate "GPRDO012".OBTEM_FIELD_PK("GPRD_PRODUTO", vCdRegmapa)',
+                'activate vNmInstancia.outraOperation(argumentoNaoDeclarado)',
+                'end',
+            ],
+        };
+
+        const usages = new UndeclaredVariableUsageAnalyzer().getUndeclaredUsages(block, [
+            'vStcEntrada',
+            'vNmInstancia',
+            'pStcEntrada',
+            'vCdRegmapa',
+        ]);
+
+        assert.deepStrictEqual(usages.map((usage) => usage.name), ['argumentoNaoDeclarado']);
+    });
+
+    test('ignores qualified entity fields while validating the remaining expression', () => {
+        const block: BlockCode = {
+            text: '',
+            startLine: 0,
+            lines: [
+                'entry sample',
+                'cd_unidade.trec_contrrec = vCdUnidade',
+                'cd_unidade.trec_recebase/init = vCdUnidade',
+                'cd_unidade.trec_recebase/INIT = vCdUnidade',
+                'cd_produto.trec_produto = variavelNaoDeclarada',
+                'end',
+            ],
+        };
+
+        const usages = new UndeclaredVariableUsageAnalyzer().getUndeclaredUsages(block, [
+            'vCdUnidade',
+        ]);
+
+        assert.deepStrictEqual(usages.map((usage) => usage.name), ['variavelNaoDeclarada']);
+    });
+
+    test('ignores calls to local functions with a return value but validates other identifiers', () => {
+        const block: BlockCode = {
+            text: '',
+            startLine: 0,
+            lines: [
+                'entry sample',
+                'result = RETURNINGFUNCTION() + undeclaredValue',
+                'returningFunction = 1',
+                'end',
+            ],
+        };
+
+        const usages = new UndeclaredVariableUsageAnalyzer().getUndeclaredUsages(
+            block,
+            ['result'],
+            ['returningFunction']
+        );
+
+        assert.deepStrictEqual(usages.map((usage) => usage.name), [
+            'undeclaredValue',
+            'returningFunction',
+        ]);
+    });
+
+    test('ignores selectdb fields while validating conditions and the destination variable', () => {
+        const block: BlockCode = {
+            text: '',
+            startLine: 0,
+            lines: [
+                'entry sample',
+                'selectdb nm_cultrecagr, %\\',
+                '    ds_cultrecagr %\\',
+                '    from "gprd_cultura_s1" %\\',
+                '    u_where cd_cultura.gprd_cultura_s1 = undeclaredCondition %\\',
+                '    to undeclaredDestination',
+                'end',
+            ],
+        };
+
+        const usages = new UndeclaredVariableUsageAnalyzer().getUndeclaredUsages(block, []);
+
+        assert.deepStrictEqual(usages.map((usage) => usage.name), [
+            'undeclaredCondition',
+            'undeclaredDestination',
+        ]);
+    });
+
+    test('validates extraction parameters for date, time, and datetime values', () => {
+        const block: BlockCode = {
+            text: '',
+            startLine: 0,
+            lines: [
+                'entry sample',
+                'result = $date[D] + $clock[h] + $datim[s]',
+                'result = vDate[Mmm*] + vTime[T] + vDatetime[clock] + vDatetime[Y]',
+                'result = undeclaredValue',
+                'end',
+            ],
+        };
+
+        const usages = new UndeclaredVariableUsageAnalyzer().getUndeclaredUsages(
+            block,
+            ['result', 'vDate', 'vTime', 'vDatetime'],
+            [],
+            [
+                { name: 'vDate', dataType: 'date', line: 0 },
+                { name: 'vTime', dataType: 'time', line: 0 },
+                { name: 'vDatetime', dataType: 'datetime', line: 0 },
+            ]
+        );
+
+        assert.deepStrictEqual(usages.map((usage) => usage.name), ['undeclaredValue']);
+    });
+
+    test('reports invalid extraction parameters with a specific diagnostic', () => {
+        const block: BlockCode = {
+            text: '',
+            startLine: 0,
+            lines: ['entry sample', 'result = vDate[H] + vTime[Y] + vDatetime[invalid]', 'end'],
+        };
+
+        const usages = new UndeclaredVariableUsageAnalyzer().getUndeclaredUsages(
+            block,
+            ['result', 'vDate', 'vTime', 'vDatetime'],
+            [],
+            [
+                { name: 'vDate', dataType: 'date', line: 0 },
+                { name: 'vTime', dataType: 'time', line: 0 },
+                { name: 'vDatetime', dataType: 'datetime', line: 0 },
+            ]
+        );
+
+        assert.deepStrictEqual(
+            usages.map((usage) => ({ name: usage.name, code: usage.diagnosticCode })),
+            [
+                { name: 'H', code: 'uniface.invalidExtractionParameter' },
+                { name: 'Y', code: 'uniface.invalidExtractionParameter' },
+                { name: 'invalid', code: 'uniface.invalidExtractionParameter' },
+            ]
+        );
+        assert.strictEqual(
+            usages[0].message,
+            'Invalid extraction parameter "H" for date value "vDate".'
+        );
+    });
 });
