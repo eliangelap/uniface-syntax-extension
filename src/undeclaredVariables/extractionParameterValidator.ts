@@ -61,7 +61,7 @@ export class ExtractionParameterValidator {
                     name: parameter,
                     range: new vscode.Range(line, parameterStart, line, parameterStart + parameter.length),
                     message: `Invalid extraction parameter "${parameter}" for ${sourceType} value "${source}".`,
-                    diagnosticCode: 'uniface.invalidExtractionParameter',
+                    diagnosticCode: invalidExtractionParameterDiagnosticCode,
                 });
             }
 
