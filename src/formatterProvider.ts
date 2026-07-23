@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { endKeywordsRegex, ifInlineRegex, startKeywordsRegex } from './regExpConstants';
 import { CodeAnalyzer } from './util/codeAnalyzer.use.case';
+import { findMissingBlockEnds } from './blockStructure/blockStructureAnalyzer';
 
 interface CommentedLine {
     code: string;
@@ -25,6 +26,10 @@ class UnifaceFormatterProvider implements vscode.DocumentFormattingEditProvider 
         options: vscode.FormattingOptions,
         token: vscode.CancellationToken
     ): vscode.TextEdit[] {
+        if (findMissingBlockEnds(document.getText().split(/\r?\n/)).length > 0) {
+            return [];
+        }
+
         const formatter = new UnifaceFormatter(document.getText(), options);
         const formattedText = formatter.format();
 

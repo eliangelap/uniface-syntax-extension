@@ -38,23 +38,14 @@ suite('UnifaceUnusedVariableAnalyzer', () => {
         { name: 'unusedValue', dataType: 'string', line: 2 },
     ];
 
-    test('clears diagnostics when the document is not active or has no block', async () => {
+    test('clears diagnostics when the document has no blocks', async () => {
         const document = await vscode.workspace.openTextDocument({
-            content: '',
-            language: 'uniface',
-        });
-        const otherDocument = await vscode.workspace.openTextDocument({
             content: '',
             language: 'uniface',
         });
         const publisher = new DiagnosticPublisherStub();
         const analyzer = new UnifaceUnusedVariableAnalyzer(publisher, undefined, {
-            getActiveTextEditor: () =>
-                ({
-                    document: otherDocument,
-                    selection: new vscode.Selection(0, 0, 0, 0),
-                }) as unknown as vscode.TextEditor,
-            getBlock: () => null,
+            getBlocks: () => [],
             getVariables: () => [],
         });
 
@@ -63,24 +54,65 @@ suite('UnifaceUnusedVariableAnalyzer', () => {
         assert.deepStrictEqual(publisher.clearedDocuments, [document]);
     });
 
-    test('publishes only variables not used in the active block', async () => {
+    test('publishes only variables not used in a block', async () => {
         const document = await vscode.workspace.openTextDocument({
             content: block.text,
             language: 'uniface',
         });
         const publisher = new DiagnosticPublisherStub();
         const analyzer = new UnifaceUnusedVariableAnalyzer(publisher, undefined, {
-            getActiveTextEditor: () =>
-                ({
-                    document,
-                    selection: new vscode.Selection(0, 0, 0, 0),
-                }) as unknown as vscode.TextEditor,
-            getBlock: () => block,
+            getBlocks: () => [block],
             getVariables: () => variables,
         });
 
         analyzer.analyzeDocument(document);
 
         assert.deepStrictEqual(publisher.publishedVariables, [variables[1]]);
+    });
+
+    test('publishes unused variables from every block in the document', async () => {
+        const secondBlock: BlockCode = {
+            text: 'operation secondOperation\nvariables\nstring secondUnused\nendvariables\nend',
+            startLine: 6,
+            lines: ['operation secondOperation', 'variables', 'string secondUnused', 'endvariables', 'end'],
+        };
+        const secondUnused: DeclaredVariable = {
+            name: 'secondUnused',
+            dataType: 'string',
+            line: 8,
+        };
+        const document = await vscode.workspace.openTextDocument({
+            content: `${block.text}\n${secondBlock.text}`,
+            language: 'uniface',
+        });
+        const publisher = new DiagnosticPublisherStub();
+        const analyzer = new UnifaceUnusedVariableAnalyzer(publisher, undefined, {
+            getBlocks: () => [block, secondBlock],
+            getVariables: (currentBlock) =>
+                currentBlock === block ? variables : [secondUnused],
+        });
+
+        analyzer.analyzeDocument(document);
+
+        assert.deepStrictEqual(publisher.publishedVariables, [variables[1], secondUnused]);
+    });
+
+    test('skips analysis when a block END is missing', async () => {
+        const document = await vscode.workspace.openTextDocument({
+            content: 'entry incomplete\nstring unusedValue',
+            language: 'uniface',
+        });
+        const publisher = new DiagnosticPublisherStub();
+        const analyzer = new UnifaceUnusedVariableAnalyzer(publisher, undefined, {
+            getBlocks: () => {
+                throw new Error('The block analyzer must not run');
+            },
+            getVariables: () => [],
+        });
+
+        analyzer.analyzeDocument(document);
+
+        assert.deepStrictEqual(publisher.clearedDocuments, [document]);
+        assert.strictEqual(publisher.publishedVariables, undefined);
     });
 });

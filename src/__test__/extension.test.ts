@@ -1,6 +1,6 @@
 import * as assert from 'node:assert';
 import * as vscode from 'vscode';
-import { runPromptAndInsert, shouldAnalyzeDocument } from '../extension';
+import { analyzeOpenUnifaceDocuments, runPromptAndInsert, shouldAnalyzeDocument } from '../extension';
 
 suite('Extension', () => {
     test('returns the promise from command creators', async () => {
@@ -16,7 +16,7 @@ suite('Extension', () => {
         assert.strictEqual(wasCalled, true);
     });
 
-    test('analyzes only the active Uniface document', async () => {
+    test('identifies Uniface documents for analysis', async () => {
         const unifaceDocument = await vscode.workspace.openTextDocument({
             content: '',
             language: 'uniface',
@@ -29,10 +29,26 @@ suite('Extension', () => {
             content: '',
             language: 'plaintext',
         });
-        const editor = { document: unifaceDocument } as vscode.TextEditor;
+        assert.strictEqual(shouldAnalyzeDocument(unifaceDocument), true);
+        assert.strictEqual(shouldAnalyzeDocument(otherUnifaceDocument), true);
+        assert.strictEqual(shouldAnalyzeDocument(plainTextDocument), false);
+    });
 
-        assert.strictEqual(shouldAnalyzeDocument(editor, unifaceDocument), true);
-        assert.strictEqual(shouldAnalyzeDocument(editor, otherUnifaceDocument), false);
-        assert.strictEqual(shouldAnalyzeDocument(editor, plainTextDocument), false);
+    test('analyzes Uniface documents that were already open on activation', async () => {
+        const unifaceDocument = await vscode.workspace.openTextDocument({
+            content: '',
+            language: 'uniface',
+        });
+        const plainTextDocument = await vscode.workspace.openTextDocument({
+            content: '',
+            language: 'plaintext',
+        });
+        const analyzedDocuments: vscode.TextDocument[] = [];
+
+        analyzeOpenUnifaceDocuments([unifaceDocument, plainTextDocument], [
+            { analyzeDocument: (document) => analyzedDocuments.push(document) },
+        ]);
+
+        assert.deepStrictEqual(analyzedDocuments, [unifaceDocument]);
     });
 });

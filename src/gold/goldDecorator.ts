@@ -5,6 +5,20 @@ interface GoldCharacter {
     display: string;
 }
 
+export function createGoldDecorationOptions(display: string): vscode.DecorationRenderOptions {
+    return {
+        before: {
+            contentText: display,
+            color: 'black',
+            backgroundColor: 'orange',
+            fontWeight: 'bold',
+            margin: '0 1px',
+        },
+        backgroundColor: 'orange',
+        textDecoration: 'none; display: none;',
+    };
+}
+
 class GoldCharacterRegistry {
     private characters: GoldCharacter[] = [
         { ascii: 27, display: ';' },
@@ -26,16 +40,9 @@ class GoldCharacterRegistry {
 
     private initializeDecorations() {
         for (const { ascii, display } of this.characters) {
-            const decoration = vscode.window.createTextEditorDecorationType({
-                before: {
-                    contentText: display,
-                    color: 'black',
-                    backgroundColor: 'orange',
-                    fontWeight: 'bold',
-                    margin: '0 1px',
-                },
-                backgroundColor: 'orange',
-            });
+            const decoration = vscode.window.createTextEditorDecorationType(
+                createGoldDecorationOptions(display)
+            );
 
             this.decorations.set(ascii, decoration);
         }

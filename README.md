@@ -1,14 +1,15 @@
 # Uniface Syntax Extension
 
-A Visual Studio Code extension for Uniface and ProcScript files. It adds language support for `.uniface` and `.proc` files, plus editor tools that help navigate, write, format, and inspect Uniface code.
+A Visual Studio Code extension for Uniface and ProcScript files. It adds language support for `.uniface` and `.proc` files, plus editor tools for authoring, navigation, formatting, GOLD characters, and code diagnostics.
 
 ## Features
 
 ### Language support
 
 - Syntax highlighting through the `source.uniface` grammar.
-- Language configuration for Uniface and ProcScript files.
-- Code formatting through VS Code's **Format Document** command.
+- Language configuration for Uniface and ProcScript files, including comments, strings, constants, directives, declarations, and ProcScript statements.
+- Code formatting through VS Code's **Format Document** command, with indentation for control structures, continuations, comments, and `#define` directives.
+- Formatting is deliberately skipped when an `entry` or `operation` has a missing `END`, preserving the source until its structure is corrected.
 
 ### Completion and signature help
 
@@ -27,7 +28,12 @@ A Visual Studio Code extension for Uniface and ProcScript files. It adds languag
 
 - **Uniface: Create new Entry** inserts a documented entry template with parameters, variables, and return handling.
 - **Uniface: Create new Operation** inserts an operation template with the same baseline structure.
-- Diagnostics highlight variables declared in the current block that are not used after the `variables` section.
+- Diagnostics highlight variables declared in a block that are not used.
+- Diagnostics identify variable usages that have not been declared and provide a quick fix to declare the variable with a selected type.
+- Extraction parameters are validated for `date`, `time`, `datetime`, and `numeric` values, including `$date`, `$clock`, and `$datim`.
+- Diagnostics report a missing `END` for `entry` and `operation` blocks.
+- Declaration validation reports duplicate parameter or variable names (case-insensitively) and a missing variable name between consecutive commas, such as `string texto,, texto2`.
+- Variable diagnostics and declaration validation are skipped while the document has a missing `END`, avoiding misleading results from an incomplete block.
 
 #### Custom entry template
 
@@ -59,7 +65,7 @@ breaks can be entered directly in the Settings editor. It supports `{{operationN
 
 ### GOLD key support
 
-- Recognizes GOLD sequences typed inside double-quoted strings and replaces them with the corresponding control character.
+- Recognizes GOLD sequences typed inside single- or double-quoted strings and replaces them with the corresponding control character.
 - Displays supported GOLD control characters with a visible decoration in the editor.
 
 Supported sequences include `+;`, `+=`, `+!`, `+<`, `+>`, `+&`, `+|`, `+?`, and `+*`.

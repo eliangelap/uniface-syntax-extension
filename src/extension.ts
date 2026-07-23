@@ -15,20 +15,38 @@ import {
     UndeclaredVariableQuickFixProvider,
 } from './undeclaredVariables/undeclaredVariableQuickFixProvider';
 import { DeclareVariableCommand } from './undeclaredVariables/declareVariableCommand';
+import { BlockStructureAnalyzer } from './blockStructure/blockStructureAnalyzer';
+import { DeclarationValidationAnalyzer } from './declarationValidation/declarationValidationAnalyzer';
 
 interface PromptAndInsert {
     promptAndInsert(): Promise<void>;
+}
+
+interface DocumentAnalyzer {
+    analyzeDocument(document: vscode.TextDocument): void;
 }
 
 export function runPromptAndInsert(creator: PromptAndInsert): Promise<void> {
     return creator.promptAndInsert();
 }
 
-export function shouldAnalyzeDocument(
-    editor: vscode.TextEditor | undefined,
-    document: vscode.TextDocument
-): boolean {
-    return document.languageId === 'uniface' && editor?.document === document;
+export function shouldAnalyzeDocument(document: vscode.TextDocument): boolean {
+    return document.languageId === 'uniface';
+}
+
+export function analyzeOpenUnifaceDocuments(
+    documents: readonly vscode.TextDocument[],
+    analyzers: DocumentAnalyzer[]
+): void {
+    for (const document of documents) {
+        if (!shouldAnalyzeDocument(document)) {
+            continue;
+        }
+
+        for (const analyzer of analyzers) {
+            analyzer.analyzeDocument(document);
+        }
+    }
 }
 
 export function activate(context: vscode.ExtensionContext) {
@@ -38,7 +56,38 @@ export function activate(context: vscode.ExtensionContext) {
 
     const variableAnalyzer = new UnifaceUnusedVariableAnalyzer();
     const undeclaredVariableAnalyzer = new UndeclaredVariableAnalyzer();
+    const blockStructureAnalyzer = new BlockStructureAnalyzer();
+    const declarationValidationAnalyzer = new DeclarationValidationAnalyzer();
     const declarationCommand = new DeclareVariableCommand();
+    const analyzers = [
+        variableAnalyzer,
+        undeclaredVariableAnalyzer,
+        blockStructureAnalyzer,
+        declarationValidationAnalyzer,
+    ];
+    const analysisTimers = new Map<string, ReturnType<typeof setTimeout>>();
+    const analyzeDocument = (document: vscode.TextDocument) => {
+        analyzeOpenUnifaceDocuments([document], analyzers);
+    };
+    const scheduleAnalysis = (document: vscode.TextDocument) => {
+        if (!shouldAnalyzeDocument(document)) {
+            return;
+        }
+
+        const key = document.uri.toString();
+        const previousTimer = analysisTimers.get(key);
+        if (previousTimer) {
+            clearTimeout(previousTimer);
+        }
+
+        analysisTimers.set(
+            key,
+            setTimeout(() => {
+                analysisTimers.delete(key);
+                analyzeDocument(document);
+            }, 250)
+        );
+    };
 
     context.subscriptions.push(
         vscode.commands.registerCommand('uniface-extension.entry', () => {
@@ -65,31 +114,38 @@ export function activate(context: vscode.ExtensionContext) {
             ','
         ),
         vscode.workspace.onDidOpenTextDocument((doc) => {
-            if (shouldAnalyzeDocument(vscode.window.activeTextEditor, doc)) {
-                variableAnalyzer.analyzeDocument(doc);
-                undeclaredVariableAnalyzer.analyzeDocument(doc);
-            }
+            analyzeDocument(doc);
         }),
         vscode.workspace.onDidChangeTextDocument((e) => {
-            const editor = vscode.window.activeTextEditor;
-            if (shouldAnalyzeDocument(editor, e.document)) {
-                variableAnalyzer.analyzeDocument(e.document);
-                undeclaredVariableAnalyzer.analyzeDocument(e.document);
-            }
-        }),
-        vscode.window.onDidChangeActiveTextEditor((editor) => {
-            if (editor && shouldAnalyzeDocument(editor, editor.document)) {
-                variableAnalyzer.analyzeDocument(editor.document);
-                undeclaredVariableAnalyzer.analyzeDocument(editor.document);
-            }
+            scheduleAnalysis(e.document);
         }),
         vscode.workspace.onDidCloseTextDocument((doc) => {
+            const key = doc.uri.toString();
+            const timer = analysisTimers.get(key);
+            if (timer) {
+                clearTimeout(timer);
+                analysisTimers.delete(key);
+            }
             variableAnalyzer.clearDiagnostics(doc);
             undeclaredVariableAnalyzer.clearDiagnostics(doc);
+            blockStructureAnalyzer.clearDiagnostics(doc);
+            declarationValidationAnalyzer.clearDiagnostics(doc);
         }),
+        {
+            dispose: () => {
+                for (const timer of analysisTimers.values()) {
+                    clearTimeout(timer);
+                }
+                analysisTimers.clear();
+            },
+        },
         variableAnalyzer,
-        undeclaredVariableAnalyzer
+        undeclaredVariableAnalyzer,
+        blockStructureAnalyzer,
+        declarationValidationAnalyzer
     );
+
+    analyzeOpenUnifaceDocuments(vscode.workspace.textDocuments, analyzers);
 }
 
 export function deactivate() {

@@ -1,12 +1,20 @@
 import * as assert from 'node:assert';
 import * as vscode from 'vscode';
 import {
+    createGoldDecorationOptions,
     getGoldCharacterRanges,
     isUnifaceDocument,
     registerGoldDecorationEvents,
 } from '../goldDecorator';
 
 suite('GoldDecorator', () => {
+    test('hides the original GOLD character while displaying its marker', () => {
+        const options = createGoldDecorationOptions(';');
+
+        assert.strictEqual(options.textDecoration, 'none; display: none;');
+        assert.strictEqual(options.before?.contentText, ';');
+    });
+
     test('groups GOLD characters in one pass by ASCII code', async () => {
         const document = await vscode.workspace.openTextDocument({
             content: `a\x1Bb\x12\x1B`,
