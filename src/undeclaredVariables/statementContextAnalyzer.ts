@@ -82,7 +82,7 @@ export class StatementContextAnalyzer {
     }
 
     private getCallFunctionNameStart(code: string): number | undefined {
-        const call = /^\s*call\s+([A-Za-z_]\w*)\b/i.exec(code);
+        const call = /\bcall\s+([A-Za-z_]\w*)\b/i.exec(code);
         return call ? call.index + call[0].length - call[1].length : undefined;
     }
 
