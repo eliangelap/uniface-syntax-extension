@@ -7,6 +7,7 @@ import { ExtractionParameterValidator } from './extractionParameterValidator';
 import { ProcCodeSanitizer } from './procCodeSanitizer';
 import { StatementContextAnalyzer } from './statementContextAnalyzer';
 import { UndeclaredVariableUsage } from './undeclaredVariableUsage';
+import { unknownLabelDiagnosticCode } from './undeclaredVariablesDiagnosticPublisher';
 
 export { UndeclaredVariableUsage } from './undeclaredVariableUsage';
 
@@ -36,6 +37,7 @@ export class UndeclaredVariableUsageAnalyzer {
             [...returnValueFunctionNames].map((name) => name.toLowerCase())
         );
         const usages: UndeclaredVariableUsage[] = [];
+        const labels = this.getLabels(block.lines);
         let isInsideDeclaration = false;
 
         this.addDefinedConstants(block.lines, declared);
@@ -63,7 +65,10 @@ export class UndeclaredVariableUsageAnalyzer {
                 continue;
             }
 
-            const statementContext = this.statementContextAnalyzer.analyze(this.sanitizer.sanitize(line));
+            const sanitizedLine = this.sanitizer.sanitize(line);
+            this.addUnknownGotoUsage(sanitizedLine, block.startLine + lineIndex, labels, usages);
+
+            const statementContext = this.statementContextAnalyzer.analyze(sanitizedLine);
             const extractionValidation = this.extractionParameterValidator.validate(
                 statementContext.code,
                 declaredVariables,
@@ -121,5 +126,38 @@ export class UndeclaredVariableUsageAnalyzer {
                 declared.add(definition[1].toLowerCase());
             }
         }
+    }
+
+    private getLabels(lines: string[]): Set<string> {
+        const labels = new Set<string>();
+
+        for (const line of lines) {
+            const label = /^\s*([A-Za-z_]\w*)\s*:/i.exec(this.sanitizer.sanitize(line));
+            if (label) {
+                labels.add(label[1].toLowerCase());
+            }
+        }
+
+        return labels;
+    }
+
+    private addUnknownGotoUsage(
+        code: string,
+        line: number,
+        labels: ReadonlySet<string>,
+        usages: UndeclaredVariableUsage[]
+    ): void {
+        const goto = /^\s*goto\s+([A-Za-z_]\w*)\b/i.exec(code);
+        if (!goto || labels.has(goto[1].toLowerCase())) {
+            return;
+        }
+
+        const labelStart = goto.index + goto[0].length - goto[1].length;
+        usages.push({
+            name: goto[1],
+            range: new vscode.Range(line, labelStart, line, labelStart + goto[1].length),
+            message: `Label "${goto[1]}" is not declared in this block.`,
+            diagnosticCode: unknownLabelDiagnosticCode,
+        });
     }
 }

@@ -42,7 +42,8 @@ export class ExtractionParameterValidator {
         line: number
     ): ExtractionParameterValidationResult {
         const sourceTypes = this.getSourceTypes(declaredVariables);
-        const extractionRegex = /(\$?[A-Za-z_]\w*)\s*\[\s*([^\]\s](?:[^\]]*?[^\]\s])?)\s*\]/g;
+        const extractionRegex =
+            /(\$?[A-Za-z_]\w*(?:\s*\.\s*[A-Za-z_]\w*)?)\s*\[\s*([^\]\s](?:[^\]]*?[^\]\s])?)\s*\]/g;
         const invalidUsages: UndeclaredVariableUsage[] = [];
         let maskedCode = code;
         let extraction: RegExpExecArray | null;
@@ -50,6 +51,16 @@ export class ExtractionParameterValidator {
         while ((extraction = extractionRegex.exec(code)) !== null) {
             const source = extraction[1];
             const parameter = extraction[2];
+            const isEntityField = source.includes('.');
+
+            if (isEntityField) {
+                maskedCode =
+                    maskedCode.slice(0, extraction.index) +
+                    ' '.repeat(extraction[0].length) +
+                    maskedCode.slice(extraction.index + extraction[0].length);
+                continue;
+            }
+
             const sourceType = sourceTypes.get(source.toLowerCase());
             if (!sourceType) {
                 continue;
@@ -93,9 +104,13 @@ export class ExtractionParameterValidator {
 
     private isValid(sourceType: ExtractionSourceType, parameter: string): boolean {
         if (sourceType === 'numeric') {
-            return /^(?:trunc|i|fraction|f|r|round(?:\s*,\s*\d+)?)$/i.test(parameter);
+            return this.isValidNumericParameter(parameter);
         }
 
         return extractionParameters[sourceType].has(parameter.toLowerCase());
+    }
+
+    private isValidNumericParameter(parameter: string): boolean {
+        return /^(?:trunc|i|fraction|f|r|round(?:\s*,\s*\d+)?)$/i.test(parameter);
     }
 }

@@ -1,6 +1,7 @@
 import * as assert from 'node:assert';
 import { BlockCode } from '../../code/getBlockAroundPosition.use.case';
 import { UndeclaredVariableUsageAnalyzer } from '../undeclaredVariableUsageAnalyzer';
+import { unknownLabelDiagnosticCode } from '../undeclaredVariablesDiagnosticPublisher';
 
 suite('UndeclaredVariableUsageAnalyzer', () => {
     test('finds undeclared assignment and statement arguments', () => {
@@ -128,13 +129,18 @@ suite('UndeclaredVariableUsageAnalyzer', () => {
                 'entry sample',
                 'clear/e "trec_recebase"',
                 'clear/all VARIAVEL',
+                'store/e/complete "trec_recebase"',
+                'store/E/COMPLETE undeclaredValue',
                 'end',
             ],
         };
 
         const usages = new UndeclaredVariableUsageAnalyzer().getUndeclaredUsages(block, []);
 
-        assert.deepStrictEqual(usages.map((usage) => usage.name), ['VARIAVEL']);
+        assert.deepStrictEqual(usages.map((usage) => usage.name), [
+            'VARIAVEL',
+            'undeclaredValue',
+        ]);
     });
 
     test('validates only the root variable of struct access chains', () => {
@@ -287,6 +293,54 @@ suite('UndeclaredVariableUsageAnalyzer', () => {
         ]);
     });
 
+    test('validates goto labels within the same block without treating them as variables', () => {
+        const block: BlockCode = {
+            text: '',
+            startLine: 0,
+            lines: [
+                'entry sample',
+                'goto PROX_ITEM',
+                'Prox_Item: declaredValue = 1',
+                'goto missingLabel',
+                'undeclaredValue = 1',
+                '; goto ignoredLabel',
+                '; ignoredLabel:',
+                'end',
+            ],
+        };
+
+        const usages = new UndeclaredVariableUsageAnalyzer().getUndeclaredUsages(block, [
+            'declaredValue',
+        ]);
+
+        assert.deepStrictEqual(
+            usages.map((usage) => ({ name: usage.name, code: usage.diagnosticCode })),
+            [
+                { name: 'missingLabel', code: unknownLabelDiagnosticCode },
+                { name: 'undeclaredValue', code: undefined },
+            ]
+        );
+        assert.strictEqual(usages[0].message, 'Label "missingLabel" is not declared in this block.');
+    });
+
+    test('ignores entity fields in compare next and previous statements', () => {
+        const block: BlockCode = {
+            text: '',
+            startLine: 0,
+            lines: [
+                'entry sample',
+                'compare/previous (cd_undrecei, tp_receita, nr_receita) from "trec_recpfitem_s1"',
+                'COMPARE / NEXT (cd_undrecei, tp_receita, nr_receita) FROM "trec_recpfitem_s1"',
+                'undeclaredValue = 1',
+                'end',
+            ],
+        };
+
+        const usages = new UndeclaredVariableUsageAnalyzer().getUndeclaredUsages(block, []);
+
+        assert.deepStrictEqual(usages.map((usage) => usage.name), ['undeclaredValue']);
+    });
+
     test('validates extraction parameters for date, time, and datetime values', () => {
         const block: BlockCode = {
             text: '',
@@ -363,6 +417,44 @@ suite('UndeclaredVariableUsageAnalyzer', () => {
             [],
             [{ name: 'vQtAplicacao', dataType: 'numeric', line: 0 }]
         );
+
+        assert.deepStrictEqual(usages, []);
+    });
+
+    test('accepts extraction parameters for qualified entity fields', () => {
+        const block: BlockCode = {
+            text: '',
+            startLine: 0,
+            lines: [
+                'entry sample',
+                'qt_aplicacao.trec_receitem = qt_aplicacao.trec_receitem[round, 2]',
+                'dt_receita.trec_receitem = dt_receita.trec_receitem[D]',
+                'hr_receita.trec_receitem = hr_receita.trec_receitem[N]',
+                'dh_receita.trec_receitem = dh_receita.trec_receitem[clock]',
+                'end',
+            ],
+        };
+
+        const usages = new UndeclaredVariableUsageAnalyzer().getUndeclaredUsages(block, []);
+
+        assert.deepStrictEqual(usages, []);
+    });
+
+    test('ignores extraction parameter expressions for qualified entity fields', () => {
+        const block: BlockCode = {
+            text: '',
+            startLine: 0,
+            lines: [
+                'entry sample',
+                'v_ds_unpadapl = ds_unipadose.trec_receitem[$result + 1]',
+                'v_ds_unpadapl = ds_unipadose.trec_receitem[variableInsideParameter + 1]',
+                'end',
+            ],
+        };
+
+        const usages = new UndeclaredVariableUsageAnalyzer().getUndeclaredUsages(block, [
+            'v_ds_unpadapl',
+        ]);
 
         assert.deepStrictEqual(usages, []);
     });

@@ -2,7 +2,7 @@ export class ProcCodeSanitizer {
     public sanitize(line: string): string {
         return this.getCodeOutsideStringsAndComments(line)
             .replace(/<[A-Za-z_]\w*>/g, (constant) => ' '.repeat(constant.length))
-            .replace(/\b[A-Za-z_]\w*\.[A-Za-z_]\w*(?:\/init\b)?/gi, (entityField) =>
+            .replace(/\b[A-Za-z_]\w*\.[A-Za-z_]\w*(?:\/init\b)?\b(?!\s*\[)/gi, (entityField) =>
                 ' '.repeat(entityField.length)
             )
             .replace(/(->\s*)([A-Za-z_]\w*)/g, (_access, operator, field) =>
