@@ -121,6 +121,37 @@ suite('UndeclaredVariableUsageAnalyzer', () => {
         assert.deepStrictEqual(usages.map((usage) => usage.name), ['valor']);
     });
 
+    test('ignores function names in single-line if calls but analyzes their arguments', () => {
+        const block: BlockCode = {
+            text: '',
+            startLine: 0,
+            lines: [
+                'entry sample',
+                'if (v_tp_natop != 1 & p_tp_processo != 3) call pl_envia_email("Tipo inv\u00e1lido")',
+                'end',
+            ],
+        };
+
+        const usages = new UndeclaredVariableUsageAnalyzer().getUndeclaredUsages(block, [
+            'v_tp_natop',
+            'p_tp_processo',
+        ]);
+
+        assert.deepStrictEqual(usages, []);
+
+        const usagesWithUndeclaredArgument = new UndeclaredVariableUsageAnalyzer().getUndeclaredUsages(
+            {
+                ...block,
+                lines: ['entry sample', 'if (v_tp_natop = 1) CALL pl_envia_email(undeclaredValue)', 'end'],
+            },
+            ['v_tp_natop']
+        );
+
+        assert.deepStrictEqual(usagesWithUndeclaredArgument.map((usage) => usage.name), [
+            'undeclaredValue',
+        ]);
+    });
+
     test('ignores statement modifiers but analyzes variables after them', () => {
         const block: BlockCode = {
             text: '',

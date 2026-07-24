@@ -12,12 +12,14 @@ suite('StatementContextAnalyzer', () => {
         assert.match(secondLine.code, /from/);
     });
 
-    test('marks callable names and statement modifiers as ignored', () => {
+    test('marks callable names, including inline calls, and statement modifiers as ignored', () => {
         const analyzer = new StatementContextAnalyzer(new Set(['clear']));
         const callContext = analyzer.analyze('call process(value)');
+        const inlineCallContext = analyzer.analyze('if (value = 1) call process(value)');
         const modifierContext = analyzer.analyze('clear/all value');
 
         assert.ok(callContext.ignoredTokenStarts.has(5));
+        assert.ok(inlineCallContext.ignoredTokenStarts.has(20));
         assert.ok(modifierContext.ignoredTokenStarts.has(6));
     });
 });

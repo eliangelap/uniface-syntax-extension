@@ -2,6 +2,36 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.14.1](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.14.0...v1.14.1) (2026-07-24)
+
+
+### Bug Fixes
+
+* **formatador:** 🐛 evita indentação negativa ([7d5bab0](https://github.com/eliangelap/uniface-syntax-extension/commit/7d5bab0469a3d1ee7d0012252c18b294d55de16f))
+
+## [1.14.0](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.12.1...v1.14.0) (2026-07-24)
+
+
+### Features
+
+* **análise:** ✨ amplia análise dos documentos Uniface ([2291eca](https://github.com/eliangelap/uniface-syntax-extension/commit/2291eca5928fae7e64e8f9f869cce1600125e4b2))
+* **sintaxe:** ✨ reconhece strings com aspas simples ([f67af6d](https://github.com/eliangelap/uniface-syntax-extension/commit/f67af6d08e8aa6560768ca634ed3104d6af0b0ce))
+* **validação:** ✨ valida estrutura e declarações ([a03e5d3](https://github.com/eliangelap/uniface-syntax-extension/commit/a03e5d3abdf33510fbf71cbf3315bd5d998af8e7))
+
+
+### Bug Fixes
+
+* **analisador:** 🐛 corrige detecção de variáveis não declaradas ([ad9e2f2](https://github.com/eliangelap/uniface-syntax-extension/commit/ad9e2f2ad5a9e07912257e51120fb517f0af285f))
+* **analisador:** 🐛 ignora diretivas de definição ([e654010](https://github.com/eliangelap/uniface-syntax-extension/commit/e6540105b672e60f42a2b7c47da163ddca31d10f))
+* **analisador:** 🐛 preserva campos de struct em comparações ([9bc2a8b](https://github.com/eliangelap/uniface-syntax-extension/commit/9bc2a8b30a10ea775ad02c843db8fa489658ffb5))
+* **analisador:** 🐛 reconhece contextos especiais ([63839b9](https://github.com/eliangelap/uniface-syntax-extension/commit/63839b9c05542d3376ee0ec9a258a538bfd36201))
+* **análise:** 🐛 corrige diagnósticos do PROC ([b045a76](https://github.com/eliangelap/uniface-syntax-extension/commit/b045a76c9d312ee181d4f0e8710efa89b77c399f))
+* **análise:** 🐛 corrige if em linha única ([97811aa](https://github.com/eliangelap/uniface-syntax-extension/commit/97811aa7ff1db1576d85234df02d36d47fa16722))
+* **completion:** 🐛 corrige entries em call inline ([d1d54f9](https://github.com/eliangelap/uniface-syntax-extension/commit/d1d54f98d581d770f4b5406738553554e66a2d27))
+* **dependências:** 🐛 padroniza instalação com npm ([4895fe3](https://github.com/eliangelap/uniface-syntax-extension/commit/4895fe3723945d4cb4674f63ca6c96419953d043))
+* **deploy:** 🐛 executa testes com display virtual ([b09052c](https://github.com/eliangelap/uniface-syntax-extension/commit/b09052c9df1888752659904c0c8f534dbdb9db53))
+* **gold:** 🐛 oculta caracteres de controle originais ([4a95342](https://github.com/eliangelap/uniface-syntax-extension/commit/4a953429722b9a4ff4e3fceed9e6c7252f4d8873))
+
 ## [1.13.0](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.12.1...v1.13.0) (2026-07-24)
 
 
