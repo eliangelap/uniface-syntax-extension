@@ -200,7 +200,7 @@ class UnifaceFormatter {
         const decreaseKeywords = [/^else\b/i, /^elseif\b/i, /^catch\b/i];
 
         const inDecreaseKeyword = decreaseKeywords.some((keyword) => keyword.test(trimmed));
-        const tabCount = inDecreaseKeyword ? this.deepLevel - 1 : this.deepLevel;
+        const tabCount = Math.max(inDecreaseKeyword ? this.deepLevel - 1 : this.deepLevel, 0);
 
         const indent = this.isInContinuation
             ? '\t'.repeat(this.continuationIndent) + '\t'

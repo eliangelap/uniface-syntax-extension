@@ -155,4 +155,19 @@ suite('UnifaceFormatterProvider', () => {
             ].join('\n')
         );
     });
+
+    test('formats decrease keywords at zero depth without throwing', async () => {
+        const document = await vscode.workspace.openTextDocument({
+            content: ['else', 'elseif (condition)', 'catch'].join('\n'),
+            language: 'uniface',
+        });
+
+        const edits = await formatterProvider().provideDocumentFormattingEdits(
+            document,
+            { insertSpaces: true, tabSize: 4 },
+            cancellationToken
+        );
+
+        assert.strictEqual(edits?.[0].newText, document.getText());
+    });
 });
