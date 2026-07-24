@@ -10,9 +10,9 @@ export class GetEntriesCompletionList {
         const completions: vscode.CompletionItem[] = [];
         const declaredModules: DeclaredModule[] = new GetEntriesList().execute(document);
 
-        const lineText = document.lineAt(position).text.trim();
+        const textBeforeCursor = document.lineAt(position).text.slice(0, position.character);
 
-        if (/^call\b/i.test(lineText)) {
+        if (/\bcall\s+(?:[A-Za-z_]\w*)?$/i.test(textBeforeCursor)) {
             const entryItems = declaredModules.map((entry) => {
                 const entryName = entry.name.trim();
                 return new vscode.CompletionItem(entryName, vscode.CompletionItemKind.Method);

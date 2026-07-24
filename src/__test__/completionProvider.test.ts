@@ -51,6 +51,24 @@ suite('CompletionItemProvider', () => {
         );
     });
 
+    test('prioritizes only entries for inline call commands', async () => {
+        const inlineCall = 'if (condition) call ';
+        const document = await vscode.workspace.openTextDocument({
+            content: `entry targetEntry\nend\nentry callerEntry\n${inlineCall}\nend\n`,
+            language: 'uniface',
+        });
+
+        const completions = new CompletionItemProvider().provideCompletionItems(
+            document,
+            new vscode.Position(3, inlineCall.length)
+        ) as vscode.CompletionItem[];
+
+        assert.deepStrictEqual(completions.map((completion) => completion.label), ['callerEntry', 'targetEntry']);
+        assert.ok(
+            completions.every((completion) => completion.kind === vscode.CompletionItemKind.Method)
+        );
+    });
+
     test('replaces the current proc function token with its dollar prefix', async () => {
         const document = await vscode.workspace.openTextDocument({
             content: 'entry sampleEntry\n    $ab\nend\n',

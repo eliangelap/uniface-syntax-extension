@@ -11,7 +11,7 @@ suite('GetEntriesCompletionList', () => {
 
         const completions = new GetEntriesCompletionList().execute(
             document,
-            new vscode.Position(2, 8)
+            new vscode.Position(2, 9)
         );
 
         assert.deepStrictEqual(
@@ -19,6 +19,24 @@ suite('GetEntriesCompletionList', () => {
             ['targetEntry']
         );
         assert.strictEqual(completions[0].kind, vscode.CompletionItemKind.Method);
+    });
+
+    test('lists entries for inline call commands up to the cursor', async () => {
+        const inlineCall = 'if (condition) CALL target';
+        const document = await vscode.workspace.openTextDocument({
+            content: `entry targetEntry\nend\nentry otherEntry\nend\n${inlineCall}\n`,
+            language: 'uniface',
+        });
+
+        const completions = new GetEntriesCompletionList().execute(
+            document,
+            new vscode.Position(4, inlineCall.length)
+        );
+
+        assert.deepStrictEqual(
+            completions.map((completion) => completion.label),
+            ['otherEntry', 'targetEntry']
+        );
     });
 
     test('does not list entries for a command prefix', async () => {
