@@ -15,12 +15,12 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
-              uses: actions/checkout@v4
+              uses: actions/checkout@v5
               with:
                   ref: ${{ github.event.ref }}
 
             - name: Set up Node.js
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@v5
               with:
                   node-version: 24.14.0
                   cache: 'npm'
@@ -69,7 +69,7 @@ jobs:
                   echo "file_name=${VSIX_FILES[0]}" >> "$GITHUB_OUTPUT"
 
             - name: Upload test VSIX artifact
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v6
               with:
                   name: uniface-syntax-extension-v${{ steps.release.outputs.version }}-test
                   path: ${{ steps.get_vsix.outputs.file_name }}
@@ -80,12 +80,12 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
-              uses: actions/checkout@v4
+              uses: actions/checkout@v5
               with:
                   ref: ${{ github.event.pull_request.merge_commit_sha }}
 
             - name: Set up Node.js
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@v5
               with:
                   node-version: 24.14.0
                   cache: 'npm'
