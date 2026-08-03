@@ -36,17 +36,17 @@ class UnifaceFormatterProvider implements vscode.DocumentFormattingEditProvider 
 }
 
 class UnifaceFormatter {
-    private lines: string[];
-    private formattedLines: string[] = [];
+    private readonly lines: string[];
+    private readonly formattedLines: string[] = [];
     private deepLevel = 0;
     private previousLineWasBlank = false;
     private isInContinuation = false;
     private continuationIndent = 0;
-    private selectCaseBranchDepths: number[] = [];
+    private readonly selectCaseBranchDepths: number[] = [];
 
     constructor(
         text: string,
-        private options: vscode.FormattingOptions
+        private readonly options: vscode.FormattingOptions
     ) {
         this.lines = text.split('\n');
     }
@@ -161,7 +161,7 @@ class UnifaceFormatter {
             }
         }
 
-        if (RegExp(endKeywordsRegex, 'gi').test(trimmed)) {
+        if (new RegExp(endKeywordsRegex, 'gi').test(trimmed)) {
             this.deepLevel = Math.max(this.deepLevel - 1, 0);
         }
     }
@@ -183,7 +183,7 @@ class UnifaceFormatter {
             return;
         }
 
-        if (RegExp(startKeywordsRegex, 'gi').test(trimmed)) {
+        if (new RegExp(startKeywordsRegex, 'gi').test(trimmed)) {
             this.deepLevel++;
 
             if (/^selectcase\b/i.test(trimmed)) {

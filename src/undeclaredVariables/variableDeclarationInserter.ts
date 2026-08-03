@@ -22,7 +22,7 @@ export class VariableDeclarationInserter {
         }
 
         const parametersEnd = block.lines.findIndex((line) => /^\s*endparams\b/i.test(line));
-        const declarationLine = parametersEnd >= 0 ? parametersEnd : 0;
+        const declarationLine = Math.max(parametersEnd, 0);
         const indentation = this.getIndentation(block.lines[declarationLine]);
 
         return {
@@ -32,6 +32,6 @@ export class VariableDeclarationInserter {
     }
 
     private getIndentation(line: string): string {
-        return line.match(/^\s*/)?.[0] ?? '';
+        return new RegExp(/^\s*/).exec(line)?.[0] ?? '';
     }
 }

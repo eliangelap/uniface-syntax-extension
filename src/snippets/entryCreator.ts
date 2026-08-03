@@ -37,7 +37,7 @@ export class EntryCreator {
         }
 
         const editor = this.dependencies.getActiveTextEditor();
-        if (!editor || editor.document.languageId !== 'uniface') {
+        if (editor?.document.languageId !== 'uniface') {
             await this.dependencies.showErrorMessage('Open a Uniface document to insert an entry.');
             return;
         }

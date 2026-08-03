@@ -65,10 +65,7 @@ export class GetDeclaredModulesList {
         operations.sort(sortFunction);
         triggers.sort(sortFunction);
 
-        declaredModules.push(...triggers);
-        declaredModules.push(...operations);
-        declaredModules.push(...entries);
-        declaredModules.push(...functions);
+        declaredModules.push(...triggers, ...operations, ...entries, ...functions);
 
         return declaredModules;
     }

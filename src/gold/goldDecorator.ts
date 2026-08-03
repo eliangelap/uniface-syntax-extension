@@ -20,7 +20,7 @@ export function createGoldDecorationOptions(display: string): vscode.DecorationR
 }
 
 class GoldCharacterRegistry {
-    private characters: GoldCharacter[] = [
+    private readonly characters: GoldCharacter[] = [
         { ascii: 27, display: ';' },
         { ascii: 18, display: '=' },
         { ascii: 21, display: '!' },
@@ -78,7 +78,10 @@ export function getGoldCharacterRanges(
 
     const text = document.getText();
     for (let i = 0; i < text.length; i++) {
-        const ascii = text.charCodeAt(i);
+        const ascii = text.codePointAt(i);
+        if (ascii === undefined) {
+            continue;
+        }
         if (!supportedAsciiCodes.has(ascii)) {
             continue;
         }
@@ -132,7 +135,7 @@ export function registerGoldDecorationEvents(context: vscode.ExtensionContext) {
         vscode.window.onDidChangeActiveTextEditor(updateEditor),
         vscode.workspace.onDidChangeTextDocument((e) => {
             const editor = vscode.window.activeTextEditor;
-            if (editor && e.document === editor.document) {
+            if (e.document === editor?.document) {
                 updateEditor(editor);
             }
         }),

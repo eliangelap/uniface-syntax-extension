@@ -18,11 +18,11 @@ const defaultDependencies: DeclarationValidationDependencies = {
 };
 
 const dataTypePattern = variableTypes.join('|');
-const parameterDeclarationRegex = RegExp(
-    `^\\s*(${dataTypePattern})\\s+(\\w+)\\s*:\\s*(?:in|out|inout)\\b`,
+const parameterDeclarationRegex = new RegExp(
+    String.raw`^\s*(${dataTypePattern})\s+(\w+)\s*:\s*(?:in|out|inout)\b`,
     'i'
 );
-const variableDeclarationRegex = RegExp(`^\\s*(${dataTypePattern})\\s+`, 'i');
+const variableDeclarationRegex = new RegExp(String.raw`^\s*(${dataTypePattern})\s+`, 'i');
 
 export class DeclarationValidationAnalyzer implements vscode.Disposable {
     constructor(

@@ -118,8 +118,7 @@ export function registerGoldInterceptor(context: vscode.ExtensionContext) {
         vscode.workspace.onDidChangeTextDocument((event) => {
             const editor = vscode.window.activeTextEditor;
             if (
-                !editor ||
-                event.document !== editor.document ||
+                event.document !== editor?.document ||
                 event.document.languageId !== 'uniface'
             ) {
                 return;

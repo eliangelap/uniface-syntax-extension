@@ -38,7 +38,7 @@ export class VariableUsageAnalyzer {
     private createVariablePatterns(declaredVariables: DeclaredVariable[]): VariablePattern[] {
         return declaredVariables.map((variable) => ({
             name: variable.name,
-            pattern: new RegExp(`\\b${this.escapeRegExp(variable.name)}\\b`, 'i'),
+            pattern: new RegExp(String.raw`\b${this.escapeRegExp(variable.name)}\b`, 'i'),
         }));
     }
 
@@ -85,6 +85,6 @@ export class VariableUsageAnalyzer {
     }
 
     private escapeRegExp(text: string): string {
-        return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        return text.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
     }
 }

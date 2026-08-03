@@ -152,6 +152,46 @@ suite('UndeclaredVariableUsageAnalyzer', () => {
         ]);
     });
 
+    test('ignores direct entity arguments in $dbocc while validating the rest of the expression', () => {
+        const block: BlockCode = {
+            text: '',
+            startLine: 0,
+            lines: [
+                'entry sample',
+                'if ($dbocc(pfat_cvvecto) <= 0)',
+                '    p_ds_erro = undeclaredValue',
+                'endif',
+                'end',
+            ],
+        };
+
+        const usages = new UndeclaredVariableUsageAnalyzer().getUndeclaredUsages(block, [
+            'p_ds_erro',
+        ]);
+
+        assert.deepStrictEqual(usages.map((usage) => usage.name), ['undeclaredValue']);
+    });
+
+    test('ignores direct entity arguments in $curocc while validating the rest of the expression', () => {
+        const block: BlockCode = {
+            text: '',
+            startLine: 0,
+            lines: [
+                'entry sample',
+                'if ($curocc(pfat_cvvecto) <= 0)',
+                '    p_ds_erro = undeclaredValue',
+                'endif',
+                'end',
+            ],
+        };
+
+        const usages = new UndeclaredVariableUsageAnalyzer().getUndeclaredUsages(block, [
+            'p_ds_erro',
+        ]);
+
+        assert.deepStrictEqual(usages.map((usage) => usage.name), ['undeclaredValue']);
+    });
+
     test('ignores statement modifiers but analyzes variables after them', () => {
         const block: BlockCode = {
             text: '',

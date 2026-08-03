@@ -5,6 +5,7 @@ export interface StatementContext {
 
 export class StatementContextAnalyzer {
     private isInsideSelectdbProjection = false;
+    private readonly ignoredArgumentStatements = new Set(['dbocc', 'curocc', 'empty']);
 
     public constructor(private readonly statements: ReadonlySet<string>) {}
 
@@ -24,6 +25,9 @@ export class StatementContextAnalyzer {
                     this.getCallFunctionNameStart(contextCode),
                     this.getActivateOperationNameStart(contextCode),
                     this.getGotoLabelStart(contextCode),
+                    ...Array.from(this.ignoredArgumentStatements).flatMap((stmt) =>
+                        this.getIgnoredArgumentStarts(contextCode, stmt)
+                    ),
                     ...this.getStatementModifierStarts(contextCode),
                 ].filter((start): start is number => start !== undefined)
             ),
@@ -97,6 +101,18 @@ export class StatementContextAnalyzer {
     private getGotoLabelStart(code: string): number | undefined {
         const goto = /^\s*goto\s+([A-Za-z_]\w*)\b/i.exec(code);
         return goto ? goto.index + goto[0].length - goto[1].length : undefined;
+    }
+
+    private getIgnoredArgumentStarts(code: string, ignoredStatement: string): number[] {
+        const ignoredStatementRegex = new RegExp(String.raw`\$${ignoredStatement}\s*\(\s*([A-Za-z_]\w*)\s*\)`, 'gi');
+        const starts: number[] = [];
+        let match: RegExpExecArray | null;
+
+        while ((match = ignoredStatementRegex.exec(code)) !== null) {
+            starts.push(match.index + match[0].lastIndexOf(match[1]));
+        }
+
+        return starts;
     }
 
     private getStatementModifierStarts(code: string): number[] {

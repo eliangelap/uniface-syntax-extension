@@ -22,4 +22,14 @@ suite('StatementContextAnalyzer', () => {
         assert.ok(inlineCallContext.ignoredTokenStarts.has(20));
         assert.ok(modifierContext.ignoredTokenStarts.has(6));
     });
+
+    test('marks direct entity arguments in configured procfunctions as ignored', () => {
+        const analyzer = new StatementContextAnalyzer(new Set());
+        const code =
+            'if ($DBOCC ( pfat_cvvecto ) <= 0 | $curocc(outra_entidade) <= 0)';
+        const context = analyzer.analyze(code);
+
+        assert.ok(context.ignoredTokenStarts.has(code.indexOf('pfat_cvvecto')));
+        assert.ok(context.ignoredTokenStarts.has(code.indexOf('outra_entidade')));
+    });
 });
