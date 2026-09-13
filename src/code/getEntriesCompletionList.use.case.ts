@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { GetEntriesList } from './getEntriesList.use.case';
 import { DeclaredModule } from './types/declaredModule';
+import { getCodeOutsideStringsAndComments } from '../util/procCodeScanner';
 
 export class GetEntriesCompletionList {
     public execute(
@@ -10,7 +11,9 @@ export class GetEntriesCompletionList {
         const completions: vscode.CompletionItem[] = [];
         const declaredModules: DeclaredModule[] = new GetEntriesList().execute(document);
 
-        const textBeforeCursor = document.lineAt(position).text.slice(0, position.character);
+        const textBeforeCursor = getCodeOutsideStringsAndComments(
+            document.lineAt(position).text.slice(0, position.character)
+        ).code;
 
         if (/\bcall\s+(?:[A-Za-z_]\w*)?$/i.test(textBeforeCursor)) {
             const entryItems = declaredModules.map((entry) => {

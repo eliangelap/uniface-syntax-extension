@@ -72,6 +72,21 @@ suite('UnifaceFormatterProvider', () => {
         );
     });
 
+    test('recognizes a single-line if with a Uniface escaped quote', async () => {
+        const document = await vscode.workspace.openTextDocument({
+            content: ['entry valid', 'if (value = "%%" )") message "ready"', 'nextValue = 1', 'end'].join('\n'),
+            language: 'uniface',
+        });
+
+        const edits = await formatterProvider().provideDocumentFormattingEdits(
+            document,
+            { insertSpaces: true, tabSize: 4 },
+            cancellationToken
+        );
+
+        assert.strictEqual(edits?.[0].newText, ['entry valid', '\tif (value = "%%" )") message "ready"', '\tnextValue = 1', 'end'].join('\n'));
+    });
+
     test('indents selectcase branches and their bodies', async () => {
         const document = await vscode.workspace.openTextDocument({
             content: [

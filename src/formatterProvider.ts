@@ -104,6 +104,12 @@ class UnifaceFormatter {
             if (stringDelimiter) {
                 if (char === '\\') {
                     isEscaped = true;
+                } else if (
+                    char === '%' &&
+                    trimmed[index + 1] === '%' &&
+                    trimmed[index + 2] === stringDelimiter
+                ) {
+                    index += 2;
                 } else if (char === stringDelimiter) {
                     stringDelimiter = null;
                 }

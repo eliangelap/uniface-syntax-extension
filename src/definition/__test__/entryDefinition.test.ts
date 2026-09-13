@@ -59,4 +59,16 @@ suite('UnifaceDefinitionProvider', () => {
         assert.ok(definition);
         assert.deepStrictEqual(definition.range.start, new vscode.Position(2, 0));
     });
+
+    test('ignores calls in strings and keeps calls after semicolons in strings', async () => {
+        const document = await vscode.workspace.openTextDocument({
+            content: 'entry targetEntry\nend\nmessage "call targetEntry"\nmessage ";" call targetEntry\n',
+            language: 'uniface',
+        });
+        const provider = new UnifaceDefinitionProvider();
+        const token = new vscode.CancellationTokenSource().token;
+
+        assert.strictEqual(provider.provideDefinition(document, new vscode.Position(2, 18), token), null);
+        assert.ok(provider.provideDefinition(document, new vscode.Position(3, 23), token));
+    });
 });
