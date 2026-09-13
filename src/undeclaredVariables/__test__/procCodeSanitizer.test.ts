@@ -26,4 +26,12 @@ suite('ProcCodeSanitizer', () => {
         assert.doesNotMatch(sanitizedLines[1], /second|identifier/);
         assert.match(sanitizedLines[2], /otherValue/);
     });
+
+    test('keeps strings open after a Uniface escaped delimiter', () => {
+        const code = 'message "text %%" undeclaredVariable"';
+        const sanitized = new ProcCodeSanitizer().sanitize(code);
+
+        assert.strictEqual(sanitized.length, code.length);
+        assert.doesNotMatch(sanitized, /undeclaredVariable/);
+    });
 });

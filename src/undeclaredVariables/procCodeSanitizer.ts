@@ -1,10 +1,12 @@
+import { getCodeOutsideStringsAndComments, StringDelimiter } from '../util/procCodeScanner';
+
 export class ProcCodeSanitizer {
     public sanitize(line: string): string {
         return this.sanitizeLine(line, null).code;
     }
 
     public sanitizeLines(lines: readonly string[]): string[] {
-        let delimiter: '"' | "'" | null = null;
+        let delimiter: StringDelimiter = null;
 
         return lines.map((line) => {
             const result = this.sanitizeLine(line, delimiter);
@@ -16,9 +18,9 @@ export class ProcCodeSanitizer {
 
     private sanitizeLine(
         line: string,
-        initialDelimiter: '"' | "'" | null
-    ): { code: string; delimiter: '"' | "'" | null } {
-        const codeOutsideStringsAndComments = this.getCodeOutsideStringsAndComments(
+        initialDelimiter: StringDelimiter
+    ): { code: string; delimiter: StringDelimiter } {
+        const codeOutsideStringsAndComments = getCodeOutsideStringsAndComments(
             line,
             initialDelimiter
         );
@@ -36,49 +38,4 @@ export class ProcCodeSanitizer {
         };
     }
 
-    private getCodeOutsideStringsAndComments(
-        line: string,
-        initialDelimiter: '"' | "'" | null
-    ): { code: string; delimiter: '"' | "'" | null } {
-        let delimiter = initialDelimiter;
-        let isEscaped = false;
-        let code = '';
-
-        for (const character of line) {
-            if (isEscaped) {
-                isEscaped = false;
-                code += ' ';
-                continue;
-            }
-
-            if (character === '\\') {
-                isEscaped = delimiter !== null;
-                code += delimiter ? ' ' : character;
-                continue;
-            }
-
-            if (delimiter) {
-                if (character === delimiter) {
-                    delimiter = null;
-                }
-                code += ' ';
-                continue;
-            }
-
-            if (character === '"' || character === "'") {
-                delimiter = character;
-                code += ' ';
-                continue;
-            }
-
-            if (character === ';') {
-                code += ' '.repeat(line.length - code.length);
-                break;
-            }
-
-            code += character;
-        }
-
-        return { code, delimiter };
-    }
 }

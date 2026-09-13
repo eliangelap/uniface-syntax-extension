@@ -1,4 +1,5 @@
 import { DeclaredVariable } from '../code/getVariablesFromBlock.use.case';
+import { getCodeOutsideStringsAndComments, StringDelimiter } from '../util/procCodeScanner';
 
 interface VariablePattern {
     name: string;
@@ -13,6 +14,7 @@ export class VariableUsageAnalyzer {
         const usedVariables = new Set<string>();
         const variablePatterns = this.createVariablePatterns(declaredVariables);
         let isAfterVariablesBlock = false;
+        let delimiter: StringDelimiter = null;
 
         for (const line of blockLines) {
             const trimmedLine = line.trim();
@@ -24,7 +26,9 @@ export class VariableUsageAnalyzer {
                 continue;
             }
 
-            const code = this.getCodeOutsideStringsAndComments(line);
+            const scanResult = getCodeOutsideStringsAndComments(line, delimiter);
+            delimiter = line.trimEnd().endsWith('%\\') ? scanResult.delimiter : null;
+            const code = scanResult.code;
             for (const variable of variablePatterns) {
                 if (variable.pattern.test(code)) {
                     usedVariables.add(variable.name);
@@ -40,48 +44,6 @@ export class VariableUsageAnalyzer {
             name: variable.name,
             pattern: new RegExp(String.raw`\b${this.escapeRegExp(variable.name)}\b`, 'i'),
         }));
-    }
-
-    private getCodeOutsideStringsAndComments(line: string): string {
-        let stringDelimiter: '"' | "'" | null = null;
-        let isEscaped = false;
-        let code = '';
-
-        for (const character of line) {
-            if (isEscaped) {
-                isEscaped = false;
-                code += ' ';
-                continue;
-            }
-
-            if (character === '\\') {
-                isEscaped = stringDelimiter !== null;
-                code += stringDelimiter ? ' ' : character;
-                continue;
-            }
-
-            if (stringDelimiter) {
-                if (character === stringDelimiter) {
-                    stringDelimiter = null;
-                }
-                code += ' ';
-                continue;
-            }
-
-            if (character === '"' || character === "'") {
-                stringDelimiter = character;
-                code += ' ';
-                continue;
-            }
-
-            if (character === ';') {
-                break;
-            }
-
-            code += character;
-        }
-
-        return code;
     }
 
     private escapeRegExp(text: string): string {

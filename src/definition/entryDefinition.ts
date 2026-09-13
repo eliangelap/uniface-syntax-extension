@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { GetEntriesList } from '../code/getEntriesList.use.case';
+import { getCodeOutsideStringsAndComments } from '../util/procCodeScanner';
 
 export class UnifaceDefinitionProvider implements vscode.DefinitionProvider {
     public provideDefinition(
@@ -12,7 +13,7 @@ export class UnifaceDefinitionProvider implements vscode.DefinitionProvider {
         }
 
         const lineText = document.lineAt(position.line).text;
-        const codeLine = lineText.split(';', 1)[0];
+        const codeLine = getCodeOutsideStringsAndComments(lineText).code;
         const callRegex = /\bcall\s+(\w+)\b/gi;
         let callMatch: RegExpExecArray | null;
 

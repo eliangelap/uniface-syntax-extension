@@ -48,4 +48,19 @@ suite('VariableUsageAnalyzer', () => {
 
         assert.deepStrictEqual([...usedVariables], ['value2']);
     });
+
+    test('ignores variables in strings with Uniface escaped delimiters and continuations', () => {
+        const usedVariables = new VariableUsageAnalyzer().getUsedVariables(
+            [
+                'variables',
+                'string value, value2, unusedValue',
+                'endvariables',
+                'message "text %%" value %\\',
+                'value2"',
+            ],
+            variables
+        );
+
+        assert.deepStrictEqual([...usedVariables], []);
+    });
 });

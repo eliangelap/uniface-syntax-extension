@@ -30,6 +30,12 @@ suite('GoldHandler', () => {
         assert.ok(getGoldReplacement(escapedQuoteLine, escapedQuoteLine.indexOf(';')));
     });
 
+    test('recognizes GOLD sequences after Uniface escaped quotes', () => {
+        const line = 'teste = "texto %%" +;"';
+
+        assert.ok(getGoldReplacement(line, line.indexOf(';')));
+    });
+
     test('finds GOLD replacements for multiple simple changes', async () => {
         const document = await vscode.workspace.openTextDocument({
             content: '"a+; b+;"',
