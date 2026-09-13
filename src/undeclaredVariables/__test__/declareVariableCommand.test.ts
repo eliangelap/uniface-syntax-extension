@@ -22,7 +22,7 @@ suite('DeclareVariableCommand', () => {
             getBlock: () => block,
             getVariables: () => [],
             getParameters: () => [],
-            createInsertion: () => ({ line: 0, text: '' }),
+            createInsertion: () => ({ line: 0, character: 0, text: '' }),
             applyEdit: async () => true,
         });
 
@@ -39,7 +39,7 @@ suite('DeclareVariableCommand', () => {
             getBlock: () => null,
             getVariables: () => [],
             getParameters: () => [],
-            createInsertion: () => ({ line: 0, text: '' }),
+            createInsertion: () => ({ line: 0, character: 0, text: '' }),
             applyEdit: async () => {
                 applyEditCalled = true;
                 return true;
@@ -61,7 +61,7 @@ suite('DeclareVariableCommand', () => {
             getParameters: () => [],
             createInsertion: () => {
                 createInsertionCalled = true;
-                return { line: 0, text: '' };
+                return { line: 0, character: 0, text: '' };
             },
             applyEdit: async () => true,
         });
@@ -83,7 +83,7 @@ suite('DeclareVariableCommand', () => {
                 assert.strictEqual(receivedBlock, block);
                 assert.strictEqual(name, 'total');
                 assert.strictEqual(dataType, 'numeric');
-                return { line: 5, text: '        numeric total\n' };
+                return { line: 5, character: 0, text: '        numeric total\n' };
             },
             applyEdit: async (edit) => {
                 appliedEdit = edit;

@@ -54,7 +54,7 @@ export class DeclareVariableCommand {
 
         const insertion = this.dependencies.createInsertion(block, name, dataType);
         const edit = new vscode.WorkspaceEdit();
-        edit.insert(document.uri, new vscode.Position(insertion.line, 0), insertion.text);
+        edit.insert(document.uri, new vscode.Position(insertion.line, insertion.character), insertion.text);
         await this.dependencies.applyEdit(edit);
     }
 
