@@ -30,7 +30,7 @@ A Visual Studio Code extension for Uniface and ProcScript files. It adds languag
 - **Uniface: Create new Operation** inserts an operation template with the same baseline structure.
 - Diagnostics highlight variables declared in a block that are not used.
 - Diagnostics identify variable usages that have not been declared and provide a quick fix to declare the variable with a selected type.
-- Extraction parameters are validated for `date`, `time`, `datetime`, and `numeric` values, including `$date`, `$clock`, and `$datim`.
+- Extraction parameters are validated for `date`, `time`, `datetime`, and `numeric` values, including `$date`, `$clock`, and `$datim`. Numeric values support rounding with `R` or `R,<decimal places>` (for example, `value[R,2]`); date values also support numeric substring extraction such as `$date[1,4]`.
 - Diagnostics report a missing `END` for `entry` and `operation` blocks.
 - Declaration validation reports duplicate parameter or variable names (case-insensitively) and a missing variable name between consecutive commas, such as `string texto,, texto2`.
 - Variable diagnostics and declaration validation are skipped while the document has a missing `END`, avoiding misleading results from an incomplete block.
