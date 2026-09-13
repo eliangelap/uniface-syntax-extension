@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.0.0](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.14.1...v2.0.0) (2026-09-13)
+
+
+### Bug Fixes
+
+* **variáveis:** 🐛 ignora entidades em funções de ocorrência ([76929ee](https://github.com/eliangelap/uniface-syntax-extension/commit/76929ee81cdc0b2b7bedbcabd4232e5e3b8b2645))
+
 ### [1.14.1](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.14.0...v1.14.1) (2026-07-24)
 
 

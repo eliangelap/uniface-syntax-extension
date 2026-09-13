@@ -16,7 +16,7 @@ class FunctionNode extends vscode.TreeItem {
 }
 
 class FunctionTreeProvider implements vscode.TreeDataProvider<FunctionNode> {
-    private _onDidChangeTreeData: vscode.EventEmitter<FunctionNode | undefined | null> =
+    private readonly _onDidChangeTreeData: vscode.EventEmitter<FunctionNode | undefined | null> =
         new vscode.EventEmitter();
     readonly onDidChangeTreeData: vscode.Event<FunctionNode | undefined | null> =
         this._onDidChangeTreeData.event;
@@ -69,13 +69,13 @@ export function registerTreeDataProvider(
             }
         }),
         vscode.window.onDidChangeActiveTextEditor((editor) => {
-            if (editor && editor.document.languageId === 'uniface') {
+            if (editor?.document.languageId === 'uniface') {
                 functionTreeProvider.refresh(editor.document);
             }
         }),
         vscode.workspace.onDidChangeTextDocument((e) => {
             const editor = vscode.window.activeTextEditor;
-            if (editor && e.document === editor.document) {
+            if (e.document === editor?.document) {
                 functionTreeProvider.refresh(editor.document);
             }
         })

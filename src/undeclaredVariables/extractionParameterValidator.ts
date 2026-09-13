@@ -107,10 +107,17 @@ export class ExtractionParameterValidator {
             return this.isValidNumericParameter(parameter);
         }
 
-        return extractionParameters[sourceType].has(parameter.toLowerCase());
+        return (
+            extractionParameters[sourceType].has(parameter.toLowerCase()) ||
+            (sourceType === 'date' && this.isValidDateSubstringParameter(parameter))
+        );
     }
 
     private isValidNumericParameter(parameter: string): boolean {
-        return /^(?:trunc|i|fraction|f|r|round(?:\s*,\s*\d+)?)$/i.test(parameter);
+        return /^(?:trunc|i|fraction|f|(?:r|round)(?:\s*,\s*\d+)?)$/i.test(parameter);
+    }
+
+    private isValidDateSubstringParameter(parameter: string): boolean {
+        return /^\d+\s*,\s*\d+$/.test(parameter);
     }
 }

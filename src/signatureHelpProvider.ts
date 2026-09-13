@@ -136,12 +136,12 @@ export class UnifaceSignatureHelpProvider implements vscode.SignatureHelpProvide
     private getCurrentExpression(textLine: string, position: vscode.Position): string {
         const textUpToCursor = textLine.slice(0, position.character);
 
-        const entryMatch = RegExp(/call\s+((\w)+)/i).exec(textUpToCursor);
+        const entryMatch = new RegExp(/call\s+((\w)+)/i).exec(textUpToCursor);
         if (entryMatch?.[1]) {
             return entryMatch[1];
         }
 
-        const procFuncMatch = RegExp(/(\$(\w)+)\s*\(/).exec(textUpToCursor);
+        const procFuncMatch = new RegExp(/(\$(\w)+)\s*\(/).exec(textUpToCursor);
         if (procFuncMatch?.[1]) {
             return procFuncMatch[1];
         }

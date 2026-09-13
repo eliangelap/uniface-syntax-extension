@@ -18,7 +18,7 @@ export const variableTypes = [
     'time',
     'xmlstream',
 ];
-export const variableRegex = `(${variableTypes.join('|')})\\s+(\\w+)`;
+export const variableRegex = String.raw`(${variableTypes.join('|')})\s+(\w+)`;
 
 export const ifInlineRegex = /^if\s*\((?![^)]*\$)([^)]+)\)\s+(.+?)(?:\s*;.*)?$/i;
 
@@ -33,7 +33,7 @@ const endKeywords = [
     'endselectcase',
     'endtry',
 ];
-export const endKeywordsRegex = `^(${endKeywords.join('|')})(\\s+.*)?\\s*(;.*)?$`;
+export const endKeywordsRegex = String.raw`^(${endKeywords.join('|')})(\s+.*)?\s*(;.*)?$`;
 
 const startKeywords = [
     'entry',
@@ -51,7 +51,7 @@ const startKeywords = [
     'selectcase',
     'try',
 ];
-export const startKeywordsRegex = `^(${startKeywords.join('|')})\\s*\\(?`;
+export const startKeywordsRegex = String.raw`^(${startKeywords.join('|')})\s*\(?`;
 
 export const blockEndRegex = /^\s*end\b(?!if|for|while|variables|params|selectcase|try)/i;
 export const blockStartRegex = /^\s*(entry|operation|trigger|function)\s+\w+\b/i;

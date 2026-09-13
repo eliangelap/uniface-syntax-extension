@@ -82,7 +82,7 @@ suite('UndeclaredVariableAnalyzer', () => {
         ]);
     });
 
-    test('ignores calls to entries that declare a return value', async () => {
+    test('ignores function calls regardless of where they are declared', async () => {
         const callerBlock: BlockCode = {
             text: '',
             startLine: 0,
@@ -122,7 +122,7 @@ suite('UndeclaredVariableAnalyzer', () => {
 
         analyzer.analyzeDocument(document);
 
-        assert.deepStrictEqual(publisher.usages?.map((usage) => usage.name), ['noReturnFunction']);
+        assert.deepStrictEqual(publisher.usages, []);
     });
 
     test('uses declared data types to validate extraction parameters', async () => {

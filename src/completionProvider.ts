@@ -39,9 +39,7 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
             ...new StringListToCompletionItems().execute(
                 new GetStatementList().execute(),
                 vscode.CompletionItemKind.Keyword
-            )
-        );
-        completions.push(
+            ),
             ...new VariablesToCompletionItems().execute(
                 [...parameters, ...variables],
                 dollarPrefixedTokenRange ?? undefined
@@ -71,7 +69,7 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
         const textBeforeCursor = document.lineAt(position).text.slice(0, position.character);
         const match = /\$\w*$/.exec(textBeforeCursor);
 
-        if (!match || match.index === undefined) {
+        if (match?.index === undefined) {
             return null;
         }
 

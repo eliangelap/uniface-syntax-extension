@@ -6,7 +6,7 @@ export interface EntryTemplateData {
     date: string;
 }
 
-const defaultEntryTemplate = `;|
+const defaultEntryTemplate = String.raw`;|
 ; Author: {{author}}
 ; Date: {{date}}
 ; Description: 
@@ -15,13 +15,13 @@ entry {{entryName}}
     params
         string  pLsEntrada   : in
         string  pLsSaida     : out
-                \\$t_ds_erro\\$  : out
+                \$t_ds_erro\$  : out
     endparams
     variables
         string  vDsContexto
     endvariables
 
-    vDsContexto = "%%^<\\$componentname>, <\\$trigger>, {{entryName}}"
+    vDsContexto = "%%^<\$componentname>, <\$trigger>, {{entryName}}"
 
     ; Enter your code here...
 
@@ -51,7 +51,7 @@ function getEntryTemplate(template: unknown): string {
 }
 
 function escapeSnippetValue(value: string): string {
-    return value.replace(/[$}\\]/g, '\\$&');
+    return value.replace(/[$}\\]/g, String.raw`\$&`);
 }
 
 export class EntryTemplateRenderer {

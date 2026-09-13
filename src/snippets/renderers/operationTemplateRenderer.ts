@@ -6,7 +6,7 @@ export interface OperationTemplateData {
     date: string;
 }
 
-const defaultOperationTemplate = `;|
+const defaultOperationTemplate = String.raw`;|
 ; Author: {{author}}
 ; Date: {{date}}
 ; Description: 
@@ -15,13 +15,13 @@ operation {{operationName}}
     params
         string  pLsEntrada   : in
         string  pLsSaida     : out
-                \\$t_ds_erro\\$  : out
+                \$t_ds_erro\$  : out
     endparams
     variables
         string  vDsContexto
     endvariables
 
-    vDsContexto = "%%^<\\$componentname>, <\\$trigger>, {{operationName}}"
+    vDsContexto = "%%^<\$componentname>, <\$trigger>, {{operationName}}"
 
     ; Enter your code here...
 
@@ -51,7 +51,7 @@ function getOperationTemplate(template: unknown): string {
 }
 
 function escapeSnippetValue(value: string): string {
-    return value.replace(/[$}\\]/g, '\\$&');
+    return value.replace(/[$}\\]/g, String.raw`\$&`);
 }
 
 export class OperationTemplateRenderer {
