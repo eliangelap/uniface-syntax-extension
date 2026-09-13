@@ -4,11 +4,12 @@ import { GetDeclaredModulesList } from '../code/getDeclaredModulesList.use.case'
 class FunctionNode extends vscode.TreeItem {
     constructor(
         public readonly label: string,
-        public readonly line: number
+        public readonly line: number,
+        navigationCommand: string
     ) {
         super(label, vscode.TreeItemCollapsibleState.None);
         this.command = {
-            command: 'uniface.navigateToFunction',
+            command: navigationCommand,
             title: 'Go to Function',
             arguments: [line],
         };
@@ -23,13 +24,19 @@ class FunctionTreeProvider implements vscode.TreeDataProvider<FunctionNode> {
 
     private list: FunctionNode[] = [];
 
+    constructor(private readonly navigationCommand: string) {}
+
     refresh(document: vscode.TextDocument) {
         this.list = [];
         const declaredModules = new GetDeclaredModulesList().execute(document);
 
         for (const module of declaredModules) {
             this.list.push(
-                new FunctionNode(`${module.scriptModuleType} ${module.name}`, module.line)
+                new FunctionNode(
+                    `${module.scriptModuleType} ${module.name}`,
+                    module.line,
+                    this.navigationCommand
+                )
             );
         }
 
@@ -49,7 +56,7 @@ export function registerTreeDataProvider(
     context: vscode.ExtensionContext,
     navigationCommand = 'uniface.navigateToFunction'
 ) {
-    const functionTreeProvider = new FunctionTreeProvider();
+    const functionTreeProvider = new FunctionTreeProvider(navigationCommand);
     const treeView = vscode.window.createTreeView('unifaceFunctions', {
         treeDataProvider: functionTreeProvider,
     });

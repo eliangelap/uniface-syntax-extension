@@ -52,4 +52,22 @@ suite('GetEntriesCompletionList', () => {
 
         assert.deepStrictEqual(completions, []);
     });
+
+    test('does not list entries for calls in strings or comments', async () => {
+        const document = await vscode.workspace.openTextDocument({
+            content: 'entry targetEntry\nend\nmessage "call target"\n; call target\n',
+            language: 'uniface',
+        });
+
+        const completionList = new GetEntriesCompletionList();
+
+        assert.deepStrictEqual(
+            completionList.execute(document, new vscode.Position(2, 19)),
+            []
+        );
+        assert.deepStrictEqual(
+            completionList.execute(document, new vscode.Position(3, 13)),
+            []
+        );
+    });
 });

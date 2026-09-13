@@ -35,6 +35,16 @@ export function isInsideString(lineText: string, character: number): boolean {
             continue;
         }
 
+        if (
+            stringDelimiter &&
+            currentCharacter === '%' &&
+            lineText[i + 1] === '%' &&
+            lineText[i + 2] === stringDelimiter
+        ) {
+            i += 2;
+            continue;
+        }
+
         if (stringDelimiter === currentCharacter) {
             stringDelimiter = null;
             continue;
