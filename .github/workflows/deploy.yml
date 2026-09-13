@@ -1,0 +1,148 @@
+name: Deploy VS Code Extension
+
+on:
+    create:
+    pull_request:
+        branches: [main]
+        types: [closed]
+
+permissions:
+    contents: write
+
+jobs:
+    build-test-vsix:
+        if: github.event_name == 'create' && github.event.ref_type == 'branch' && startsWith(github.event.ref, 'release/v')
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v5
+              with:
+                  ref: ${{ github.event.ref }}
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v5
+              with:
+                  node-version: 24.14.0
+                  cache: 'npm'
+
+            - name: Validate release branch version
+              id: release
+              env:
+                  BRANCH_NAME: ${{ github.event.ref }}
+              run: |
+                  PACKAGE_VERSION=$(node -p "require('./package.json').version")
+                  BRANCH_VERSION="${BRANCH_NAME#release/v}"
+
+                  if [ "$BRANCH_VERSION" != "$PACKAGE_VERSION" ]; then
+                    echo "A branch $BRANCH_NAME deve corresponder à versão $PACKAGE_VERSION do package.json."
+                    exit 1
+                  fi
+
+                  echo "version=$PACKAGE_VERSION" >> "$GITHUB_OUTPUT"
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Install virtual display server
+              run: sudo apt-get update && sudo apt-get install --yes xvfb
+
+            - name: Run tests in virtual display
+              run: xvfb-run -a npm test
+
+            - name: Install VSCE globally
+              run: npm install -g @vscode/vsce
+
+            - name: Package extension (.vsix)
+              run: vsce package
+
+            - name: Find generated .vsix file
+              id: get_vsix
+              run: |
+                  set -euo pipefail
+                  shopt -s nullglob
+                  VSIX_FILES=( *.vsix )
+                  if [ "${#VSIX_FILES[@]}" -ne 1 ]; then
+                    echo "Esperado exatamente 1 arquivo .vsix, encontrado: ${#VSIX_FILES[@]}"
+                    printf '%s\n' "${VSIX_FILES[@]}"
+                    exit 1
+                  fi
+                  echo "file_name=${VSIX_FILES[0]}" >> "$GITHUB_OUTPUT"
+
+            - name: Upload test VSIX artifact
+              uses: actions/upload-artifact@v6
+              with:
+                  name: uniface-syntax-extension-v${{ steps.release.outputs.version }}-test
+                  path: ${{ steps.get_vsix.outputs.file_name }}
+                  if-no-files-found: error
+
+    build-production-vsix:
+        if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'release/v')
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v5
+              with:
+                  ref: ${{ github.event.pull_request.merge_commit_sha }}
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v5
+              with:
+                  node-version: 24.14.0
+                  cache: 'npm'
+
+            - name: Validate release branch version
+              id: release
+              env:
+                  BRANCH_NAME: ${{ github.event.pull_request.head.ref }}
+              run: |
+                  PACKAGE_VERSION=$(node -p "require('./package.json').version")
+                  BRANCH_VERSION="${BRANCH_NAME#release/v}"
+
+                  if [ "$BRANCH_VERSION" != "$PACKAGE_VERSION" ]; then
+                    echo "The branch $BRANCH_NAME must match package.json version $PACKAGE_VERSION."
+                    exit 1
+                  fi
+
+                  echo "tag=v$PACKAGE_VERSION" >> "$GITHUB_OUTPUT"
+                  echo "name=release/v$PACKAGE_VERSION" >> "$GITHUB_OUTPUT"
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Install virtual display server
+              run: sudo apt-get update && sudo apt-get install --yes xvfb
+
+            - name: Run tests in virtual display
+              run: xvfb-run -a npm test
+
+            - name: Install VSCE globally
+              run: npm install -g @vscode/vsce
+
+            - name: Package extension (.vsix)
+              run: vsce package
+
+            - name: Find generated .vsix file
+              id: get_vsix
+              run: |
+                  set -euo pipefail
+                  shopt -s nullglob
+                  VSIX_FILES=( *.vsix )
+                  if [ "${#VSIX_FILES[@]}" -ne 1 ]; then
+                    echo "Expected exactly 1 .vsix file, found: ${#VSIX_FILES[@]}"
+                    printf '%s\n' "${VSIX_FILES[@]}"
+                    exit 1
+                  fi
+                  echo "file_name=${VSIX_FILES[0]}" >> "$GITHUB_OUTPUT"
+
+            - name: Publish production VSIX to GitHub Release
+              env:
+                  GH_TOKEN: ${{ github.token }}
+                  TAG_NAME: ${{ steps.release.outputs.tag }}
+                  RELEASE_NAME: ${{ steps.release.outputs.name }}
+                  VSIX_FILE: ${{ steps.get_vsix.outputs.file_name }}
+              run: |
+                  if gh release view "$TAG_NAME" >/dev/null 2>&1; then
+                    gh release upload "$TAG_NAME" "$VSIX_FILE" --clobber
+                  else
+                    gh release create "$TAG_NAME" "$VSIX_FILE" --target "$GITHUB_SHA" --title "$RELEASE_NAME" --generate-notes
+                  fi

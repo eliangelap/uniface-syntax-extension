@@ -1,24 +1,10 @@
-import * as vscode from "vscode";
-import {
-    GetUnifaceProcFunctionList,
-    ProcFunction,
-} from "./code/getUnifaceProcFunctionList.use.case";
-import { GetEntriesList } from "./code/getEntriesList.use.case";
-import { DeclaredModule } from "./code/getVariablesFromBlock.use.case";
-import { GetParametersFromBlock } from "./code/getParametersFromBlock.use.case";
-import { GetBlockAroundPostion } from "./code/getBlockAroundPosition.use.case";
+import * as vscode from 'vscode';
+import { GetUnifaceProcFunctionList } from './code/getUnifaceProcFunctionList.use.case';
+import { GetEntriesList } from './code/getEntriesList.use.case';
+import { GetParametersFromBlock } from './code/getParametersFromBlock.use.case';
+import { GetBlockAroundPosition } from './code/getBlockAroundPosition.use.case';
 
-export class UnifaceSignatureHelpProvider
-    implements vscode.SignatureHelpProvider
-{
-    private procFunctions: ProcFunction[];
-    private entries: DeclaredModule[];
-
-    constructor(document: vscode.TextDocument) {
-        this.procFunctions = new GetUnifaceProcFunctionList().execute();
-        this.entries = new GetEntriesList().execute(document);
-    }
-
+export class UnifaceSignatureHelpProvider implements vscode.SignatureHelpProvider {
     provideSignatureHelp(
         document: vscode.TextDocument,
         position: vscode.Position,
@@ -34,28 +20,18 @@ export class UnifaceSignatureHelpProvider
         const lineText = editor.document.lineAt(line).text;
 
         const currentExpression = this.getCurrentExpression(lineText, position);
-        if (currentExpression === "") {
+        if (currentExpression === '') {
             return null;
         }
 
-        const signature = new vscode.SignatureInformation(
-            `${currentExpression}()`
-        );
+        const signature = new vscode.SignatureInformation(`${currentExpression}()`);
 
-        this.updateSignatureDocs(
-            document,
-            currentExpression,
-            lineText,
-            signature
-        );
+        this.updateSignatureDocs(document, currentExpression, lineText, signature);
 
         const signatureHelp = new vscode.SignatureHelp();
         signatureHelp.signatures = [signature];
         signatureHelp.activeSignature = 0;
-        signatureHelp.activeParameter = this.getActiveParameter(
-            document,
-            position
-        );
+        signatureHelp.activeParameter = this.getActiveParameter(document, position);
 
         return signatureHelp;
     }
@@ -66,17 +42,10 @@ export class UnifaceSignatureHelpProvider
         textLine: string,
         signatureInformation: vscode.SignatureInformation
     ) {
-        if (currentExpression.startsWith("$")) {
-            this.updateSignatureForProcFunctionUniface(
-                currentExpression,
-                signatureInformation
-            );
-        } else if (textLine.toLowerCase().trim().startsWith("call")) {
-            this.updateSignatureForEntries(
-                document,
-                currentExpression,
-                signatureInformation
-            );
+        if (currentExpression.startsWith('$')) {
+            this.updateSignatureForProcFunctionUniface(currentExpression, signatureInformation);
+        } else if (textLine.toLowerCase().trim().startsWith('call')) {
+            this.updateSignatureForEntries(document, currentExpression, signatureInformation);
         }
     }
 
@@ -84,24 +53,23 @@ export class UnifaceSignatureHelpProvider
         currentExpression: string,
         signatureInformation: vscode.SignatureInformation
     ) {
-        const procFunction = this.procFunctions.find(
-            (value) => value.name === currentExpression
+        const procFunctions = new GetUnifaceProcFunctionList().execute();
+        const procFunction = procFunctions.find(
+            (value) => value.name.toLowerCase() === currentExpression.toLowerCase()
         );
 
         if (!procFunction) {
             return null;
         }
 
-        const params = procFunction.params.join(", ");
+        const params = procFunction.params.join(', ');
 
         signatureInformation.label = `${procFunction.name}(${params})`;
         signatureInformation.documentation = procFunction.docs;
 
         signatureInformation.parameters = [];
         for (const param of procFunction.params) {
-            signatureInformation.parameters.push(
-                new vscode.ParameterInformation(param)
-            );
+            signatureInformation.parameters.push(new vscode.ParameterInformation(param));
         }
     }
 
@@ -110,9 +78,9 @@ export class UnifaceSignatureHelpProvider
         currentExpression: string,
         signatureInformation: vscode.SignatureInformation
     ) {
-        const entry = this.entries.find(
-            (value) =>
-                value.name.toLowerCase() === currentExpression.toLowerCase()
+        const entries = new GetEntriesList().execute(document);
+        const entry = entries.find(
+            (value) => value.name.toLowerCase() === currentExpression.toLowerCase()
         );
         if (!entry) {
             return null;
@@ -120,7 +88,7 @@ export class UnifaceSignatureHelpProvider
 
         const position = new vscode.Position(entry.line, 0);
 
-        const block = new GetBlockAroundPostion().execute(document, position);
+        const block = new GetBlockAroundPosition().execute(document, position);
         if (!block) {
             return null;
         }
@@ -131,31 +99,25 @@ export class UnifaceSignatureHelpProvider
             .map((declaredVariable) => {
                 return declaredVariable.name;
             })
-            .join(", ");
+            .join(', ');
 
         signatureInformation.label = `${entry.name}(${params})`;
-        signatureInformation.documentation = "";
+        signatureInformation.documentation = '';
 
         signatureInformation.parameters = [];
         for (const param of declaredParameters) {
-            signatureInformation.parameters.push(
-                new vscode.ParameterInformation(param.name)
-            );
+            signatureInformation.parameters.push(new vscode.ParameterInformation(param.name));
         }
-
     }
 
-    private getActiveParameter(
-        document: vscode.TextDocument,
-        position: vscode.Position
-    ): number {
+    private getActiveParameter(document: vscode.TextDocument, position: vscode.Position): number {
         const line = document.lineAt(position.line).text;
         const cursorPos = position.character;
 
         const textUpToCursor = line.slice(0, cursorPos);
 
-        const openParenIndex = textUpToCursor.lastIndexOf("(");
-        const closeParenIndex = line.indexOf(")", openParenIndex);
+        const openParenIndex = textUpToCursor.lastIndexOf('(');
+        const closeParenIndex = line.indexOf(')', openParenIndex);
 
         if (
             openParenIndex === -1 ||
@@ -171,22 +133,19 @@ export class UnifaceSignatureHelpProvider
         return commaCount;
     }
 
-    private getCurrentExpression(
-        textLine: string,
-        position: vscode.Position
-    ): string {
+    private getCurrentExpression(textLine: string, position: vscode.Position): string {
         const textUpToCursor = textLine.slice(0, position.character);
 
-        const entryMatch = RegExp(/call\s+((\w)+)/i).exec(textUpToCursor);
+        const entryMatch = new RegExp(/call\s+((\w)+)/i).exec(textUpToCursor);
         if (entryMatch?.[1]) {
             return entryMatch[1];
         }
 
-        const procFuncMatch = RegExp(/(\$(\w)+)\s*\(/).exec(textUpToCursor);
+        const procFuncMatch = new RegExp(/(\$(\w)+)\s*\(/).exec(textUpToCursor);
         if (procFuncMatch?.[1]) {
             return procFuncMatch[1];
         }
 
-        return "";
+        return '';
     }
 }

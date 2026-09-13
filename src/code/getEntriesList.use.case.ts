@@ -1,6 +1,6 @@
-import * as vscode from "vscode";
-import { DeclaredModule } from "./getVariablesFromBlock.use.case";
+import * as vscode from 'vscode';
 import { GetDeclaredModulesList } from './getDeclaredModulesList.use.case';
+import { DeclaredModule } from './types/declaredModule';
 
 export class GetEntriesList {
     public execute(document: vscode.TextDocument): DeclaredModule[] {

@@ -1,28 +1,24 @@
-import * as vscode from "vscode";
-import { GetEntriesList } from "./getEntriesList.use.case";
-import { DeclaredModule } from './getVariablesFromBlock.use.case';
+import * as vscode from 'vscode';
+import { GetEntriesList } from './getEntriesList.use.case';
+import { DeclaredModule } from './types/declaredModule';
+import { getCodeOutsideStringsAndComments } from '../util/procCodeScanner';
 
 export class GetEntriesCompletionList {
     public execute(
         document: vscode.TextDocument,
         position: vscode.Position
     ): vscode.CompletionItem[] {
-        const completions = [];
+        const completions: vscode.CompletionItem[] = [];
         const declaredModules: DeclaredModule[] = new GetEntriesList().execute(document);
 
-        const lineText = document.lineAt(position).text.trim();
+        const textBeforeCursor = getCodeOutsideStringsAndComments(
+            document.lineAt(position).text.slice(0, position.character)
+        ).code;
 
-        if (lineText.startsWith("call")) {
+        if (/\bcall\s+(?:[A-Za-z_]\w*)?$/i.test(textBeforeCursor)) {
             const entryItems = declaredModules.map((entry) => {
-                const entryName = entry.name
-                    .trim()
-                    .split(" ")[1]
-                    .trim()
-                    .split(";")[0];
-                return new vscode.CompletionItem(
-                    entryName,
-                    vscode.CompletionItemKind.Method
-                );
+                const entryName = entry.name.trim();
+                return new vscode.CompletionItem(entryName, vscode.CompletionItemKind.Method);
             });
             completions.push(...entryItems);
         }

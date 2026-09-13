@@ -1,10 +1,6 @@
-import * as vscode from "vscode";
-import { endKeywordsRegex, ifInlineRegex, startKeywordsRegex } from "./regExpConstants";
-
-interface CommentedLine {
-    code: string;
-    comment: string;
-}
+import * as vscode from 'vscode';
+import { endKeywordsRegex, startKeywordsRegex } from './regExpConstants';
+import { findMissingBlockEnds } from './blockStructure/blockStructureAnalyzer';
 
 export const formatterProvider = (): vscode.DocumentFormattingEditProvider => {
     return {
@@ -18,45 +14,48 @@ export const formatterProvider = (): vscode.DocumentFormattingEditProvider => {
     };
 };
 
-class UnifaceFormatterProvider
-    implements vscode.DocumentFormattingEditProvider
-{
+class UnifaceFormatterProvider implements vscode.DocumentFormattingEditProvider {
     provideDocumentFormattingEdits(
         document: vscode.TextDocument,
         options: vscode.FormattingOptions,
         token: vscode.CancellationToken
     ): vscode.TextEdit[] {
+        if (findMissingBlockEnds(document.getText().split(/\r?\n/)).length > 0) {
+            return [];
+        }
+
         const formatter = new UnifaceFormatter(document.getText(), options);
         const formattedText = formatter.format();
 
         const firstLine = document.lineAt(0);
         const lastLine = document.lineAt(document.lineCount - 1);
-        const range = new vscode.Range(
-            firstLine.range.start,
-            lastLine.range.end
-        );
+        const range = new vscode.Range(firstLine.range.start, lastLine.range.end);
 
         return [new vscode.TextEdit(range, formattedText)];
     }
 }
 
 class UnifaceFormatter {
-    private lines: string[];
-    private formattedLines: string[] = [];
+    private readonly lines: string[];
+    private readonly formattedLines: string[] = [];
     private deepLevel = 0;
     private previousLineWasBlank = false;
     private isInContinuation = false;
     private continuationIndent = 0;
+    private readonly selectCaseBranchDepths: number[] = [];
 
-    constructor(text: string, private options: vscode.FormattingOptions) {
-        this.lines = text.split("\n");
+    constructor(
+        text: string,
+        private readonly options: vscode.FormattingOptions
+    ) {
+        this.lines = text.split('\n');
     }
 
     public format(): string {
         for (const line of this.lines) {
             const trimmed = line.trim();
 
-            const isBlank = trimmed === "";
+            const isBlank = trimmed === '';
 
             if (this.handleBlankLine(isBlank)) {
                 continue;
@@ -65,84 +64,74 @@ class UnifaceFormatter {
                 continue;
             }
 
-            const isContinuation = trimmed.endsWith("%\\");
-
-            if (this.handleSingleLineIf(trimmed)) {
-                console.log(trimmed);
-                continue;
-            }
+            const isContinuation = trimmed.endsWith('%\\');
+            const isSingleLineIf = this.isSingleLineIf(trimmed);
 
             this.adjustDepthForEnd(trimmed);
+            this.adjustDepthForSelectCaseBranch(trimmed);
             this.addFormattedLine(trimmed);
             this.updateContinuationState(isContinuation);
-            this.adjustDepthForStart(trimmed);
-        }
-
-        return this.formattedLines.join("\n");
-    }
-
-    private handleSingleLineIf(trimmed: string): boolean {
-        if (trimmed.startsWith(";")) {
-            return false;
-        }
-
-        let commentedLine;
-
-        if (trimmed.includes(";")) {
-            commentedLine = this.extractComment(trimmed);
-            if (commentedLine) {
-                trimmed = commentedLine?.code;
+            if (!isSingleLineIf) {
+                this.adjustDepthForStart(trimmed);
             }
         }
 
-        if (trimmed.endsWith("%\\")) {
-            return false;
-        }
-
-        if (trimmed.endsWith(")")) {
-            return false;
-        }
-
-        const inlineIfMatch = RegExp(ifInlineRegex).exec(trimmed);
-
-        if (!inlineIfMatch) {
-            return false;
-        }
-
-        this.addFormattedLine(`if (${inlineIfMatch[1]}) ${commentedLine?.comment ?? ''}`);
-        this.deepLevel++;
-        this.addFormattedLine(inlineIfMatch[2]);
-        this.deepLevel--;
-        this.addFormattedLine(`endif`);
-
-        return true;
+        return this.formattedLines.join('\n');
     }
 
-    private extractComment(trimmed: string): CommentedLine | null {
-        let isInString: boolean = false;
+    private isSingleLineIf(trimmed: string): boolean {
+        if (trimmed.endsWith('%\\')) {
+            return false;
+        }
 
-        for (let i = 0; i < trimmed.length; i++) {
-            const char = trimmed[i];
+        const ifStart = /^if\s*\(/i.exec(trimmed);
+        if (!ifStart) {
+            return false;
+        }
 
-            if ((char === `"` || char === `'`) && !isInString) {
-                isInString = true;
+        let parenthesisDepth = 0;
+        let stringDelimiter: '"' | "'" | null = null;
+        let isEscaped = false;
+
+        for (let index = ifStart[0].length - 1; index < trimmed.length; index++) {
+            const char = trimmed[index];
+
+            if (isEscaped) {
+                isEscaped = false;
                 continue;
             }
 
-            if ((char === `"` || char === `'`) && isInString) {
-                isInString = false;
+            if (stringDelimiter) {
+                if (char === '\\') {
+                    isEscaped = true;
+                } else if (
+                    char === '%' &&
+                    trimmed[index + 1] === '%' &&
+                    trimmed[index + 2] === stringDelimiter
+                ) {
+                    index += 2;
+                } else if (char === stringDelimiter) {
+                    stringDelimiter = null;
+                }
                 continue;
             }
 
-            if (!isInString && char === ";") {
-                return {
-                    code: trimmed.substring(0, i).trim(),
-                    comment: trimmed.substring(i).trim(),
-                };
+            if (char === '"' || char === "'") {
+                stringDelimiter = char;
+            } else if (char === '(') {
+                parenthesisDepth++;
+            } else if (char === ')') {
+                parenthesisDepth--;
+                if (parenthesisDepth === 0) {
+                    const statement = trimmed.slice(index + 1).trim();
+                    return statement !== '' && !statement.startsWith(';');
+                }
+            } else if (char === ';') {
+                return false;
             }
         }
 
-        return null;
+        return false;
     }
 
     private handleBlankLine(isBlank: boolean): boolean {
@@ -154,13 +143,13 @@ class UnifaceFormatter {
             return true;
         }
 
-        this.formattedLines.push("");
+        this.formattedLines.push('');
         this.previousLineWasBlank = true;
         return true;
     }
 
     private handleDefineDirective(trimmed: string): boolean {
-        if (!trimmed.startsWith("#define")) {
+        if (!trimmed.startsWith('#define')) {
             return false;
         }
 
@@ -170,36 +159,58 @@ class UnifaceFormatter {
     }
 
     private adjustDepthForEnd(trimmed: string): void {
-        if (RegExp(endKeywordsRegex, "gi").test(trimmed)) {
+        if (/^endselectcase\b/i.test(trimmed)) {
+            const branchDepth = this.selectCaseBranchDepths.pop();
+            if (branchDepth !== undefined) {
+                this.deepLevel = Math.max(branchDepth - 1, 0);
+                return;
+            }
+        }
+
+        if (new RegExp(endKeywordsRegex, 'gi').test(trimmed)) {
             this.deepLevel = Math.max(this.deepLevel - 1, 0);
         }
     }
 
-    private adjustDepthForStart(trimmed: string): void {
-        if (RegExp(startKeywordsRegex, "gi").test(trimmed)) {
-            this.deepLevel++;
+    private adjustDepthForSelectCaseBranch(trimmed: string): void {
+        if (!this.isSelectCaseBranch(trimmed)) {
+            return;
+        }
+
+        const branchDepth = this.selectCaseBranchDepths.at(-1);
+        if (branchDepth !== undefined) {
+            this.deepLevel = branchDepth;
         }
     }
 
-    private addFormattedLine(trimmed: string): void {
-        const decreaseKeywords = [
-            "else",
-            "elseif",
-            "case ",
-            "catch",
-            "elsecase",
-        ];
+    private adjustDepthForStart(trimmed: string): void {
+        if (this.isSelectCaseBranch(trimmed) && this.selectCaseBranchDepths.length > 0) {
+            this.deepLevel++;
+            return;
+        }
 
-        const inDecreaseKeyword = decreaseKeywords.some((k) =>
-            trimmed.toLowerCase().startsWith(k)
-        );
-        const tabCount = inDecreaseKeyword
-            ? this.deepLevel - 1
-            : this.deepLevel;
+        if (new RegExp(startKeywordsRegex, 'gi').test(trimmed)) {
+            this.deepLevel++;
+
+            if (/^selectcase\b/i.test(trimmed)) {
+                this.selectCaseBranchDepths.push(this.deepLevel);
+            }
+        }
+    }
+
+    private isSelectCaseBranch(trimmed: string): boolean {
+        return /^(?:case|elsecase)\b/i.test(trimmed);
+    }
+
+    private addFormattedLine(trimmed: string): void {
+        const decreaseKeywords = [/^else\b/i, /^elseif\b/i, /^catch\b/i];
+
+        const inDecreaseKeyword = decreaseKeywords.some((keyword) => keyword.test(trimmed));
+        const tabCount = Math.max(inDecreaseKeyword ? this.deepLevel - 1 : this.deepLevel, 0);
 
         const indent = this.isInContinuation
-            ? "\t".repeat(this.continuationIndent) + "\t"
-            : "\t".repeat(tabCount);
+            ? '\t'.repeat(this.continuationIndent) + '\t'
+            : '\t'.repeat(tabCount);
 
         this.formattedLines.push(indent + trimmed);
         this.previousLineWasBlank = false;
