@@ -11,4 +11,19 @@ suite('ProcCodeSanitizer', () => {
         assert.match(sanitized, /value/);
         assert.match(sanitized, /data->/);
     });
+
+    test('masks a string continued with %\\ until its closing delimiter on the next line', () => {
+        const lines = [
+            'value = "first line %\\',
+            '    second line with identifier"',
+            'otherValue = 1',
+        ];
+
+        const sanitizedLines = new ProcCodeSanitizer().sanitizeLines(lines);
+
+        assert.strictEqual(sanitizedLines[0].length, lines[0].length);
+        assert.strictEqual(sanitizedLines[1].length, lines[1].length);
+        assert.doesNotMatch(sanitizedLines[1], /second|identifier/);
+        assert.match(sanitizedLines[2], /otherValue/);
+    });
 });

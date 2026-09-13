@@ -92,7 +92,7 @@ export class StatementContextAnalyzer {
 
     private getActivateOperationNameStart(code: string): number | undefined {
         const activateOperation =
-            /^\s*activate(?:\s*\/[A-Za-z_]\w*)*\s+.*?\.\s*([A-Za-z_]\w*)\s*\(/i.exec(code);
+            /^\s*activate(?:\s*\/[A-Za-z_]\w*)*\s+.*?\.\s*([A-Za-z_]\w*)\b/i.exec(code);
         return activateOperation
             ? activateOperation.index + activateOperation[0].lastIndexOf(activateOperation[1])
             : undefined;

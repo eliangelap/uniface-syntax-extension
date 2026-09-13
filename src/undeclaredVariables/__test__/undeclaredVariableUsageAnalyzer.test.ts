@@ -152,6 +152,44 @@ suite('UndeclaredVariableUsageAnalyzer', () => {
         ]);
     });
 
+    test('ignores identifiers inside strings continued with %\\', () => {
+        const block: BlockCode = {
+            text: '',
+            startLine: 0,
+            lines: [
+                'entry sample',
+                'if (v_in_achou)',
+                '    $t_ds_erro$ = "Valor total vendido no mÃªs %%p_vl_total para o funcionÃ¡rio %\\',
+                '        %%p_cd_funcio%%% excede o limite de 30% em relaÃ§Ã£o ao salÃ¡rio" ;;; comment',
+                'endif',
+                'end',
+            ],
+        };
+
+        const usages = new UndeclaredVariableUsageAnalyzer().getUndeclaredUsages(block, [
+            'v_in_achou',
+        ]);
+
+        assert.deepStrictEqual(usages, []);
+    });
+
+    test('ignores functions provided by includes while validating their arguments', () => {
+        const block: BlockCode = {
+            text: '',
+            startLine: 0,
+            lines: [
+                'entry sample',
+                '#include LIB_COAMO:PL_IN_CV_PRAZO_FINANC',
+                'if (!plInCvPrazoFinanc(cd_cndvenda.pfat_cefitem, undeclaredArgument))',
+                'end',
+            ],
+        };
+
+        const usages = new UndeclaredVariableUsageAnalyzer().getUndeclaredUsages(block, []);
+
+        assert.deepStrictEqual(usages.map((usage) => usage.name), ['undeclaredArgument']);
+    });
+
     test('ignores direct entity arguments in $dbocc while validating the rest of the expression', () => {
         const block: BlockCode = {
             text: '',
@@ -296,6 +334,26 @@ suite('UndeclaredVariableUsageAnalyzer', () => {
         assert.deepStrictEqual(usages.map((usage) => usage.name), ['argumentoNaoDeclarado']);
     });
 
+    test('ignores operation names in activate statements continued with %\\', () => {
+        const block: BlockCode = {
+            text: '',
+            startLine: 0,
+            lines: [
+                'entry sample',
+                'activate "GCADO018".APURA_INDCONVUND %\\ ;;;; continued command',
+                '    (v_cd_unpademb, v_cd_undpdose, argumentoNaoDeclarado, $t_ds_erro$)',
+                'end',
+            ],
+        };
+
+        const usages = new UndeclaredVariableUsageAnalyzer().getUndeclaredUsages(block, [
+            'v_cd_unpademb',
+            'v_cd_undpdose',
+        ]);
+
+        assert.deepStrictEqual(usages.map((usage) => usage.name), ['argumentoNaoDeclarado']);
+    });
+
     test('ignores qualified entity fields while validating the remaining expression', () => {
         const block: BlockCode = {
             text: '',
@@ -418,7 +476,7 @@ suite('UndeclaredVariableUsageAnalyzer', () => {
             startLine: 0,
             lines: [
                 'entry sample',
-                'result = $date[D] + $clock[h] + $datim[s]',
+                'result = $date[D] + $date[1,4] + $date[5, 6] + $clock[h] + $datim[s]',
                 'result = vDate[Mmm*] + vTime[T] + vDatetime[clock] + vDatetime[Y]',
                 'result = undeclaredValue',
                 'end',

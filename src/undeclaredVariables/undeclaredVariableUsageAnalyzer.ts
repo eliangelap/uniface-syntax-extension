@@ -37,7 +37,8 @@ export class UndeclaredVariableUsageAnalyzer {
             [...returnValueFunctionNames].map((name) => name.toLowerCase())
         );
         const usages: UndeclaredVariableUsage[] = [];
-        const labels = this.getLabels(block.lines);
+        const sanitizedLines = this.sanitizer.sanitizeLines(block.lines);
+        const labels = this.getLabels(sanitizedLines);
         let isInsideDeclaration = false;
 
         this.addDefinedConstants(block.lines, declared);
@@ -65,7 +66,7 @@ export class UndeclaredVariableUsageAnalyzer {
                 continue;
             }
 
-            const sanitizedLine = this.sanitizer.sanitize(line);
+            const sanitizedLine = sanitizedLines[lineIndex];
             this.addUnknownGotoUsage(sanitizedLine, block.startLine + lineIndex, labels, usages);
 
             const statementContext = this.statementContextAnalyzer.analyze(sanitizedLine);
@@ -106,6 +107,7 @@ export class UndeclaredVariableUsageAnalyzer {
                 code[match.index - 1] === '$' ||
                 ignoredTokenStarts.has(match.index) ||
                 declared.has(name.toLowerCase()) ||
+                isFunctionCall ||
                 (returnValueFunctions.has(name.toLowerCase()) && isFunctionCall) ||
                 this.ignoredWords.has(name.toLowerCase())
             ) {
@@ -128,11 +130,11 @@ export class UndeclaredVariableUsageAnalyzer {
         }
     }
 
-    private getLabels(lines: string[]): Set<string> {
+    private getLabels(lines: readonly string[]): Set<string> {
         const labels = new Set<string>();
 
         for (const line of lines) {
-            const label = /^\s*([A-Za-z_]\w*)\s*:/i.exec(this.sanitizer.sanitize(line));
+            const label = /^\s*([A-Za-z_]\w*)\s*:/i.exec(line);
             if (label) {
                 labels.add(label[1].toLowerCase());
             }
