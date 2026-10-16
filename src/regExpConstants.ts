@@ -33,7 +33,7 @@ const endKeywords = [
     'endselectcase',
     'endtry',
 ];
-export const endKeywordsRegex = String.raw`^(${endKeywords.join('|')})(\s+.*)?\s*(;.*)?$`;
+export const endKeywordsRegex = String.raw`^(${endKeywords.join('|')})(?=\s|\(|;|$)(?:\s.*|\(.*|;.*)?$`;
 
 const startKeywords = [
     'entry',
