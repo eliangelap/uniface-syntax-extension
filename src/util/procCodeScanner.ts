@@ -29,6 +29,16 @@ export function getCodeOutsideStringsAndComments(
             } else if (
                 character === '%' &&
                 line[index + 1] === '%' &&
+                line[index + 2] === '%'
+            ) {
+                code += '   ';
+                index += 2;
+                if (/^\s*,\s*%\\\s*$/.test(line.slice(index + 1))) {
+                    delimiter = null;
+                }
+            } else if (
+                character === '%' &&
+                line[index + 1] === '%' &&
                 line[index + 2] === delimiter
             ) {
                 code += '   ';
