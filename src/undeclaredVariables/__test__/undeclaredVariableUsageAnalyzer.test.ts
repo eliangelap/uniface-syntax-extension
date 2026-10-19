@@ -354,6 +354,42 @@ suite('UndeclaredVariableUsageAnalyzer', () => {
         assert.deepStrictEqual(usages.map((usage) => usage.name), ['argumentoNaoDeclarado']);
     });
 
+    test('ignores string arguments after an interpolation ending in %%% across continuation lines', () => {
+        const block: BlockCode = {
+            text: '',
+            startLine: 0,
+            lines: [
+                'entry sample',
+                'activate "gpeso050".OBTEM_FIELD_PK_SERRO("gpes_unidade", "cd_unidade=%%cd_unidade.trec_recebase_s2%%%%", %\\',
+                '    "ds_abrevund", "", vNomeUnidadeAbr, $t_ds_erro$)',
+                'end',
+            ],
+        };
+
+        const usages = new UndeclaredVariableUsageAnalyzer().getUndeclaredUsages(block, [
+            'vNomeUnidadeAbr',
+        ]);
+
+        assert.deepStrictEqual(usages, []);
+    });
+
+    test('ignores identifiers in a continued literal ending with %%% and finds code after it', () => {
+        const block: BlockCode = {
+            text: '',
+            startLine: 0,
+            lines: [
+                'entry sample',
+                'message "progress %%%, %\\',
+                '    followed by remainingText" + actualVariable',
+                'end',
+            ],
+        };
+
+        const usages = new UndeclaredVariableUsageAnalyzer().getUndeclaredUsages(block, []);
+
+        assert.deepStrictEqual(usages.map((usage) => usage.name), ['actualVariable']);
+    });
+
     test('ignores qualified entity fields while validating the remaining expression', () => {
         const block: BlockCode = {
             text: '',

@@ -34,4 +34,36 @@ suite('ProcCodeSanitizer', () => {
         assert.strictEqual(sanitized.length, code.length);
         assert.doesNotMatch(sanitized, /undeclaredVariable/);
     });
+
+    test('closes strings after a Uniface variable interpolation ending in %%%', () => {
+        const code = 'message "%%vDsVariavel%%%" undeclaredVariable';
+        const sanitized = new ProcCodeSanitizer().sanitize(code);
+
+        assert.strictEqual(sanitized.length, code.length);
+        assert.doesNotMatch(sanitized, /vDsVariavel/);
+        assert.match(sanitized, /undeclaredVariable/);
+    });
+
+    test('keeps a closing quote after an interpolation ending in %%% before a continuation', () => {
+        const lines = [
+            'message "%%vDsVariavel%%%%", %\\',
+            '    "stringArgument", undeclaredVariable',
+        ];
+        const sanitizedLines = new ProcCodeSanitizer().sanitizeLines(lines);
+
+        assert.doesNotMatch(sanitizedLines[1], /stringArgument/);
+        assert.match(sanitizedLines[1], /undeclaredVariable/);
+    });
+
+    test('keeps a continued literal open after %%% and exposes code after its closing quote', () => {
+        const lines = [
+            'message "progress %%%, %\\',
+            '    followed by remainingText" + actualVariable',
+        ];
+
+        const sanitizedLines = new ProcCodeSanitizer().sanitizeLines(lines);
+
+        assert.doesNotMatch(sanitizedLines[1], /followed|remainingText/);
+        assert.match(sanitizedLines[1], /actualVariable/);
+    });
 });

@@ -63,4 +63,22 @@ suite('VariableUsageAnalyzer', () => {
 
         assert.deepStrictEqual([...usedVariables], []);
     });
+
+    test('finds code after a continued literal ending with %%%', () => {
+        const usedVariables = new VariableUsageAnalyzer().getUsedVariables(
+            [
+                'variables',
+                'string remainingText, actualVariable',
+                'endvariables',
+                'message "progress %%%, %\\',
+                '    followed by remainingText" + actualVariable',
+            ],
+            [
+                { name: 'remainingText', dataType: 'string', line: 1 },
+                { name: 'actualVariable', dataType: 'string', line: 1 },
+            ]
+        );
+
+        assert.deepStrictEqual([...usedVariables], ['actualVariable']);
+    });
 });

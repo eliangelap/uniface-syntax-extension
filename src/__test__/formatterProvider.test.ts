@@ -185,4 +185,42 @@ suite('UnifaceFormatterProvider', () => {
 
         assert.strictEqual(edits?.[0].newText, document.getText());
     });
+
+    test('aligns UNTIL with REPEAT when its parenthesis is adjacent', async () => {
+        const document = await vscode.workspace.openTextDocument({
+            content: [
+                'entry valid',
+                'repeat',
+                'value = 1',
+                'until ($status < 0)',
+                'repeat',
+                'value = 2',
+                'until($status < 0)',
+                'afterValue = 3',
+                'end',
+            ].join('\n'),
+            language: 'uniface',
+        });
+
+        const edits = await formatterProvider().provideDocumentFormattingEdits(
+            document,
+            { insertSpaces: true, tabSize: 4 },
+            cancellationToken
+        );
+
+        assert.strictEqual(
+            edits?.[0].newText,
+            [
+                'entry valid',
+                '\trepeat',
+                '\t\tvalue = 1',
+                '\tuntil ($status < 0)',
+                '\trepeat',
+                '\t\tvalue = 2',
+                '\tuntil($status < 0)',
+                '\tafterValue = 3',
+                'end',
+            ].join('\n')
+        );
+    });
 });
