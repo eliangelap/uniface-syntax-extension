@@ -17,6 +17,7 @@
         "check-types": "tsc --noEmit",
         "lint": "eslint src",
         "test": "vscode-test",
+        "test:virtual": "xvfb-run -a npm test -- --config .vscode-test.virtual.mjs",
         "release": "standard-version",
         "release:patch": "standard-version --release-as patch",
         "release:hotfix": "npm run release:patch",
@@ -108,7 +109,7 @@
     "devDependencies": {
         "@types/mocha": "^10.0.10",
         "@types/node": "24.x",
-        "@types/vscode": "^1.140.0",
+        "@types/vscode": "1.125.0",
         "@typescript-eslint/eslint-plugin": "^8.71.2",
         "@typescript-eslint/parser": "^8.71.2",
         "@vscode/test-cli": "^0.0.11",

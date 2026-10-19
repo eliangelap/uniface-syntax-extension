@@ -44,14 +44,26 @@ suite('ProcCodeSanitizer', () => {
         assert.match(sanitized, /undeclaredVariable/);
     });
 
-    test('closes a string after an interpolation ending in %%% before a continuation', () => {
+    test('keeps a closing quote after an interpolation ending in %%% before a continuation', () => {
         const lines = [
-            'message "%%vDsVariavel%%%, %\\',
+            'message "%%vDsVariavel%%%%", %\\',
             '    "stringArgument", undeclaredVariable',
         ];
         const sanitizedLines = new ProcCodeSanitizer().sanitizeLines(lines);
 
         assert.doesNotMatch(sanitizedLines[1], /stringArgument/);
         assert.match(sanitizedLines[1], /undeclaredVariable/);
+    });
+
+    test('keeps a continued literal open after %%% and exposes code after its closing quote', () => {
+        const lines = [
+            'message "progress %%%, %\\',
+            '    followed by remainingText" + actualVariable',
+        ];
+
+        const sanitizedLines = new ProcCodeSanitizer().sanitizeLines(lines);
+
+        assert.doesNotMatch(sanitizedLines[1], /followed|remainingText/);
+        assert.match(sanitizedLines[1], /actualVariable/);
     });
 });
