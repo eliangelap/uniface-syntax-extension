@@ -38,6 +38,7 @@ export class UndeclaredVariableUsageAnalyzer {
         );
         const usages: UndeclaredVariableUsage[] = [];
         const sanitizedLines = this.sanitizer.sanitizeLines(block.lines);
+        const interpolatedVariables = this.sanitizer.getInterpolatedVariables(block.lines);
         const labels = this.getLabels(sanitizedLines);
         let isInsideDeclaration = false;
 
@@ -68,6 +69,12 @@ export class UndeclaredVariableUsageAnalyzer {
 
             const sanitizedLine = sanitizedLines[lineIndex];
             this.addUnknownGotoUsage(sanitizedLine, block.startLine + lineIndex, labels, usages);
+            this.addInterpolatedVariableUsages(
+                interpolatedVariables[lineIndex],
+                block.startLine + lineIndex,
+                declared,
+                usages
+            );
 
             const statementContext = this.statementContextAnalyzer.analyze(sanitizedLine);
             const extractionValidation = this.extractionParameterValidator.validate(
@@ -87,6 +94,32 @@ export class UndeclaredVariableUsageAnalyzer {
         }
 
         return usages;
+    }
+
+    private addInterpolatedVariableUsages(
+        variables: ReadonlyArray<{ name: string; start: number }>,
+        line: number,
+        declared: ReadonlySet<string>,
+        usages: UndeclaredVariableUsage[]
+    ): void {
+        for (const variable of variables) {
+            if (
+                declared.has(variable.name.toLowerCase()) ||
+                this.ignoredWords.has(variable.name.toLowerCase())
+            ) {
+                continue;
+            }
+
+            usages.push({
+                name: variable.name,
+                range: new vscode.Range(
+                    line,
+                    variable.start,
+                    line,
+                    variable.start + variable.name.length
+                ),
+            });
+        }
     }
 
     private addTokenUsages(
