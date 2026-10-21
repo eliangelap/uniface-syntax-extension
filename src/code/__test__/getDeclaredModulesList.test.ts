@@ -76,6 +76,23 @@ suite('GetDeclaredModulesList', () => {
         ]);
     });
 
+    test('ignores module declarations inside blockdata', async () => {
+        const document = await vscode.workspace.openTextDocument({
+            content: 'entry validEntry\ndsTexto: blockdata+\noperation ignoredOperation\n+\n',
+            language: 'uniface',
+        });
+
+        const modules = new GetDeclaredModulesList().execute(document);
+
+        assert.deepStrictEqual(modules, [
+            {
+                name: 'validEntry',
+                line: 0,
+                scriptModuleType: 'entry',
+            },
+        ]);
+    });
+
     test('preserves declaration order for modules with identical names', async () => {
         const document = await vscode.workspace.openTextDocument({
             content: 'function duplicated\nfunction duplicated\n',

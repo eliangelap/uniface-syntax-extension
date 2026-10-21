@@ -71,4 +71,19 @@ suite('UnifaceDefinitionProvider', () => {
         assert.strictEqual(provider.provideDefinition(document, new vscode.Position(2, 18), token), null);
         assert.ok(provider.provideDefinition(document, new vscode.Position(3, 23), token));
     });
+
+    test('ignores calls inside blockdata', async () => {
+        const document = await vscode.workspace.openTextDocument({
+            content: 'entry targetEntry\nend\nentry callerEntry\ndsTexto: blockdata@\ncall targetEntry\n@\nend',
+            language: 'uniface',
+        });
+
+        const definition = new UnifaceDefinitionProvider().provideDefinition(
+            document,
+            new vscode.Position(4, 9),
+            new vscode.CancellationTokenSource().token
+        );
+
+        assert.strictEqual(definition, null);
+    });
 });

@@ -60,4 +60,27 @@ suite('GetVariablesFromBlock', () => {
             ['first', 'second']
         );
     });
+
+    test('ignores declarations written inside blockdata', () => {
+        const block = {
+            text: 'entry sampleEntry\nvariables\nstring actualValue\nendvariables\ndsTexto: blockdata@\nvariables\nstring ignoredValue\nendvariables\n@\nend',
+            startLine: 0,
+            lines: [
+                'entry sampleEntry',
+                'variables',
+                'string actualValue',
+                'endvariables',
+                'dsTexto: blockdata@',
+                'variables',
+                'string ignoredValue',
+                'endvariables',
+                '@',
+                'end',
+            ],
+        };
+
+        const variables = new GetVariablesFromBlock().execute(block);
+
+        assert.deepStrictEqual(variables.map((variable) => variable.name), ['actualValue']);
+    });
 });

@@ -1,5 +1,9 @@
 import { DeclaredVariable } from '../code/getVariablesFromBlock.use.case';
-import { getCodeOutsideStringsAndComments, StringDelimiter } from '../util/procCodeScanner';
+import {
+    createCodeScannerState,
+    getCodeOutsideStringsAndComments,
+    getNextCodeScannerState,
+} from '../util/procCodeScanner';
 
 interface VariablePattern {
     name: string;
@@ -14,7 +18,7 @@ export class VariableUsageAnalyzer {
         const usedVariables = new Set<string>();
         const variablePatterns = this.createVariablePatterns(declaredVariables);
         let isAfterVariablesBlock = false;
-        let delimiter: StringDelimiter = null;
+        let state = createCodeScannerState();
 
         for (const line of blockLines) {
             const trimmedLine = line.trim();
@@ -26,8 +30,8 @@ export class VariableUsageAnalyzer {
                 continue;
             }
 
-            const scanResult = getCodeOutsideStringsAndComments(line, delimiter);
-            delimiter = line.trimEnd().endsWith('%\\') ? scanResult.delimiter : null;
+            const scanResult = getCodeOutsideStringsAndComments(line, state);
+            state = getNextCodeScannerState(line, scanResult.state);
             const code = scanResult.code;
             for (const variable of variablePatterns) {
                 if (variable.pattern.test(code)) {

@@ -1,16 +1,21 @@
-import { getCodeOutsideStringsAndComments, StringDelimiter } from '../util/procCodeScanner';
+import {
+    CodeScannerState,
+    createCodeScannerState,
+    getCodeOutsideStringsAndComments,
+    getNextCodeScannerState,
+} from '../util/procCodeScanner';
 
 export class ProcCodeSanitizer {
     public sanitize(line: string): string {
-        return this.sanitizeLine(line, null).code;
+        return this.sanitizeLine(line, createCodeScannerState()).code;
     }
 
     public sanitizeLines(lines: readonly string[]): string[] {
-        let delimiter: StringDelimiter = null;
+        let state = createCodeScannerState();
 
         return lines.map((line) => {
-            const result = this.sanitizeLine(line, delimiter);
-            delimiter = line.trimEnd().endsWith('%\\') ? result.delimiter : null;
+            const result = this.sanitizeLine(line, state);
+            state = getNextCodeScannerState(line, result.state);
 
             return result.code;
         });
@@ -18,15 +23,15 @@ export class ProcCodeSanitizer {
 
     private sanitizeLine(
         line: string,
-        initialDelimiter: StringDelimiter
-    ): { code: string; delimiter: StringDelimiter } {
+        initialState: CodeScannerState
+    ): { code: string; state: CodeScannerState } {
         const codeOutsideStringsAndComments = getCodeOutsideStringsAndComments(
             line,
-            initialDelimiter
+            initialState
         );
 
         return {
-            delimiter: codeOutsideStringsAndComments.delimiter,
+            state: codeOutsideStringsAndComments.state,
             code: codeOutsideStringsAndComments.code
             .replace(/<[A-Za-z_]\w*>/g, (constant) => ' '.repeat(constant.length))
             .replace(/\b[A-Za-z_]\w*\.[A-Za-z_]\w*(?:\/init\b)?\b(?!\s*\[)/gi, (entityField) =>

@@ -3,6 +3,9 @@
     "name": "Uniface",
     "patterns": [
         {
+            "include": "#blockdata"
+        },
+        {
             "include": "#keywords"
         },
         {
@@ -19,6 +22,9 @@
         "code": {
             "patterns": [
                 {
+                    "include": "#blockdata"
+                },
+                {
                     "include": "#keywords"
                 },
                 {
@@ -32,6 +38,15 @@
                 },
                 {
                     "include": "#globals"
+                }
+            ]
+        },
+        "blockdata": {
+            "patterns": [
+                {
+                    "name": "string.unquoted.blockdata.uniface",
+                    "begin": "(?i)\\bblockdata([^\\s])",
+                    "end": "^\\s*\\1\\s*$"
                 }
             ]
         },

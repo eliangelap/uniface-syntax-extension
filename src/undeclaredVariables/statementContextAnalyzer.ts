@@ -16,7 +16,7 @@ export class StatementContextAnalyzer {
     public analyze(code: string): StatementContext {
         const selectdbProjection = this.maskSelectdbProjection(code);
         this.isInsideSelectdbProjection = selectdbProjection.isInsideProjection;
-        const contextCode = this.maskLabel(this.maskCompareFields(selectdbProjection.code));
+        const contextCode = this.maskLabel(this.maskCompareCommand(selectdbProjection.code));
 
         return {
             code: contextCode,
@@ -59,20 +59,12 @@ export class StatementContextAnalyzer {
         };
     }
 
-    private maskCompareFields(code: string): string {
-        const compare = /^\s*compare\s*\/\s*(?:next|previous)\b\s*(\([^)]*\))\s+from\b/i.exec(code);
-        if (!compare) {
+    private maskCompareCommand(code: string): string {
+        if (!/^\s*compare\b/i.test(code)) {
             return code;
         }
 
-        const fieldList = compare[1];
-        const fieldListStart = compare.index + compare[0].indexOf(fieldList);
-
-        return (
-            code.slice(0, fieldListStart) +
-            ' '.repeat(fieldList.length) +
-            code.slice(fieldListStart + fieldList.length)
-        );
+        return ' '.repeat(code.length);
     }
 
     private maskLabel(code: string): string {

@@ -1,9 +1,10 @@
 import * as vscode from 'vscode';
 import { DeclaredModule } from './types/declaredModule';
+import { getCodeOutsideStringsAndCommentsLines } from '../util/procCodeScanner';
 
 export class GetDeclaredModulesList {
     public execute(document: vscode.TextDocument): DeclaredModule[] {
-        const text = document.getText();
+        const text = getCodeOutsideStringsAndCommentsLines(document.getText().split('\n')).join('\n');
         const regex = /^[\t ]*(entry|operation|function|trigger)\s+(\w+)/gim;
 
         const declaredModules: DeclaredModule[] = [];

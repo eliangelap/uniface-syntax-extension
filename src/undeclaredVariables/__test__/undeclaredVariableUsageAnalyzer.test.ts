@@ -373,6 +373,25 @@ suite('UndeclaredVariableUsageAnalyzer', () => {
         assert.deepStrictEqual(usages, []);
     });
 
+    test('validates variables in interpolated procfunctions without reporting their string arguments', () => {
+        const block: BlockCode = {
+            text: '',
+            startLine: 0,
+            lines: [
+                'entry sample',
+                'v_st_retorno->NR_TELEFONE = "(%%$item("CD_DDD", v_ls_retorno)%%%)%%$item("NR_FONE", v_ls_retorno)%%%"',
+                'end',
+            ],
+        };
+        const usageAnalyzer = new UndeclaredVariableUsageAnalyzer();
+
+        assert.deepStrictEqual(usageAnalyzer.getUndeclaredUsages(block, ['v_st_retorno', 'v_ls_retorno']), []);
+        assert.deepStrictEqual(
+            usageAnalyzer.getUndeclaredUsages(block, ['v_st_retorno']).map((usage) => usage.name),
+            ['v_ls_retorno', 'v_ls_retorno']
+        );
+    });
+
     test('ignores identifiers in a continued literal ending with %%% and finds code after it', () => {
         const block: BlockCode = {
             text: '',
@@ -496,6 +515,8 @@ suite('UndeclaredVariableUsageAnalyzer', () => {
                 'entry sample',
                 'compare/previous (cd_undrecei, tp_receita, nr_receita) from "trec_recpfitem_s1"',
                 'COMPARE / NEXT (cd_undrecei, tp_receita, nr_receita) FROM "trec_recpfitem_s1"',
+                'compare/previous (cd_uf, cd_regiao)',
+                'COMPARE / NEXT (cd_uf, cd_regiao)',
                 'undeclaredValue = 1',
                 'end',
             ],

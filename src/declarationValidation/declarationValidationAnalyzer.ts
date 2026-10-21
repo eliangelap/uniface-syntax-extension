@@ -3,6 +3,7 @@ import { findMissingBlockEnds } from '../blockStructure/blockStructureAnalyzer';
 import { BlockCode } from '../code/getBlockAroundPosition.use.case';
 import { GetBlockList } from '../code/getBlockList.use.case';
 import { variableTypes } from '../regExpConstants';
+import { getCodeOutsideStringsAndCommentsLines } from '../util/procCodeScanner';
 import {
     DeclarationIssue,
     DeclarationValidationDiagnosticPublisher,
@@ -58,9 +59,10 @@ export class DeclarationValidationAnalyzer implements vscode.Disposable {
         const issues: DeclarationIssue[] = [];
         const declaredNames = new Set<string>();
         let section: 'params' | 'variables' | undefined;
+        const codeLines = getCodeOutsideStringsAndCommentsLines(block.lines);
 
-        for (let index = 0; index < block.lines.length; index++) {
-            const line = block.lines[index];
+        for (let index = 0; index < codeLines.length; index++) {
+            const line = codeLines[index];
             const code = line.split(';', 1)[0];
             const trimmedCode = code.trim();
             const lineNumber = block.startLine + index;

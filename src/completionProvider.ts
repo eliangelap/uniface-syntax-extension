@@ -8,13 +8,17 @@ import { GetVariablesFromBlock } from './code/getVariablesFromBlock.use.case';
 import { StringListToCompletionItems } from './code/stringListToCompletionItems.use.case';
 import { VariablesToCompletionItems } from './code/variablesToCompletionItems.use.case';
 import { CodeAnalyzer } from './util/codeAnalyzer.use.case';
+import { isBlockdataLine } from './util/procCodeScanner';
 
 export class CompletionItemProvider implements vscode.CompletionItemProvider {
     public provideCompletionItems = (document: vscode.TextDocument, position: vscode.Position) => {
         const completions: vscode.CompletionItem[] = [];
         const lineText = document.lineAt(position).text.trim();
 
-        if (CodeAnalyzer.isLineCommented(lineText)) {
+        if (
+            CodeAnalyzer.isLineCommented(lineText) ||
+            isBlockdataLine(document.getText().split('\n'), position.line)
+        ) {
             return [];
         }
 

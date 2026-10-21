@@ -2,6 +2,7 @@ import { variableRegex } from '../regExpConstants';
 import { CodeAnalyzer } from '../util/codeAnalyzer.use.case';
 import { BlockCode } from './getBlockAroundPosition.use.case';
 import { DeclaredVariable } from './getVariablesFromBlock.use.case';
+import { getCodeOutsideStringsAndCommentsLines } from '../util/procCodeScanner';
 
 export class GetParametersFromBlock {
     public execute = (block: BlockCode): DeclaredVariable[] => {
@@ -9,8 +10,10 @@ export class GetParametersFromBlock {
         const parameterRegex = RegExp(`^${variableRegex}\\s*:\\s*(in|out|inout)\\b`, 'i');
         let inParametersBlock = false;
 
-        for (let i = 0; i < block.lines.length; i++) {
-            const lineText = block.lines[i].trim();
+        const codeLines = getCodeOutsideStringsAndCommentsLines(block.lines);
+
+        for (let i = 0; i < codeLines.length; i++) {
+            const lineText = codeLines[i].trim();
 
             if (CodeAnalyzer.isLineCommented(lineText)) {
                 continue;

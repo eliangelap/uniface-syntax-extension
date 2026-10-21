@@ -2,6 +2,11 @@ import * as vscode from 'vscode';
 import { blockEndRegex } from '../regExpConstants';
 import { CodeAnalyzer } from '../util/codeAnalyzer.use.case';
 import {
+    createCodeScannerState,
+    getCodeOutsideStringsAndComments,
+    getNextCodeScannerState,
+} from '../util/procCodeScanner';
+import {
     BlockStructureDiagnosticPublisher,
     BlockStructureDiagnosticPublisherContract,
     MissingBlockEnd,
@@ -12,9 +17,12 @@ const blockStartRegex = /^\s*(entry|operation)\s+([A-Za-z_]\w*)\b/i;
 export function findMissingBlockEnds(lines: string[]): MissingBlockEnd[] {
     const missingEnds: MissingBlockEnd[] = [];
     let openBlock: MissingBlockEnd | undefined;
+    let scannerState = createCodeScannerState();
 
     for (let line = 0; line < lines.length; line++) {
-        const trimmedLine = lines[line].trim();
+        const scanResult = getCodeOutsideStringsAndComments(lines[line], scannerState);
+        scannerState = getNextCodeScannerState(lines[line], scanResult.state);
+        const trimmedLine = scanResult.code.trim();
         if (CodeAnalyzer.isLineCommented(trimmedLine)) {
             continue;
         }

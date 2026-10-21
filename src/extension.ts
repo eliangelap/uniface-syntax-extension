@@ -11,10 +11,12 @@ import { UnifaceUnusedVariableAnalyzer } from './unusedVariables/unusedVariables
 import { UnifaceSignatureHelpProvider } from './signatureHelpProvider';
 import { UndeclaredVariableAnalyzer } from './undeclaredVariables/undeclaredVariableAnalyzer';
 import {
+    declareParameterCommand,
     declareVariableCommand,
     UndeclaredVariableQuickFixProvider,
 } from './undeclaredVariables/undeclaredVariableQuickFixProvider';
 import { DeclareVariableCommand } from './undeclaredVariables/declareVariableCommand';
+import { DeclareParameterCommand } from './undeclaredVariables/declareParameterCommand';
 import { BlockStructureAnalyzer } from './blockStructure/blockStructureAnalyzer';
 import { DeclarationValidationAnalyzer } from './declarationValidation/declarationValidationAnalyzer';
 
@@ -59,6 +61,7 @@ export function activate(context: vscode.ExtensionContext) {
     const blockStructureAnalyzer = new BlockStructureAnalyzer();
     const declarationValidationAnalyzer = new DeclarationValidationAnalyzer();
     const declarationCommand = new DeclareVariableCommand();
+    const parameterDeclarationCommand = new DeclareParameterCommand();
     const analyzers = [
         variableAnalyzer,
         undeclaredVariableAnalyzer,
@@ -98,6 +101,9 @@ export function activate(context: vscode.ExtensionContext) {
         }),
         vscode.commands.registerCommand(declareVariableCommand, (uri, name, usageLine) => {
             return declarationCommand.execute(uri, name, usageLine);
+        }),
+        vscode.commands.registerCommand(declareParameterCommand, (uri, name, usageLine) => {
+            return parameterDeclarationCommand.execute(uri, name, usageLine);
         }),
         vscode.languages.registerCompletionItemProvider('uniface', new CompletionItemProvider()),
         vscode.languages.registerDocumentFormattingEditProvider('uniface', formatterProvider()),

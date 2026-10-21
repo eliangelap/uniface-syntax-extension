@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { blockEndRegex, blockStartRegex } from '../regExpConstants';
 import { CodeAnalyzer } from '../util/codeAnalyzer.use.case';
+import { getCodeOutsideStringsAndCommentsLines } from '../util/procCodeScanner';
 
 export interface BlockCode {
     text: string;
@@ -10,17 +11,15 @@ export interface BlockCode {
 
 export class GetBlockAroundPosition {
     public execute(document: vscode.TextDocument, position: vscode.Position): BlockCode | null {
-        const blockStart = this.findStartLineOfBlock(document, position);
+        const textLines = document.getText().split('\n');
+        const codeLines = getCodeOutsideStringsAndCommentsLines(textLines);
+        const blockStart = this.findStartLineOfBlock(codeLines, position);
         if (blockStart === null) {
             return null;
         }
 
-        const blockEnd = this.findEndLineOfBlock(document, position);
-        if (blockEnd === null) {
-            return null;
-        }
+        const blockEnd = this.findEndLineOfBlock(codeLines, position, blockStart);
 
-        const textLines = document.getText().split('\n');
         const blockText = textLines.slice(blockStart, blockEnd + 1).join('\n');
 
         return {
@@ -31,13 +30,12 @@ export class GetBlockAroundPosition {
     }
 
     private findEndLineOfBlock(
-        document: vscode.TextDocument,
-        position: vscode.Position
-    ): number | null {
-        const lines = document.getText().split('\n');
-
+        lines: readonly string[],
+        position: vscode.Position,
+        blockStart: number
+    ): number {
         if (position.line >= lines.length) {
-            return null;
+            return lines.length - 1;
         }
 
         for (let i = position.line; i < lines.length; i++) {
@@ -49,17 +47,19 @@ export class GetBlockAroundPosition {
             if (blockEndRegex.test(line)) {
                 return i;
             }
+
+            if (i > blockStart && blockStartRegex.test(line)) {
+                return i - 1;
+            }
         }
 
-        return null;
+        return lines.length - 1;
     }
 
     private findStartLineOfBlock(
-        document: vscode.TextDocument,
+        lines: readonly string[],
         position: vscode.Position
     ): number | null {
-        const lines = document.getText().split('\n');
-
         if (position.line >= lines.length) {
             return null;
         }

@@ -44,6 +44,16 @@ suite('ProcCodeSanitizer', () => {
         assert.match(sanitized, /undeclaredVariable/);
     });
 
+    test('preserves code in interpolated procfunctions while masking their string arguments', () => {
+        const code =
+            'v_st_retorno->NR_TELEFONE = "(%%$item("CD_DDD", v_ls_retorno)%%%)"';
+        const sanitized = new ProcCodeSanitizer().sanitize(code);
+
+        assert.strictEqual(sanitized.length, code.length);
+        assert.doesNotMatch(sanitized, /CD_DDD/);
+        assert.match(sanitized, /v_ls_retorno/);
+    });
+
     test('keeps a closing quote after an interpolation ending in %%% before a continuation', () => {
         const lines = [
             'message "%%vDsVariavel%%%%", %\\',
@@ -65,5 +75,13 @@ suite('ProcCodeSanitizer', () => {
 
         assert.doesNotMatch(sanitizedLines[1], /followed|remainingText/);
         assert.match(sanitizedLines[1], /actualVariable/);
+    });
+
+    test('masks blockdata content without masking code that follows it', () => {
+        const lines = ['dsTexto: blockdata+', 'undeclaredValue = 1', '+', 'actualValue = 1'];
+        const sanitizedLines = new ProcCodeSanitizer().sanitizeLines(lines);
+
+        assert.ok(sanitizedLines.slice(0, 3).every((line) => !/undeclaredValue|blockdata/.test(line)));
+        assert.match(sanitizedLines[3], /actualValue/);
     });
 });

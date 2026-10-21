@@ -43,6 +43,7 @@ class UnifaceFormatter {
     private isInContinuation = false;
     private continuationIndent = 0;
     private readonly selectCaseBranchDepths: number[] = [];
+    private blockdataDelimiter: string | null = null;
 
     constructor(
         text: string,
@@ -53,6 +54,15 @@ class UnifaceFormatter {
 
     public format(): string {
         for (const line of this.lines) {
+            if (this.blockdataDelimiter) {
+                this.formattedLines.push(line);
+                if (line.trim() === this.blockdataDelimiter) {
+                    this.blockdataDelimiter = null;
+                }
+                this.previousLineWasBlank = line.trim() === '';
+                continue;
+            }
+
             const trimmed = line.trim();
 
             const isBlank = trimmed === '';
@@ -71,6 +81,7 @@ class UnifaceFormatter {
             this.adjustDepthForSelectCaseBranch(trimmed);
             this.addFormattedLine(trimmed);
             this.updateContinuationState(isContinuation);
+            this.blockdataDelimiter = this.getBlockdataDelimiter(trimmed);
             if (!isSingleLineIf) {
                 this.adjustDepthForStart(trimmed);
             }
@@ -224,5 +235,9 @@ class UnifaceFormatter {
             this.isInContinuation = false;
             this.continuationIndent = 0;
         }
+    }
+
+    private getBlockdataDelimiter(line: string): string | null {
+        return /\bblockdata([^\s])/i.exec(line)?.[1] ?? null;
     }
 }

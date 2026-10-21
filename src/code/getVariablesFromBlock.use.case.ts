@@ -1,6 +1,7 @@
 import { variableRegex } from '../regExpConstants';
 import { BlockCode } from './getBlockAroundPosition.use.case';
 import { DeclaredItem } from './types/declaredModule';
+import { getCodeOutsideStringsAndCommentsLines } from '../util/procCodeScanner';
 
 export interface DeclaredVariable extends DeclaredItem {
     dataType: string;
@@ -12,8 +13,10 @@ export class GetVariablesFromBlock {
         const variables: DeclaredVariable[] = [];
         const blockStartLine = block.startLine;
 
-        for (let i = 0; i < block.lines.length; i++) {
-            const line = block.lines[i].trim();
+        const codeLines = getCodeOutsideStringsAndCommentsLines(block.lines);
+
+        for (let i = 0; i < codeLines.length; i++) {
+            const line = codeLines[i].trim();
             if (/^variables\b(?:\s*;.*)?$/i.test(line)) {
                 inVariableBlock = true;
                 continue;
@@ -33,10 +36,10 @@ export class GetVariablesFromBlock {
         return variables;
     };
 
-    private extractVariables = (codeLine: string, lineNumber: number): DeclaredVariable[] => {
+    private readonly extractVariables = (codeLine: string, lineNumber: number): DeclaredVariable[] => {
         const variables: DeclaredVariable[] = [];
         const declaration = codeLine.split(';', 1)[0].trim();
-        const varMatch = RegExp(`^${variableRegex}`, 'i').exec(declaration);
+        const varMatch = new RegExp(`^${variableRegex}`, 'i').exec(declaration);
 
         if (!varMatch) {
             return variables;
