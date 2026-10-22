@@ -70,14 +70,12 @@ export class UndeclaredVariableUsageAnalyzer {
             this.addUnknownGotoUsage(sanitizedLine, block.startLine + lineIndex, labels, usages);
 
             const statementContext = this.statementContextAnalyzer.analyze(sanitizedLine);
-            const extractionValidation = this.extractionParameterValidator.validate(
+            const extractionMask = this.extractionParameterValidator.validate(
                 statementContext.code,
-                declaredVariables,
-                block.startLine + lineIndex
+                declaredVariables
             );
-            usages.push(...extractionValidation.invalidUsages);
             this.addTokenUsages(
-                extractionValidation.code,
+                extractionMask.code,
                 block.startLine + lineIndex,
                 declared,
                 returnValueFunctions,

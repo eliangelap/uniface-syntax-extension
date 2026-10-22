@@ -554,36 +554,30 @@ suite('UndeclaredVariableUsageAnalyzer', () => {
         assert.deepStrictEqual(usages.map((usage) => usage.name), ['undeclaredValue']);
     });
 
-    test('reports invalid extraction parameters with a specific diagnostic', () => {
+    test('ignores extraction parameters for declared values', () => {
         const block: BlockCode = {
             text: '',
             startLine: 0,
-            lines: ['entry sample', 'result = vDate[H] + vTime[Y] + vDatetime[invalid]', 'end'],
+            lines: [
+                'entry sample',
+                'result = vDate[H] + vTime[Y] + vDatetime[invalid] + vString[customParameter]',
+                'end',
+            ],
         };
 
         const usages = new UndeclaredVariableUsageAnalyzer().getUndeclaredUsages(
             block,
-            ['result', 'vDate', 'vTime', 'vDatetime'],
+            ['result', 'vDate', 'vTime', 'vDatetime', 'vString'],
             [],
             [
                 { name: 'vDate', dataType: 'date', line: 0 },
                 { name: 'vTime', dataType: 'time', line: 0 },
                 { name: 'vDatetime', dataType: 'datetime', line: 0 },
+                { name: 'vString', dataType: 'string', line: 0 },
             ]
         );
 
-        assert.deepStrictEqual(
-            usages.map((usage) => ({ name: usage.name, code: usage.diagnosticCode })),
-            [
-                { name: 'H', code: 'uniface.invalidExtractionParameter' },
-                { name: 'Y', code: 'uniface.invalidExtractionParameter' },
-                { name: 'invalid', code: 'uniface.invalidExtractionParameter' },
-            ]
-        );
-        assert.strictEqual(
-            usages[0].message,
-            'Invalid extraction parameter "H" for date value "vDate".'
-        );
+        assert.deepStrictEqual(usages, []);
     });
 
     test('validates numeric extraction parameters', () => {
@@ -645,7 +639,7 @@ suite('UndeclaredVariableUsageAnalyzer', () => {
         assert.deepStrictEqual(usages, []);
     });
 
-    test('reports invalid numeric extraction parameters while validating the variable root', () => {
+    test('ignores numeric extraction parameters while validating an undeclared variable root', () => {
         const block: BlockCode = {
             text: '',
             startLine: 0,
@@ -663,14 +657,6 @@ suite('UndeclaredVariableUsageAnalyzer', () => {
             [{ name: 'vQtAplicacao', dataType: 'numeric', line: 0 }]
         );
 
-        assert.deepStrictEqual(
-            usages.map((usage) => ({ name: usage.name, code: usage.diagnosticCode })),
-            [
-                { name: 'round,texto', code: 'uniface.invalidExtractionParameter' },
-                { name: 'fraction,2', code: 'uniface.invalidExtractionParameter' },
-                { name: 'missingValue', code: undefined },
-                { name: 'round', code: undefined },
-            ]
-        );
+        assert.deepStrictEqual(usages.map((usage) => usage.name), ['missingValue', 'round']);
     });
 });

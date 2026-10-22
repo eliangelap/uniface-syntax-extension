@@ -1,50 +1,18 @@
-import * as vscode from 'vscode';
 import { DeclaredVariable } from '../code/getVariablesFromBlock.use.case';
-import { invalidExtractionParameterDiagnosticCode } from './undeclaredVariablesDiagnosticPublisher';
-import { UndeclaredVariableUsage } from './undeclaredVariableUsage';
-
-type ExtractionSourceType = 'date' | 'time' | 'datetime' | 'numeric';
-
-const extractionParameters: Record<Exclude<ExtractionSourceType, 'numeric'>, Set<string>> = {
-    date: new Set(['d', 'm', 'y', 'x', 'w', 'mmm', 'mmm*', 'a', 'aa', 'aa*', 'aaa', 'aaa*']),
-    time: new Set(['h', 'n', 's', 't']),
-    datetime: new Set([
-        'd',
-        'm',
-        'y',
-        'x',
-        'w',
-        'mmm',
-        'mmm*',
-        'a',
-        'aa',
-        'aa*',
-        'aaa',
-        'aaa*',
-        'h',
-        'n',
-        's',
-        't',
-        'date',
-        'clock',
-    ]),
-};
+const extractionSourceTypes = new Set(['date', 'time', 'datetime', 'numeric', 'string']);
 
 export interface ExtractionParameterValidationResult {
     code: string;
-    invalidUsages: UndeclaredVariableUsage[];
 }
 
 export class ExtractionParameterValidator {
     public validate(
         code: string,
-        declaredVariables: Iterable<DeclaredVariable>,
-        line: number
+        declaredVariables: Iterable<DeclaredVariable>
     ): ExtractionParameterValidationResult {
         const sourceTypes = this.getSourceTypes(declaredVariables);
         const extractionRegex =
             /(\$?[A-Za-z_]\w*(?:\s*\.\s*[A-Za-z_]\w*)?)\s*\[\s*([^\]\s](?:[^\]]*?[^\]\s])?)\s*\]/g;
-        const invalidUsages: UndeclaredVariableUsage[] = [];
         let maskedCode = code;
         let extraction: RegExpExecArray | null;
 
@@ -61,63 +29,30 @@ export class ExtractionParameterValidator {
                 continue;
             }
 
-            const sourceType = sourceTypes.get(source.toLowerCase());
-            if (!sourceType) {
+            if (!sourceTypes.has(source.toLowerCase())) {
                 continue;
             }
 
             const parameterStart = extraction.index + extraction[0].lastIndexOf(parameter);
-            if (!this.isValid(sourceType, parameter)) {
-                invalidUsages.push({
-                    name: parameter,
-                    range: new vscode.Range(line, parameterStart, line, parameterStart + parameter.length),
-                    message: `Invalid extraction parameter "${parameter}" for ${sourceType} value "${source}".`,
-                    diagnosticCode: invalidExtractionParameterDiagnosticCode,
-                });
-            }
-
             maskedCode =
                 maskedCode.slice(0, parameterStart) +
                 ' '.repeat(parameter.length) +
                 maskedCode.slice(parameterStart + parameter.length);
         }
 
-        return { code: maskedCode, invalidUsages };
+        return { code: maskedCode };
     }
 
-    private getSourceTypes(declaredVariables: Iterable<DeclaredVariable>): Map<string, ExtractionSourceType> {
-        const sourceTypes = new Map<string, ExtractionSourceType>([
-            ['$date', 'date'],
-            ['$clock', 'time'],
-            ['$datim', 'datetime'],
-        ]);
+    private getSourceTypes(declaredVariables: Iterable<DeclaredVariable>): Set<string> {
+        const sourceTypes = new Set(['$date', '$clock', '$datim']);
 
         for (const variable of declaredVariables) {
             const dataType = variable.dataType.toLowerCase();
-            if (dataType === 'date' || dataType === 'time' || dataType === 'datetime' || dataType === 'numeric') {
-                sourceTypes.set(variable.name.toLowerCase(), dataType);
+            if (extractionSourceTypes.has(dataType)) {
+                sourceTypes.add(variable.name.toLowerCase());
             }
         }
 
         return sourceTypes;
-    }
-
-    private isValid(sourceType: ExtractionSourceType, parameter: string): boolean {
-        if (sourceType === 'numeric') {
-            return this.isValidNumericParameter(parameter);
-        }
-
-        return (
-            extractionParameters[sourceType].has(parameter.toLowerCase()) ||
-            (sourceType === 'date' && this.isValidDateSubstringParameter(parameter))
-        );
-    }
-
-    private isValidNumericParameter(parameter: string): boolean {
-        return /^(?:trunc|i|fraction|f|(?:r|round)(?:\s*,\s*\d+)?)$/i.test(parameter);
-    }
-
-    private isValidDateSubstringParameter(parameter: string): boolean {
-        return /^\d+\s*,\s*\d+$/.test(parameter);
     }
 }

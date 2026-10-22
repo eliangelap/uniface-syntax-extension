@@ -2,7 +2,6 @@ import * as vscode from 'vscode';
 import { UndeclaredVariableUsage } from './undeclaredVariableUsageAnalyzer';
 
 export const undeclaredVariableDiagnosticCode = 'uniface.undeclaredVariable';
-export const invalidExtractionParameterDiagnosticCode = 'uniface.invalidExtractionParameter';
 export const unknownLabelDiagnosticCode = 'uniface.unknownLabel';
 
 export interface UndeclaredVariablesDiagnosticPublisherContract {

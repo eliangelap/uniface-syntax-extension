@@ -2,25 +2,27 @@ import * as assert from 'node:assert';
 import { ExtractionParameterValidator } from '../extractionParameterValidator';
 
 suite('ExtractionParameterValidator', () => {
-    test('masks valid numeric parameters and reports invalid ones', () => {
+    test('masks extraction parameters from recognized declared values without reporting diagnostics', () => {
         const result = new ExtractionParameterValidator().validate(
-            'value[R] + value[R,2] + value[r, 2] + value[ROUND,2] + value[fraction,2] + value[R,texto]',
-            [{ name: 'value', dataType: 'numeric', line: 0 }],
-            3
+            'pCdSafra[1:4] + pCdSafra[5:8] + dateValue[invalid] + datetimeValue[anything] + stringValue[text] + timeValue[Y]',
+            [
+                { name: 'pCdSafra', dataType: 'numeric', line: 0 },
+                { name: 'dateValue', dataType: 'date', line: 0 },
+                { name: 'datetimeValue', dataType: 'datetime', line: 0 },
+                { name: 'stringValue', dataType: 'string', line: 0 },
+                { name: 'timeValue', dataType: 'time', line: 0 },
+            ]
         );
 
-        assert.doesNotMatch(result.code, /R|r|ROUND/);
-        assert.deepStrictEqual(result.invalidUsages.map((usage) => usage.name), ['fraction,2', 'R,texto']);
+        assert.doesNotMatch(result.code, /1:4|5:8|invalid|anything|text|Y/);
     });
 
-    test('accepts substring extraction parameters for date values', () => {
+    test('masks extraction parameters from Uniface system values without reporting diagnostics', () => {
         const result = new ExtractionParameterValidator().validate(
-            '$date[1,4] + $date[5, 6] + $date[invalid]',
-            [],
-            3
+            '$date[invalid] + $clock[invalid] + $datim[invalid]',
+            []
         );
 
-        assert.doesNotMatch(result.code, /1,4|5, 6/);
-        assert.deepStrictEqual(result.invalidUsages.map((usage) => usage.name), ['invalid']);
+        assert.doesNotMatch(result.code, /invalid/);
     });
 });
