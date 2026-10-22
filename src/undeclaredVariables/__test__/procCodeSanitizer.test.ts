@@ -84,4 +84,20 @@ suite('ProcCodeSanitizer', () => {
         assert.ok(sanitizedLines.slice(0, 3).every((line) => !/undeclaredValue|blockdata/.test(line)));
         assert.match(sanitizedLines[3], /actualValue/);
     });
+
+    test('finds roots of variable interpolations without treating literal text as code', () => {
+        const lines = [
+            'message "%%undeclaredValue%%%"',
+            'message "%%declaredValue->field%%%"',
+            'message "%%entity.field%%%"',
+        ];
+
+        const references = new ProcCodeSanitizer().getInterpolatedVariables(lines);
+
+        assert.deepStrictEqual(references, [
+            [{ name: 'undeclaredValue', start: 11 }],
+            [{ name: 'declaredValue', start: 11 }],
+            [],
+        ]);
+    });
 });

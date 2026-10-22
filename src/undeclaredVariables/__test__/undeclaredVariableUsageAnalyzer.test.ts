@@ -173,6 +173,56 @@ suite('UndeclaredVariableUsageAnalyzer', () => {
         assert.deepStrictEqual(usages, []);
     });
 
+    test('finds undeclared variables interpolated in strings', () => {
+        const block: BlockCode = {
+            text: '',
+            startLine: 10,
+            lines: [
+                'entry sample',
+                'variables',
+                '    string declaredValue',
+                'endvariables',
+                'declaredValue = "%%undeclaredValue%%% variável não declarada"',
+                'end',
+            ],
+        };
+
+        const usages = new UndeclaredVariableUsageAnalyzer().getUndeclaredUsages(block, [
+            'declaredValue',
+        ]);
+
+        assert.deepStrictEqual(
+            usages.map((usage) => ({
+                name: usage.name,
+                line: usage.range.start.line,
+                start: usage.range.start.character,
+                end: usage.range.end.character,
+            })),
+            [{ name: 'undeclaredValue', line: 14, start: 19, end: 34 }]
+        );
+    });
+
+    test('accepts declared variables and validates only the root of interpolated struct access', () => {
+        const block: BlockCode = {
+            text: '',
+            startLine: 0,
+            lines: [
+                'entry sample',
+                'variables',
+                '    string declaredValue',
+                'endvariables',
+                'message "%%declaredValue%%% %%undeclaredValue->field%%%"',
+                'end',
+            ],
+        };
+
+        const usages = new UndeclaredVariableUsageAnalyzer().getUndeclaredUsages(block, [
+            'declaredValue',
+        ]);
+
+        assert.deepStrictEqual(usages.map((usage) => usage.name), ['undeclaredValue']);
+    });
+
     test('ignores functions provided by includes while validating their arguments', () => {
         const block: BlockCode = {
             text: '',
