@@ -3,6 +3,7 @@ import {
     createCodeScannerState,
     getCodeOutsideStringsAndComments,
     getNextCodeScannerState,
+    StringDelimiter,
 } from '../util/procCodeScanner';
 
 export interface InterpolatedVariableReference {

@@ -11,18 +11,26 @@ import {
     BlockStructureDiagnosticPublisherContract,
     MissingBlockEnd,
 } from './blockStructureDiagnosticPublisher';
+import { DocumentAnalysisSnapshot } from '../util/documentAnalysisSnapshot';
 
 const blockStartRegex = /^\s*(entry|operation)\s+([A-Za-z_]\w*)\b/i;
 
-export function findMissingBlockEnds(lines: string[]): MissingBlockEnd[] {
+export function findMissingBlockEnds(
+    lines: readonly string[],
+    sanitizedLines?: readonly string[]
+): MissingBlockEnd[] {
     const missingEnds: MissingBlockEnd[] = [];
     let openBlock: MissingBlockEnd | undefined;
     let scannerState = createCodeScannerState();
 
     for (let line = 0; line < lines.length; line++) {
-        const scanResult = getCodeOutsideStringsAndComments(lines[line], scannerState);
-        scannerState = getNextCodeScannerState(lines[line], scanResult.state);
-        const trimmedLine = scanResult.code.trim();
+        const scanResult = sanitizedLines
+            ? undefined
+            : getCodeOutsideStringsAndComments(lines[line], scannerState);
+        if (scanResult) {
+            scannerState = getNextCodeScannerState(lines[line], scanResult.state);
+        }
+        const trimmedLine = (sanitizedLines?.[line] ?? scanResult?.code ?? '').trim();
         if (CodeAnalyzer.isLineCommented(trimmedLine)) {
             continue;
         }
@@ -73,6 +81,15 @@ export class BlockStructureAnalyzer implements vscode.Disposable {
         }
 
         this.publisher.publish(document, findMissingBlockEnds(document.getText().split(/\r?\n/)));
+    }
+
+    public analyzeSnapshot(snapshot: DocumentAnalysisSnapshot): void {
+        if (snapshot.document.languageId !== 'uniface') {
+            this.publisher.clear(snapshot.document);
+            return;
+        }
+
+        this.publisher.publish(snapshot.document, snapshot.missingBlockEnds);
     }
 
     public clearDiagnostics(document: vscode.TextDocument): void {

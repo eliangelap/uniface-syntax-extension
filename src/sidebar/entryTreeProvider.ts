@@ -1,5 +1,7 @@
 import * as vscode from 'vscode';
 import { GetDeclaredModulesList } from '../code/getDeclaredModulesList.use.case';
+import { DeclaredModule } from '../code/types/declaredModule';
+import { DocumentAnalysisSnapshot } from '../util/documentAnalysisSnapshot';
 
 class FunctionNode extends vscode.TreeItem {
     constructor(
@@ -27,8 +29,19 @@ class FunctionTreeProvider implements vscode.TreeDataProvider<FunctionNode> {
     constructor(private readonly navigationCommand: string) {}
 
     refresh(document: vscode.TextDocument) {
+        this.refreshModules(new GetDeclaredModulesList().execute(document));
+    }
+
+    refreshSnapshot(snapshot: DocumentAnalysisSnapshot) {
+        this.refreshModules(snapshot.modules);
+    }
+
+    dispose() {
+        this._onDidChangeTreeData.dispose();
+    }
+
+    private refreshModules(declaredModules: DeclaredModule[]) {
         this.list = [];
-        const declaredModules = new GetDeclaredModulesList().execute(document);
 
         for (const module of declaredModules) {
             this.list.push(
@@ -52,10 +65,14 @@ class FunctionTreeProvider implements vscode.TreeDataProvider<FunctionNode> {
     }
 }
 
+export interface EntryTreeController extends vscode.Disposable {
+    refreshSnapshot(snapshot: DocumentAnalysisSnapshot): void;
+}
+
 export function registerTreeDataProvider(
     context: vscode.ExtensionContext,
     navigationCommand = 'uniface.navigateToFunction'
-) {
+): EntryTreeController {
     const functionTreeProvider = new FunctionTreeProvider(navigationCommand);
     const treeView = vscode.window.createTreeView('unifaceFunctions', {
         treeDataProvider: functionTreeProvider,
@@ -80,12 +97,7 @@ export function registerTreeDataProvider(
                 functionTreeProvider.refresh(editor.document);
             }
         }),
-        vscode.workspace.onDidChangeTextDocument((e) => {
-            const editor = vscode.window.activeTextEditor;
-            if (e.document === editor?.document) {
-                functionTreeProvider.refresh(editor.document);
-            }
-        })
+        functionTreeProvider
     );
 
     if (vscode.window.activeTextEditor) {
@@ -93,4 +105,13 @@ export function registerTreeDataProvider(
     }
 
     context.subscriptions.push(treeView);
+
+    return {
+        refreshSnapshot: (snapshot) => {
+            if (snapshot.document === vscode.window.activeTextEditor?.document) {
+                functionTreeProvider.refreshSnapshot(snapshot);
+            }
+        },
+        dispose: () => functionTreeProvider.dispose(),
+    };
 }

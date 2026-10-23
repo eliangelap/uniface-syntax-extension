@@ -19,6 +19,7 @@ import { DeclareVariableCommand } from './undeclaredVariables/declareVariableCom
 import { DeclareParameterCommand } from './undeclaredVariables/declareParameterCommand';
 import { BlockStructureAnalyzer } from './blockStructure/blockStructureAnalyzer';
 import { DeclarationValidationAnalyzer } from './declarationValidation/declarationValidationAnalyzer';
+import { DocumentAnalysisSnapshot, DocumentAnalysisSnapshotBuilder } from './util/documentAnalysisSnapshot';
 
 interface PromptAndInsert {
     promptAndInsert(): Promise<void>;
@@ -26,6 +27,11 @@ interface PromptAndInsert {
 
 interface DocumentAnalyzer {
     analyzeDocument(document: vscode.TextDocument): void;
+}
+
+interface SnapshotAnalyzer extends vscode.Disposable {
+    analyzeSnapshot(snapshot: DocumentAnalysisSnapshot): void;
+    clearDiagnostics(document: vscode.TextDocument): void;
 }
 
 export function runPromptAndInsert(creator: PromptAndInsert): Promise<void> {
@@ -54,7 +60,7 @@ export function analyzeOpenUnifaceDocuments(
 export function activate(context: vscode.ExtensionContext) {
     registerGoldInterceptor(context);
     registerGoldDecorationEvents(context);
-    registerTreeDataProvider(context);
+    const entryTree = registerTreeDataProvider(context);
 
     const variableAnalyzer = new UnifaceUnusedVariableAnalyzer();
     const undeclaredVariableAnalyzer = new UndeclaredVariableAnalyzer();
@@ -62,15 +68,24 @@ export function activate(context: vscode.ExtensionContext) {
     const declarationValidationAnalyzer = new DeclarationValidationAnalyzer();
     const declarationCommand = new DeclareVariableCommand();
     const parameterDeclarationCommand = new DeclareParameterCommand();
-    const analyzers = [
+    const analyzers: SnapshotAnalyzer[] = [
         variableAnalyzer,
         undeclaredVariableAnalyzer,
         blockStructureAnalyzer,
         declarationValidationAnalyzer,
     ];
     const analysisTimers = new Map<string, ReturnType<typeof setTimeout>>();
+    const snapshotBuilder = new DocumentAnalysisSnapshotBuilder();
     const analyzeDocument = (document: vscode.TextDocument) => {
-        analyzeOpenUnifaceDocuments([document], analyzers);
+        if (!shouldAnalyzeDocument(document)) {
+            return;
+        }
+
+        const snapshot = snapshotBuilder.build(document);
+        for (const analyzer of analyzers) {
+            analyzer.analyzeSnapshot(snapshot);
+        }
+        entryTree.refreshSnapshot(snapshot);
     };
     const scheduleAnalysis = (document: vscode.TextDocument) => {
         if (!shouldAnalyzeDocument(document)) {
@@ -151,7 +166,9 @@ export function activate(context: vscode.ExtensionContext) {
         declarationValidationAnalyzer
     );
 
-    analyzeOpenUnifaceDocuments(vscode.workspace.textDocuments, analyzers);
+    for (const document of vscode.workspace.textDocuments) {
+        analyzeDocument(document);
+    }
 }
 
 export function deactivate() {

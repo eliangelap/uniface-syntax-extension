@@ -9,6 +9,7 @@ import {
     UndeclaredVariablesDiagnosticPublisherContract,
 } from './undeclaredVariablesDiagnosticPublisher';
 import { UndeclaredVariableUsageAnalyzer } from './undeclaredVariableUsageAnalyzer';
+import { DocumentAnalysisSnapshot } from '../util/documentAnalysisSnapshot';
 
 interface UndeclaredVariableAnalyzerDependencies {
     getBlocks(document: vscode.TextDocument): BlockCode[];
@@ -56,6 +57,27 @@ export class UndeclaredVariableAnalyzer implements vscode.Disposable {
             return this.usageAnalyzer.getUndeclaredUsages(
                 block,
                 declaredNames,
+                returnValueFunctionNames,
+                declaredVariables
+            );
+        });
+
+        this.publisher.publish(document, usages);
+    }
+
+    public analyzeSnapshot(snapshot: DocumentAnalysisSnapshot): void {
+        const { document, blocks, missingBlockEnds } = snapshot;
+        if (document.languageId !== 'uniface' || missingBlockEnds.length > 0 || blocks.length === 0) {
+            this.publisher.clear(document);
+            return;
+        }
+
+        const returnValueFunctionNames = this.getReturnValueFunctionNames(blocks);
+        const usages = blocks.flatMap((block) => {
+            const declaredVariables = [...block.variables, ...block.parameters];
+            return this.usageAnalyzer.getUndeclaredUsages(
+                block,
+                declaredVariables.map((variable) => variable.name),
                 returnValueFunctionNames,
                 declaredVariables
             );

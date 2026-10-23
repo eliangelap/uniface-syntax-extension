@@ -8,6 +8,7 @@ import {
     UnusedVariablesDiagnosticPublisherContract,
 } from './unusedVariablesDiagnosticPublisher';
 import { VariableUsageAnalyzer } from './variableUsageAnalyzer';
+import { DocumentAnalysisSnapshot } from '../util/documentAnalysisSnapshot';
 
 interface UnusedVariableAnalyzerDependencies {
     getBlocks(document: vscode.TextDocument): BlockCode[];
@@ -46,6 +47,21 @@ export class UnifaceUnusedVariableAnalyzer implements vscode.Disposable {
             const usedVariables = this.usageAnalyzer.getUsedVariables(block.lines, declaredVariables);
 
             return declaredVariables.filter((variable) => !usedVariables.has(variable.name));
+        });
+
+        this.publisher.publish(document, unusedVariables);
+    }
+
+    public analyzeSnapshot(snapshot: DocumentAnalysisSnapshot): void {
+        const { document, blocks, missingBlockEnds } = snapshot;
+        if (document.languageId !== 'uniface' || missingBlockEnds.length > 0 || blocks.length === 0) {
+            this.publisher.clear(document);
+            return;
+        }
+
+        const unusedVariables = blocks.flatMap((block) => {
+            const usedVariables = this.usageAnalyzer.getUsedVariables(block.lines, block.variables);
+            return block.variables.filter((variable) => !usedVariables.has(variable.name));
         });
 
         this.publisher.publish(document, unusedVariables);

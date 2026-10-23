@@ -5,18 +5,15 @@ import {
     getNextCodeScannerState,
 } from '../util/procCodeScanner';
 
-interface VariablePattern {
-    name: string;
-    pattern: RegExp;
-}
-
 export class VariableUsageAnalyzer {
     public getUsedVariables(
         blockLines: string[],
         declaredVariables: DeclaredVariable[]
     ): Set<string> {
         const usedVariables = new Set<string>();
-        const variablePatterns = this.createVariablePatterns(declaredVariables);
+        const declaredByName = new Map(
+            declaredVariables.map((variable) => [variable.name.toLowerCase(), variable.name])
+        );
         let isAfterVariablesBlock = false;
         let state = createCodeScannerState();
 
@@ -33,24 +30,16 @@ export class VariableUsageAnalyzer {
             const scanResult = getCodeOutsideStringsAndComments(line, state);
             state = getNextCodeScannerState(line, scanResult.state);
             const code = scanResult.code;
-            for (const variable of variablePatterns) {
-                if (variable.pattern.test(code)) {
-                    usedVariables.add(variable.name);
+            const tokenRegex = /\b[A-Za-z_]\w*\b/g;
+            let token: RegExpExecArray | null;
+            while ((token = tokenRegex.exec(code)) !== null) {
+                const declaredName = declaredByName.get(token[0].toLowerCase());
+                if (declaredName) {
+                    usedVariables.add(declaredName);
                 }
             }
         }
 
         return usedVariables;
-    }
-
-    private createVariablePatterns(declaredVariables: DeclaredVariable[]): VariablePattern[] {
-        return declaredVariables.map((variable) => ({
-            name: variable.name,
-            pattern: new RegExp(String.raw`\b${this.escapeRegExp(variable.name)}\b`, 'i'),
-        }));
-    }
-
-    private escapeRegExp(text: string): string {
-        return text.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
     }
 }

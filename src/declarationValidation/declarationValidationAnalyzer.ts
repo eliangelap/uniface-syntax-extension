@@ -9,6 +9,7 @@ import {
     DeclarationValidationDiagnosticPublisher,
     DeclarationValidationDiagnosticPublisherContract,
 } from './declarationValidationDiagnosticPublisher';
+import { DocumentAnalysisSnapshot } from '../util/documentAnalysisSnapshot';
 
 interface DeclarationValidationDependencies {
     getBlocks(document: vscode.TextDocument): BlockCode[];
@@ -45,6 +46,16 @@ export class DeclarationValidationAnalyzer implements vscode.Disposable {
             this.findIssues(block)
         );
         this.publisher.publish(document, issues);
+    }
+
+    public analyzeSnapshot(snapshot: DocumentAnalysisSnapshot): void {
+        const { document, blocks, missingBlockEnds } = snapshot;
+        if (document.languageId !== 'uniface' || missingBlockEnds.length > 0) {
+            this.publisher.clear(document);
+            return;
+        }
+
+        this.publisher.publish(document, blocks.flatMap((block) => this.findIssues(block)));
     }
 
     public clearDiagnostics(document: vscode.TextDocument): void {
