@@ -1,8 +1,8 @@
 import * as assert from 'node:assert';
 import * as vscode from 'vscode';
 import {
-    invalidExtractionParameterDiagnosticCode,
     undeclaredVariableDiagnosticCode,
+    unknownLabelDiagnosticCode,
     UndeclaredVariablesDiagnosticPublisher,
 } from '../undeclaredVariablesDiagnosticPublisher';
 
@@ -47,17 +47,17 @@ suite('UndeclaredVariablesDiagnosticPublisher', () => {
 
         new UndeclaredVariablesDiagnosticPublisher(collection).publish(document, [
             {
-                name: 'invalid',
+                name: 'unknownLabel',
                 range: new vscode.Range(0, 6, 0, 13),
-                message: 'Invalid extraction parameter "invalid" for date value "value".',
-                diagnosticCode: invalidExtractionParameterDiagnosticCode,
+                message: 'Label "unknownLabel" is not declared in this block.',
+                diagnosticCode: unknownLabelDiagnosticCode,
             },
         ]);
 
-        assert.strictEqual(diagnostics?.[0].code, invalidExtractionParameterDiagnosticCode);
+        assert.strictEqual(diagnostics?.[0].code, unknownLabelDiagnosticCode);
         assert.strictEqual(
             diagnostics?.[0].message,
-            'Invalid extraction parameter "invalid" for date value "value".'
+            'Label "unknownLabel" is not declared in this block.'
         );
     });
 });

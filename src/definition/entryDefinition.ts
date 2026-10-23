@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { GetEntriesList } from '../code/getEntriesList.use.case';
-import { getCodeOutsideStringsAndComments } from '../util/procCodeScanner';
+import { getCodeOutsideStringsAndComments, isBlockdataLine } from '../util/procCodeScanner';
 
 export class UnifaceDefinitionProvider implements vscode.DefinitionProvider {
     public provideDefinition(
@@ -9,6 +9,10 @@ export class UnifaceDefinitionProvider implements vscode.DefinitionProvider {
         token: vscode.CancellationToken
     ): vscode.ProviderResult<vscode.Definition> {
         if (token.isCancellationRequested) {
+            return null;
+        }
+
+        if (isBlockdataLine(document.getText().split('\n'), position.line)) {
             return null;
         }
 

@@ -76,4 +76,15 @@ suite('Uniface TextMate grammar', () => {
             ['%%%', "%%'", '%%']
         );
     });
+
+    test('defines blockdata as a string region closed by its opening delimiter', () => {
+        const grammar = JSON.parse(fs.readFileSync(getGrammarPath(), 'utf8')) as {
+            repository: { blockdata: { patterns: TextMatePattern[] } };
+        };
+        const blockdata = grammar.repository.blockdata.patterns[0];
+
+        assert.strictEqual(blockdata.name, 'string.unquoted.blockdata.uniface');
+        assert.strictEqual(blockdata.begin, '(?i)\\bblockdata\\s+([^\\s])');
+        assert.strictEqual(blockdata.end, '^\\s*\\1\\s*$');
+    });
 });

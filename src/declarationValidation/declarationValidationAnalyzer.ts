@@ -3,11 +3,13 @@ import { findMissingBlockEnds } from '../blockStructure/blockStructureAnalyzer';
 import { BlockCode } from '../code/getBlockAroundPosition.use.case';
 import { GetBlockList } from '../code/getBlockList.use.case';
 import { variableTypes } from '../regExpConstants';
+import { getCodeOutsideStringsAndCommentsLines } from '../util/procCodeScanner';
 import {
     DeclarationIssue,
     DeclarationValidationDiagnosticPublisher,
     DeclarationValidationDiagnosticPublisherContract,
 } from './declarationValidationDiagnosticPublisher';
+import { DocumentAnalysisSnapshot } from '../util/documentAnalysisSnapshot';
 
 interface DeclarationValidationDependencies {
     getBlocks(document: vscode.TextDocument): BlockCode[];
@@ -46,6 +48,16 @@ export class DeclarationValidationAnalyzer implements vscode.Disposable {
         this.publisher.publish(document, issues);
     }
 
+    public analyzeSnapshot(snapshot: DocumentAnalysisSnapshot): void {
+        const { document, blocks, missingBlockEnds } = snapshot;
+        if (document.languageId !== 'uniface' || missingBlockEnds.length > 0) {
+            this.publisher.clear(document);
+            return;
+        }
+
+        this.publisher.publish(document, blocks.flatMap((block) => this.findIssues(block)));
+    }
+
     public clearDiagnostics(document: vscode.TextDocument): void {
         this.publisher.clear(document);
     }
@@ -58,9 +70,10 @@ export class DeclarationValidationAnalyzer implements vscode.Disposable {
         const issues: DeclarationIssue[] = [];
         const declaredNames = new Set<string>();
         let section: 'params' | 'variables' | undefined;
+        const codeLines = getCodeOutsideStringsAndCommentsLines(block.lines);
 
-        for (let index = 0; index < block.lines.length; index++) {
-            const line = block.lines[index];
+        for (let index = 0; index < codeLines.length; index++) {
+            const line = codeLines[index];
             const code = line.split(';', 1)[0];
             const trimmedCode = code.trim();
             const lineNumber = block.startLine + index;

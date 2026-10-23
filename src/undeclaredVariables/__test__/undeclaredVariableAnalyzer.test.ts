@@ -125,11 +125,18 @@ suite('UndeclaredVariableAnalyzer', () => {
         assert.deepStrictEqual(publisher.usages, []);
     });
 
-    test('uses declared data types to validate extraction parameters', async () => {
+    test('ignores extraction parameters from declared parameters', async () => {
         const block: BlockCode = {
             text: '',
             startLine: 0,
-            lines: ['entry sample', 'result = vDtTransacao[h]', 'end'],
+            lines: [
+                'entry sample',
+                'params',
+                'numeric pCdSafra :in',
+                'endparams',
+                'result = pCdSafra[1:4] + pCdSafra[5:8]',
+                'end',
+            ],
         };
         const document = await vscode.workspace.openTextDocument({
             content: block.lines.join('\n'),
@@ -138,11 +145,8 @@ suite('UndeclaredVariableAnalyzer', () => {
         const publisher = new DiagnosticPublisherStub();
         const analyzer = new UndeclaredVariableAnalyzer(publisher, undefined, {
             getBlocks: () => [block],
-            getVariables: () => [
-                { name: 'result', dataType: 'numeric', line: 1 },
-                { name: 'vDtTransacao', dataType: 'datetime', line: 1 },
-            ],
-            getParameters: () => [],
+            getVariables: () => [{ name: 'result', dataType: 'numeric', line: 4 }],
+            getParameters: () => [{ name: 'pCdSafra', dataType: 'numeric', line: 2 }],
         });
 
         analyzer.analyzeDocument(document);

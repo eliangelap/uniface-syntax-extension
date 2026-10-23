@@ -11,12 +11,15 @@ import { UnifaceUnusedVariableAnalyzer } from './unusedVariables/unusedVariables
 import { UnifaceSignatureHelpProvider } from './signatureHelpProvider';
 import { UndeclaredVariableAnalyzer } from './undeclaredVariables/undeclaredVariableAnalyzer';
 import {
+    declareParameterCommand,
     declareVariableCommand,
     UndeclaredVariableQuickFixProvider,
 } from './undeclaredVariables/undeclaredVariableQuickFixProvider';
 import { DeclareVariableCommand } from './undeclaredVariables/declareVariableCommand';
+import { DeclareParameterCommand } from './undeclaredVariables/declareParameterCommand';
 import { BlockStructureAnalyzer } from './blockStructure/blockStructureAnalyzer';
 import { DeclarationValidationAnalyzer } from './declarationValidation/declarationValidationAnalyzer';
+import { DocumentAnalysisSnapshot, DocumentAnalysisSnapshotBuilder } from './util/documentAnalysisSnapshot';
 
 interface PromptAndInsert {
     promptAndInsert(): Promise<void>;
@@ -24,6 +27,11 @@ interface PromptAndInsert {
 
 interface DocumentAnalyzer {
     analyzeDocument(document: vscode.TextDocument): void;
+}
+
+interface SnapshotAnalyzer extends vscode.Disposable {
+    analyzeSnapshot(snapshot: DocumentAnalysisSnapshot): void;
+    clearDiagnostics(document: vscode.TextDocument): void;
 }
 
 export function runPromptAndInsert(creator: PromptAndInsert): Promise<void> {
@@ -52,22 +60,32 @@ export function analyzeOpenUnifaceDocuments(
 export function activate(context: vscode.ExtensionContext) {
     registerGoldInterceptor(context);
     registerGoldDecorationEvents(context);
-    registerTreeDataProvider(context);
+    const entryTree = registerTreeDataProvider(context);
 
     const variableAnalyzer = new UnifaceUnusedVariableAnalyzer();
     const undeclaredVariableAnalyzer = new UndeclaredVariableAnalyzer();
     const blockStructureAnalyzer = new BlockStructureAnalyzer();
     const declarationValidationAnalyzer = new DeclarationValidationAnalyzer();
     const declarationCommand = new DeclareVariableCommand();
-    const analyzers = [
+    const parameterDeclarationCommand = new DeclareParameterCommand();
+    const analyzers: SnapshotAnalyzer[] = [
         variableAnalyzer,
         undeclaredVariableAnalyzer,
         blockStructureAnalyzer,
         declarationValidationAnalyzer,
     ];
     const analysisTimers = new Map<string, ReturnType<typeof setTimeout>>();
+    const snapshotBuilder = new DocumentAnalysisSnapshotBuilder();
     const analyzeDocument = (document: vscode.TextDocument) => {
-        analyzeOpenUnifaceDocuments([document], analyzers);
+        if (!shouldAnalyzeDocument(document)) {
+            return;
+        }
+
+        const snapshot = snapshotBuilder.build(document);
+        for (const analyzer of analyzers) {
+            analyzer.analyzeSnapshot(snapshot);
+        }
+        entryTree.refreshSnapshot(snapshot);
     };
     const scheduleAnalysis = (document: vscode.TextDocument) => {
         if (!shouldAnalyzeDocument(document)) {
@@ -98,6 +116,9 @@ export function activate(context: vscode.ExtensionContext) {
         }),
         vscode.commands.registerCommand(declareVariableCommand, (uri, name, usageLine) => {
             return declarationCommand.execute(uri, name, usageLine);
+        }),
+        vscode.commands.registerCommand(declareParameterCommand, (uri, name, usageLine) => {
+            return parameterDeclarationCommand.execute(uri, name, usageLine);
         }),
         vscode.languages.registerCompletionItemProvider('uniface', new CompletionItemProvider()),
         vscode.languages.registerDocumentFormattingEditProvider('uniface', formatterProvider()),
@@ -145,7 +166,9 @@ export function activate(context: vscode.ExtensionContext) {
         declarationValidationAnalyzer
     );
 
-    analyzeOpenUnifaceDocuments(vscode.workspace.textDocuments, analyzers);
+    for (const document of vscode.workspace.textDocuments) {
+        analyzeDocument(document);
+    }
 }
 
 export function deactivate() {

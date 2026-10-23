@@ -129,4 +129,25 @@ suite('CompletionItemProvider', () => {
 
         assert.strictEqual(sharedNameCompletions.length, 1);
     });
+
+    test('lists local variables in an incomplete block before the next module', async () => {
+        const document = await vscode.workspace.openTextDocument({
+            content: [
+                'entry incompleteEntry',
+                'variables',
+                'string currentValue',
+                'endvariables',
+                'current',
+                'operation nextOperation',
+            ].join('\n'),
+            language: 'uniface',
+        });
+
+        const completions = new CompletionItemProvider().provideCompletionItems(
+            document,
+            new vscode.Position(4, 7)
+        ) as vscode.CompletionItem[];
+
+        assert.ok(completions.some((completion) => completion.insertText === 'currentValue'));
+    });
 });

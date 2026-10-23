@@ -5,6 +5,7 @@ import {
     unknownLabelDiagnosticCode,
 } from '../undeclaredVariablesDiagnosticPublisher';
 import {
+    declareParameterCommand,
     declareVariableCommand,
     UndeclaredVariableQuickFixProvider,
 } from '../undeclaredVariableQuickFixProvider';
@@ -28,9 +29,11 @@ suite('UndeclaredVariableQuickFixProvider', () => {
             { diagnostics: [diagnostic], only: undefined, triggerKind: vscode.CodeActionTriggerKind.Invoke }
         );
 
-        assert.strictEqual(actions.length, 1);
+        assert.strictEqual(actions.length, 2);
         assert.strictEqual(actions[0].title, 'Declare variable "result"');
         assert.strictEqual(actions[0].command?.command, declareVariableCommand);
+        assert.strictEqual(actions[1].title, 'Declare parameter "result"');
+        assert.strictEqual(actions[1].command?.command, declareParameterCommand);
     });
 
     test('does not offer a declaration action for an unknown label diagnostic', async () => {

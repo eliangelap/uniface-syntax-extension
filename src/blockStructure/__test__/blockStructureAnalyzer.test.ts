@@ -72,4 +72,16 @@ suite('BlockStructureAnalyzer', () => {
 
         assert.deepStrictEqual(publisher.missingEnds, []);
     });
+
+    test('ignores block declarations and ends written inside blockdata', async () => {
+        const document = await vscode.workspace.openTextDocument({
+            content: 'entry valid\ndsTexto: blockdata +\nentry ignored\nend\n+\nend',
+            language: 'uniface',
+        });
+        const publisher = new DiagnosticPublisherStub();
+
+        new BlockStructureAnalyzer(publisher).analyzeDocument(document);
+
+        assert.deepStrictEqual(publisher.missingEnds, []);
+    });
 });

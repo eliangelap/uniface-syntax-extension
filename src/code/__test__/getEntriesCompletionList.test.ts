@@ -39,6 +39,40 @@ suite('GetEntriesCompletionList', () => {
         );
     });
 
+    test('matches entries case-insensitively and replaces the typed call prefix', async () => {
+        const document = await vscode.workspace.openTextDocument({
+            content:
+                'entry PL_CORRIGE_CEP\nend\nentry plGetCoordenadas\nend\ncall pl\ncall PL\n',
+            language: 'uniface',
+        });
+        const completionList = new GetEntriesCompletionList();
+
+        for (const position of [new vscode.Position(4, 7), new vscode.Position(5, 7)]) {
+            const completions = completionList.execute(document, position);
+
+            assert.deepStrictEqual(
+                completions.map((completion) => completion.label),
+                ['PL_CORRIGE_CEP', 'plGetCoordenadas']
+            );
+            assert.deepStrictEqual(
+                completions.map((completion) => completion.insertText),
+                ['PL_CORRIGE_CEP', 'plGetCoordenadas']
+            );
+            assert.ok(
+                completions.every((completion) => completion.filterText === completion.label.toString().toLowerCase())
+            );
+            assert.ok(
+                completions.every(
+                    (completion) =>
+                        completion.range instanceof vscode.Range &&
+                        completion.range.isEqual(
+                            new vscode.Range(position.line, 5, position.line, 7)
+                        )
+                )
+            );
+        }
+    });
+
     test('does not list entries for a command prefix', async () => {
         const document = await vscode.workspace.openTextDocument({
             content: 'entry targetEntry\nend\ncallback targetEntry\n',

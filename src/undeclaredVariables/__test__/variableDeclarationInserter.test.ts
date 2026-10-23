@@ -68,4 +68,26 @@ suite('VariableDeclarationInserter', () => {
             text: '    variables\n        numeric result\n    endvariables\n',
         });
     });
+
+    test('ignores variable sections written inside blockdata', () => {
+        const block: BlockCode = {
+            text: '',
+            startLine: 0,
+            lines: [
+                'entry sample',
+                '    dsTexto: blockdata +',
+                '    variables',
+                '    endvariables',
+                '    +',
+                '    result = 1',
+                'end',
+            ],
+        };
+
+        assert.deepStrictEqual(inserter.create(block, 'value', 'string'), {
+            line: 1,
+            character: 0,
+            text: 'variables\n    string value\nendvariables\n',
+        });
+    });
 });

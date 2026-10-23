@@ -123,11 +123,34 @@ class GoldDecorator {
 export function registerGoldDecorationEvents(context: vscode.ExtensionContext) {
     const registry = new GoldCharacterRegistry();
     const decorator = new GoldDecorator(registry);
+    const updateTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
     const updateEditor = (editor?: vscode.TextEditor) => {
         if (editor) {
             decorator.apply(editor);
         }
+    };
+
+    const scheduleUpdate = (editor?: vscode.TextEditor) => {
+        if (!editor) {
+            return;
+        }
+
+        const key = editor.document.uri.toString();
+        const previousTimer = updateTimers.get(key);
+        if (previousTimer) {
+            clearTimeout(previousTimer);
+        }
+
+        updateTimers.set(
+            key,
+            setTimeout(() => {
+                updateTimers.delete(key);
+                if (editor.document === vscode.window.activeTextEditor?.document) {
+                    updateEditor(editor);
+                }
+            }, 250)
+        );
     };
 
     context.subscriptions.push(
@@ -136,7 +159,7 @@ export function registerGoldDecorationEvents(context: vscode.ExtensionContext) {
         vscode.workspace.onDidChangeTextDocument((e) => {
             const editor = vscode.window.activeTextEditor;
             if (e.document === editor?.document) {
-                updateEditor(editor);
+                scheduleUpdate(editor);
             }
         }),
         vscode.workspace.onDidOpenTextDocument((doc) => {
@@ -144,7 +167,15 @@ export function registerGoldDecorationEvents(context: vscode.ExtensionContext) {
             if (editor) {
                 updateEditor(editor);
             }
-        })
+        }),
+        {
+            dispose: () => {
+                for (const timer of updateTimers.values()) {
+                    clearTimeout(timer);
+                }
+                updateTimers.clear();
+            },
+        }
     );
 
     updateEditor(vscode.window.activeTextEditor);

@@ -81,4 +81,13 @@ suite('VariableUsageAnalyzer', () => {
 
         assert.deepStrictEqual([...usedVariables], ['actualVariable']);
     });
+
+    test('does not count variables written inside blockdata as used', () => {
+        const usedVariables = new VariableUsageAnalyzer().getUsedVariables(
+            ['variables', 'string value', 'endvariables', 'dsTexto: blockdata @', 'value', '@'],
+            [{ name: 'value', dataType: 'string', line: 1 }]
+        );
+
+        assert.deepStrictEqual([...usedVariables], []);
+    });
 });

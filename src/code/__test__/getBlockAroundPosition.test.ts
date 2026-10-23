@@ -18,6 +18,42 @@ suite('GetBlockAroundPosition', () => {
         });
     });
 
+    test('ends an incomplete block before the next module declaration', async () => {
+        for (const nextModule of ['entry nextEntry', 'operation nextOperation', 'function nextFunction', 'trigger nextTrigger']) {
+            const document = await vscode.workspace.openTextDocument({
+                content: `entry incompleteEntry\nvariables\nstring currentValue\nendvariables\n${nextModule}\n`,
+                language: 'uniface',
+            });
+
+            const block = new GetBlockAroundPosition().execute(document, new vscode.Position(2, 0));
+
+            assert.deepStrictEqual(block?.lines, [
+                'entry incompleteEntry',
+                'variables',
+                'string currentValue',
+                'endvariables',
+            ]);
+        }
+    });
+
+    test('uses the document end for an incomplete final block', async () => {
+        const document = await vscode.workspace.openTextDocument({
+            content: 'entry incompleteEntry\nvariables\nstring currentValue\nendvariables\ncurrentValue = 1\n',
+            language: 'uniface',
+        });
+
+        const block = new GetBlockAroundPosition().execute(document, new vscode.Position(4, 0));
+
+        assert.deepStrictEqual(block?.lines, [
+            'entry incompleteEntry',
+            'variables',
+            'string currentValue',
+            'endvariables',
+            'currentValue = 1',
+            '',
+        ]);
+    });
+
     test('does not treat a non-declaration line as a block start', async () => {
         const document = await vscode.workspace.openTextDocument({
             content: 'operation = value\n',

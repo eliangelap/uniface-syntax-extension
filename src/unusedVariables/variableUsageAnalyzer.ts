@@ -1,10 +1,9 @@
 import { DeclaredVariable } from '../code/getVariablesFromBlock.use.case';
-import { getCodeOutsideStringsAndComments, StringDelimiter } from '../util/procCodeScanner';
-
-interface VariablePattern {
-    name: string;
-    pattern: RegExp;
-}
+import {
+    createCodeScannerState,
+    getCodeOutsideStringsAndComments,
+    getNextCodeScannerState,
+} from '../util/procCodeScanner';
 
 export class VariableUsageAnalyzer {
     public getUsedVariables(
@@ -12,9 +11,11 @@ export class VariableUsageAnalyzer {
         declaredVariables: DeclaredVariable[]
     ): Set<string> {
         const usedVariables = new Set<string>();
-        const variablePatterns = this.createVariablePatterns(declaredVariables);
+        const declaredByName = new Map(
+            declaredVariables.map((variable) => [variable.name.toLowerCase(), variable.name])
+        );
         let isAfterVariablesBlock = false;
-        let delimiter: StringDelimiter = null;
+        let state = createCodeScannerState();
 
         for (const line of blockLines) {
             const trimmedLine = line.trim();
@@ -26,27 +27,19 @@ export class VariableUsageAnalyzer {
                 continue;
             }
 
-            const scanResult = getCodeOutsideStringsAndComments(line, delimiter);
-            delimiter = line.trimEnd().endsWith('%\\') ? scanResult.delimiter : null;
+            const scanResult = getCodeOutsideStringsAndComments(line, state);
+            state = getNextCodeScannerState(line, scanResult.state);
             const code = scanResult.code;
-            for (const variable of variablePatterns) {
-                if (variable.pattern.test(code)) {
-                    usedVariables.add(variable.name);
+            const tokenRegex = /\b[A-Za-z_]\w*\b/g;
+            let token: RegExpExecArray | null;
+            while ((token = tokenRegex.exec(code)) !== null) {
+                const declaredName = declaredByName.get(token[0].toLowerCase());
+                if (declaredName) {
+                    usedVariables.add(declaredName);
                 }
             }
         }
 
         return usedVariables;
-    }
-
-    private createVariablePatterns(declaredVariables: DeclaredVariable[]): VariablePattern[] {
-        return declaredVariables.map((variable) => ({
-            name: variable.name,
-            pattern: new RegExp(String.raw`\b${this.escapeRegExp(variable.name)}\b`, 'i'),
-        }));
-    }
-
-    private escapeRegExp(text: string): string {
-        return text.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
     }
 }

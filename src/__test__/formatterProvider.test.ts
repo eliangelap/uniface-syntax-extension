@@ -38,6 +38,72 @@ suite('UnifaceFormatterProvider', () => {
         assert.strictEqual(edits?.length, 1);
     });
 
+    test('preserves blockdata content and its closing delimiter indentation', async () => {
+        const document = await vscode.workspace.openTextDocument({
+            content: [
+                'entry valid',
+                'dsTexto: blockdata +',
+                '  Prezado(s), #NM_PESSOA#',
+                '',
+                '      Mensagem automática',
+                '    +',
+                'value = 1',
+                'end',
+            ].join('\n'),
+            language: 'uniface',
+        });
+
+        const edits = await formatterProvider().provideDocumentFormattingEdits(
+            document,
+            { insertSpaces: true, tabSize: 4 },
+            cancellationToken
+        );
+
+        assert.strictEqual(
+            edits?.[0].newText,
+            [
+                'entry valid',
+                '\tdsTexto: blockdata +',
+                '  Prezado(s), #NM_PESSOA#',
+                '',
+                '      Mensagem automática',
+                '    +',
+                '\tvalue = 1',
+                'end',
+            ].join('\n')
+        );
+    });
+
+    test('does not treat blockdata inside strings or comments as blockdata', async () => {
+        const document = await vscode.workspace.openTextDocument({
+            content: [
+                'entry valid',
+                'message "blockdata +"',
+                '; blockdata +',
+                'value = 1',
+                'end',
+            ].join('\n'),
+            language: 'uniface',
+        });
+
+        const edits = await formatterProvider().provideDocumentFormattingEdits(
+            document,
+            { insertSpaces: true, tabSize: 4 },
+            cancellationToken
+        );
+
+        assert.strictEqual(
+            edits?.[0].newText,
+            [
+                'entry valid',
+                '\tmessage "blockdata +"',
+                '\t; blockdata +',
+                '\tvalue = 1',
+                'end',
+            ].join('\n')
+        );
+    });
+
     test('preserves single-line if statements without increasing subsequent indentation', async () => {
         const document = await vscode.workspace.openTextDocument({
             content: [

@@ -1,26 +1,11 @@
 import * as vscode from 'vscode';
-import { BlockCode, GetBlockAroundPosition } from './getBlockAroundPosition.use.case';
+import { BlockCode } from './getBlockAroundPosition.use.case';
+import { DocumentAnalysisSnapshotBuilder } from '../util/documentAnalysisSnapshot';
 
 export class GetBlockList {
     public execute(document: vscode.TextDocument): BlockCode[] {
-        const lines = document.getText().split('\n');
-        const blocks: BlockCode[] = [];
-
-        let i = 0;
-        while (i < lines.length) {
-            const position = new vscode.Position(i, 0);
-
-            const block = new GetBlockAroundPosition().execute(document, position);
-
-            if (block !== null) {
-                blocks.push(block);
-                i = block.startLine + block.lines.length;
-                continue;
-            }
-
-            i++;
-        }
-
-        return blocks;
+        return new DocumentAnalysisSnapshotBuilder().build(document).blocks.map(
+            ({ text, startLine, lines }) => ({ text, startLine, lines })
+        );
     }
 }

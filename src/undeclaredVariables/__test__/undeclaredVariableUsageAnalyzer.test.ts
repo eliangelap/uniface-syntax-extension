@@ -103,6 +103,30 @@ suite('UndeclaredVariableUsageAnalyzer', () => {
         assert.deepStrictEqual(usages, []);
     });
 
+    test('does not treat blockdata declarations and defines as code', () => {
+        const block: BlockCode = {
+            text: '',
+            startLine: 0,
+            lines: [
+                'entry sample',
+                'dsTexto: blockdata +',
+                'variables',
+                '#define IGNORED_CONSTANT = 1',
+                'endvariables',
+                '+',
+                'actualValue = IGNORED_CONSTANT',
+                'end',
+            ],
+        };
+
+        const usages = new UndeclaredVariableUsageAnalyzer().getUndeclaredUsages(block, []);
+
+        assert.deepStrictEqual(usages.map((usage) => usage.name), [
+            'actualValue',
+            'IGNORED_CONSTANT',
+        ]);
+    });
+
     test('ignores function names in call statements but analyzes their arguments', () => {
         const block: BlockCode = {
             text: '',
@@ -171,6 +195,76 @@ suite('UndeclaredVariableUsageAnalyzer', () => {
         ]);
 
         assert.deepStrictEqual(usages, []);
+    });
+
+    test('finds undeclared variables interpolated in strings', () => {
+        const block: BlockCode = {
+            text: '',
+            startLine: 10,
+            lines: [
+                'entry sample',
+                'variables',
+                '    string declaredValue',
+                'endvariables',
+                'declaredValue = "%%undeclaredValue%%% variável não declarada"',
+                'end',
+            ],
+        };
+
+        const usages = new UndeclaredVariableUsageAnalyzer().getUndeclaredUsages(block, [
+            'declaredValue',
+        ]);
+
+        assert.deepStrictEqual(
+            usages.map((usage) => ({
+                name: usage.name,
+                line: usage.range.start.line,
+                start: usage.range.start.character,
+                end: usage.range.end.character,
+            })),
+            [{ name: 'undeclaredValue', line: 14, start: 19, end: 34 }]
+        );
+    });
+
+    test('finds interpolated variables after Uniface escaped string delimiters', () => {
+        const block: BlockCode = {
+            text: '',
+            startLine: 0,
+            lines: [
+                'entry sample',
+                'message "prefix %%" %%missingDouble%%%"',
+                "message 'prefix %%' %%missingSingle%%%'",
+                'end',
+            ],
+        };
+
+        const usages = new UndeclaredVariableUsageAnalyzer().getUndeclaredUsages(block, []);
+
+        assert.deepStrictEqual(usages.map((usage) => usage.name), [
+            'missingDouble',
+            'missingSingle',
+        ]);
+    });
+
+    test('accepts declared variables and validates only the root of interpolated struct access', () => {
+        const block: BlockCode = {
+            text: '',
+            startLine: 0,
+            lines: [
+                'entry sample',
+                'variables',
+                '    string declaredValue',
+                'endvariables',
+                'message "%%declaredValue%%% %%undeclaredValue->field%%%"',
+                'end',
+            ],
+        };
+
+        const usages = new UndeclaredVariableUsageAnalyzer().getUndeclaredUsages(block, [
+            'declaredValue',
+        ]);
+
+        assert.deepStrictEqual(usages.map((usage) => usage.name), ['undeclaredValue']);
     });
 
     test('ignores functions provided by includes while validating their arguments', () => {
@@ -373,6 +467,25 @@ suite('UndeclaredVariableUsageAnalyzer', () => {
         assert.deepStrictEqual(usages, []);
     });
 
+    test('validates variables in interpolated procfunctions without reporting their string arguments', () => {
+        const block: BlockCode = {
+            text: '',
+            startLine: 0,
+            lines: [
+                'entry sample',
+                'v_st_retorno->NR_TELEFONE = "(%%$item("CD_DDD", v_ls_retorno)%%%)%%$item("NR_FONE", v_ls_retorno)%%%"',
+                'end',
+            ],
+        };
+        const usageAnalyzer = new UndeclaredVariableUsageAnalyzer();
+
+        assert.deepStrictEqual(usageAnalyzer.getUndeclaredUsages(block, ['v_st_retorno', 'v_ls_retorno']), []);
+        assert.deepStrictEqual(
+            usageAnalyzer.getUndeclaredUsages(block, ['v_st_retorno']).map((usage) => usage.name),
+            ['v_ls_retorno', 'v_ls_retorno']
+        );
+    });
+
     test('ignores identifiers in a continued literal ending with %%% and finds code after it', () => {
         const block: BlockCode = {
             text: '',
@@ -496,6 +609,8 @@ suite('UndeclaredVariableUsageAnalyzer', () => {
                 'entry sample',
                 'compare/previous (cd_undrecei, tp_receita, nr_receita) from "trec_recpfitem_s1"',
                 'COMPARE / NEXT (cd_undrecei, tp_receita, nr_receita) FROM "trec_recpfitem_s1"',
+                'compare/previous (cd_uf, cd_regiao)',
+                'COMPARE / NEXT (cd_uf, cd_regiao)',
                 'undeclaredValue = 1',
                 'end',
             ],
@@ -533,36 +648,30 @@ suite('UndeclaredVariableUsageAnalyzer', () => {
         assert.deepStrictEqual(usages.map((usage) => usage.name), ['undeclaredValue']);
     });
 
-    test('reports invalid extraction parameters with a specific diagnostic', () => {
+    test('ignores extraction parameters for declared values', () => {
         const block: BlockCode = {
             text: '',
             startLine: 0,
-            lines: ['entry sample', 'result = vDate[H] + vTime[Y] + vDatetime[invalid]', 'end'],
+            lines: [
+                'entry sample',
+                'result = vDate[H] + vTime[Y] + vDatetime[invalid] + vString[customParameter]',
+                'end',
+            ],
         };
 
         const usages = new UndeclaredVariableUsageAnalyzer().getUndeclaredUsages(
             block,
-            ['result', 'vDate', 'vTime', 'vDatetime'],
+            ['result', 'vDate', 'vTime', 'vDatetime', 'vString'],
             [],
             [
                 { name: 'vDate', dataType: 'date', line: 0 },
                 { name: 'vTime', dataType: 'time', line: 0 },
                 { name: 'vDatetime', dataType: 'datetime', line: 0 },
+                { name: 'vString', dataType: 'string', line: 0 },
             ]
         );
 
-        assert.deepStrictEqual(
-            usages.map((usage) => ({ name: usage.name, code: usage.diagnosticCode })),
-            [
-                { name: 'H', code: 'uniface.invalidExtractionParameter' },
-                { name: 'Y', code: 'uniface.invalidExtractionParameter' },
-                { name: 'invalid', code: 'uniface.invalidExtractionParameter' },
-            ]
-        );
-        assert.strictEqual(
-            usages[0].message,
-            'Invalid extraction parameter "H" for date value "vDate".'
-        );
+        assert.deepStrictEqual(usages, []);
     });
 
     test('validates numeric extraction parameters', () => {
@@ -624,7 +733,7 @@ suite('UndeclaredVariableUsageAnalyzer', () => {
         assert.deepStrictEqual(usages, []);
     });
 
-    test('reports invalid numeric extraction parameters while validating the variable root', () => {
+    test('ignores numeric extraction parameters while validating an undeclared variable root', () => {
         const block: BlockCode = {
             text: '',
             startLine: 0,
@@ -642,14 +751,6 @@ suite('UndeclaredVariableUsageAnalyzer', () => {
             [{ name: 'vQtAplicacao', dataType: 'numeric', line: 0 }]
         );
 
-        assert.deepStrictEqual(
-            usages.map((usage) => ({ name: usage.name, code: usage.diagnosticCode })),
-            [
-                { name: 'round,texto', code: 'uniface.invalidExtractionParameter' },
-                { name: 'fraction,2', code: 'uniface.invalidExtractionParameter' },
-                { name: 'missingValue', code: undefined },
-                { name: 'round', code: undefined },
-            ]
-        );
+        assert.deepStrictEqual(usages.map((usage) => usage.name), ['missingValue', 'round']);
     });
 });

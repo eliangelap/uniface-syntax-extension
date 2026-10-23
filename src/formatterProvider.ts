@@ -1,6 +1,11 @@
 import * as vscode from 'vscode';
 import { endKeywordsRegex, startKeywordsRegex } from './regExpConstants';
 import { findMissingBlockEnds } from './blockStructure/blockStructureAnalyzer';
+import {
+    createCodeScannerState,
+    getCodeOutsideStringsAndComments,
+    getNextCodeScannerState,
+} from './util/procCodeScanner';
 
 export const formatterProvider = (): vscode.DocumentFormattingEditProvider => {
     return {
@@ -43,6 +48,7 @@ class UnifaceFormatter {
     private isInContinuation = false;
     private continuationIndent = 0;
     private readonly selectCaseBranchDepths: number[] = [];
+    private blockdataDelimiter: string | null = null;
 
     constructor(
         text: string,
@@ -52,7 +58,21 @@ class UnifaceFormatter {
     }
 
     public format(): string {
+        let scannerState = createCodeScannerState();
+
         for (const line of this.lines) {
+            const scannerResult = getCodeOutsideStringsAndComments(line, scannerState);
+            scannerState = getNextCodeScannerState(line, scannerResult.state);
+
+            if (this.blockdataDelimiter) {
+                this.formattedLines.push(line);
+                if (line.trim() === this.blockdataDelimiter) {
+                    this.blockdataDelimiter = null;
+                }
+                this.previousLineWasBlank = line.trim() === '';
+                continue;
+            }
+
             const trimmed = line.trim();
 
             const isBlank = trimmed === '';
@@ -71,6 +91,7 @@ class UnifaceFormatter {
             this.adjustDepthForSelectCaseBranch(trimmed);
             this.addFormattedLine(trimmed);
             this.updateContinuationState(isContinuation);
+            this.blockdataDelimiter = scannerResult.state.blockdataDelimiter;
             if (!isSingleLineIf) {
                 this.adjustDepthForStart(trimmed);
             }

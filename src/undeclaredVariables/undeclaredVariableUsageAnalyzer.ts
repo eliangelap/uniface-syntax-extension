@@ -38,15 +38,16 @@ export class UndeclaredVariableUsageAnalyzer {
         );
         const usages: UndeclaredVariableUsage[] = [];
         const sanitizedLines = this.sanitizer.sanitizeLines(block.lines);
+        const interpolatedVariables = this.sanitizer.getInterpolatedVariables(block.lines);
         const labels = this.getLabels(sanitizedLines);
         let isInsideDeclaration = false;
 
-        this.addDefinedConstants(block.lines, declared);
+        this.addDefinedConstants(sanitizedLines, declared);
         this.statementContextAnalyzer.reset();
 
         for (let lineIndex = 0; lineIndex < block.lines.length; lineIndex++) {
-            const line = block.lines[lineIndex];
-            const trimmedLine = line.trim();
+            const sanitizedLine = sanitizedLines[lineIndex];
+            const trimmedLine = sanitizedLine.trim();
 
             if (/^(params|variables)\b(?:\s*;.*)?$/i.test(trimmedLine)) {
                 isInsideDeclaration = true;
@@ -66,18 +67,21 @@ export class UndeclaredVariableUsageAnalyzer {
                 continue;
             }
 
-            const sanitizedLine = sanitizedLines[lineIndex];
             this.addUnknownGotoUsage(sanitizedLine, block.startLine + lineIndex, labels, usages);
+            this.addInterpolatedVariableUsages(
+                interpolatedVariables[lineIndex],
+                block.startLine + lineIndex,
+                declared,
+                usages
+            );
 
             const statementContext = this.statementContextAnalyzer.analyze(sanitizedLine);
-            const extractionValidation = this.extractionParameterValidator.validate(
+            const extractionMask = this.extractionParameterValidator.validate(
                 statementContext.code,
-                declaredVariables,
-                block.startLine + lineIndex
+                declaredVariables
             );
-            usages.push(...extractionValidation.invalidUsages);
             this.addTokenUsages(
-                extractionValidation.code,
+                extractionMask.code,
                 block.startLine + lineIndex,
                 declared,
                 returnValueFunctions,
@@ -87,6 +91,32 @@ export class UndeclaredVariableUsageAnalyzer {
         }
 
         return usages;
+    }
+
+    private addInterpolatedVariableUsages(
+        variables: ReadonlyArray<{ name: string; start: number }>,
+        line: number,
+        declared: ReadonlySet<string>,
+        usages: UndeclaredVariableUsage[]
+    ): void {
+        for (const variable of variables) {
+            if (
+                declared.has(variable.name.toLowerCase()) ||
+                this.ignoredWords.has(variable.name.toLowerCase())
+            ) {
+                continue;
+            }
+
+            usages.push({
+                name: variable.name,
+                range: new vscode.Range(
+                    line,
+                    variable.start,
+                    line,
+                    variable.start + variable.name.length
+                ),
+            });
+        }
     }
 
     private addTokenUsages(

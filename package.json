@@ -2,7 +2,7 @@
     "name": "uniface-syntax-extension",
     "displayName": "uniface-syntax-extension",
     "description": "A VSCode extension for Uniface program language, with syntax highlighter and all powerful of VSCode resources",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "scripts": {
         "vscode:prepublish": "npm run package",
         "compile": "npm run check-types && npm run lint && node esbuild.js",
@@ -112,14 +112,15 @@
         "@types/vscode": "1.125.0",
         "@typescript-eslint/eslint-plugin": "^8.71.2",
         "@typescript-eslint/parser": "^8.71.2",
-        "@vscode/test-cli": "^0.0.11",
+        "@vscode/test-cli": "^0.0.15",
         "@vscode/test-electron": "^3.1.0",
         "esbuild": "^0.28.2",
         "eslint": "^10.13.0",
         "npm-run-all": "^4.1.5",
         "prettier": "^3.9.10",
         "standard-version": "^9.5.0",
-        "typescript": "^6.0.3"
+        "typescript": "^6.0.3",
+        "vsce": "^1.25.1"
     },
     "publisher": "eliangela",
     "author": {
@@ -138,10 +139,14 @@
     ],
     "engines": {
         "vscode": "^1.125.0",
-        "node": "24.14.0"
+        "node": "24.22.0"
     },
     "icon": "media/rocket.png",
     "activationEvents": [
         "onLanguage:uniface"
-    ]
+    ],
+    "allowScripts": {
+        "esbuild@0.28.2": true,
+        "keytar@7.9.0": true
+    }
 }
