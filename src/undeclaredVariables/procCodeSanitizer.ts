@@ -133,6 +133,11 @@ export class ProcCodeSanitizer {
             }
 
             if (character === '%' && line[index + 1] === '%') {
+                if (!/[A-Za-z_$]/.test(line[index + 2] ?? '')) {
+                    index++;
+                    continue;
+                }
+
                 const interpolationEnd = line.indexOf('%%%', index + 2);
                 if (interpolationEnd !== -1) {
                     const reference = this.getInterpolatedVariableReference(

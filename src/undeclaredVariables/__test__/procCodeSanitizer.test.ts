@@ -101,6 +101,14 @@ suite('ProcCodeSanitizer', () => {
         ]);
     });
 
+    test('finds interpolations after literal percent escapes', () => {
+        const references = new ProcCodeSanitizer().getInterpolatedVariables([
+            'message "progresso %%10 %%missing%%%"',
+        ]);
+
+        assert.deepStrictEqual(references, [[{ name: 'missing', start: 26 }]]);
+    });
+
     test('finds interpolations after Uniface escaped string delimiters', () => {
         const lines = [
             'message "prefix %%" %%missingDouble%%%"',
