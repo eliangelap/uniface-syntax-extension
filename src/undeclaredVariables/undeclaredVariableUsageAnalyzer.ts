@@ -42,12 +42,12 @@ export class UndeclaredVariableUsageAnalyzer {
         const labels = this.getLabels(sanitizedLines);
         let isInsideDeclaration = false;
 
-        this.addDefinedConstants(block.lines, declared);
+        this.addDefinedConstants(sanitizedLines, declared);
         this.statementContextAnalyzer.reset();
 
         for (let lineIndex = 0; lineIndex < block.lines.length; lineIndex++) {
-            const line = block.lines[lineIndex];
-            const trimmedLine = line.trim();
+            const sanitizedLine = sanitizedLines[lineIndex];
+            const trimmedLine = sanitizedLine.trim();
 
             if (/^(params|variables)\b(?:\s*;.*)?$/i.test(trimmedLine)) {
                 isInsideDeclaration = true;
@@ -67,7 +67,6 @@ export class UndeclaredVariableUsageAnalyzer {
                 continue;
             }
 
-            const sanitizedLine = sanitizedLines[lineIndex];
             this.addUnknownGotoUsage(sanitizedLine, block.startLine + lineIndex, labels, usages);
             this.addInterpolatedVariableUsages(
                 interpolatedVariables[lineIndex],

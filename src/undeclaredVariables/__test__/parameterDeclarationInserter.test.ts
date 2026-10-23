@@ -54,4 +54,26 @@ suite('ParameterDeclarationInserter', () => {
             text: '    params\n        string value : in\n    endparams\n',
         });
     });
+
+    test('ignores parameter sections written inside blockdata', () => {
+        const block: BlockCode = {
+            text: '',
+            startLine: 0,
+            lines: [
+                'entry sample',
+                '    dsTexto: blockdata+',
+                '    params',
+                '    endparams',
+                '    +',
+                '    result = 1',
+                'end',
+            ],
+        };
+
+        assert.deepStrictEqual(inserter.create(block, 'value', 'string', 'in'), {
+            line: 1,
+            character: 0,
+            text: '    params\n        string value : in\n    endparams\n',
+        });
+    });
 });

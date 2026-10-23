@@ -30,8 +30,16 @@ export class ProcCodeSanitizer {
     public getInterpolatedVariables(lines: readonly string[]): InterpolatedVariableReference[][] {
         let delimiter: StringDelimiter = null;
         let isInsideInterpolation = false;
+        let scannerState = createCodeScannerState();
 
         return lines.map((line) => {
+            const scannerResult = getCodeOutsideStringsAndComments(line, scannerState);
+            scannerState = getNextCodeScannerState(line, scannerResult.state);
+
+            if (scannerResult.isBlockdata) {
+                return [];
+            }
+
             const references = this.getInterpolatedVariablesFromLine(
                 line,
                 delimiter,

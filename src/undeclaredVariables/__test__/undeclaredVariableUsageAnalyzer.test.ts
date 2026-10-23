@@ -103,6 +103,30 @@ suite('UndeclaredVariableUsageAnalyzer', () => {
         assert.deepStrictEqual(usages, []);
     });
 
+    test('does not treat blockdata declarations and defines as code', () => {
+        const block: BlockCode = {
+            text: '',
+            startLine: 0,
+            lines: [
+                'entry sample',
+                'dsTexto: blockdata+',
+                'variables',
+                '#define IGNORED_CONSTANT = 1',
+                'endvariables',
+                '+',
+                'actualValue = IGNORED_CONSTANT',
+                'end',
+            ],
+        };
+
+        const usages = new UndeclaredVariableUsageAnalyzer().getUndeclaredUsages(block, []);
+
+        assert.deepStrictEqual(usages.map((usage) => usage.name), [
+            'actualValue',
+            'IGNORED_CONSTANT',
+        ]);
+    });
+
     test('ignores function names in call statements but analyzes their arguments', () => {
         const block: BlockCode = {
             text: '',

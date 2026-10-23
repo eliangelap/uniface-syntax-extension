@@ -1,4 +1,5 @@
 import { BlockCode } from '../code/getBlockAroundPosition.use.case';
+import { getCodeOutsideStringsAndCommentsLines } from '../util/procCodeScanner';
 
 export type ParameterDirection = 'in' | 'out' | 'inout';
 
@@ -15,8 +16,9 @@ export class ParameterDeclarationInserter {
         dataType: string,
         direction: ParameterDirection
     ): ParameterDeclarationInsertion {
-        const parametersStart = block.lines.findIndex((line) => /^\s*params\b/i.test(line));
-        const parametersEnd = block.lines.findIndex((line, index) => {
+        const codeLines = getCodeOutsideStringsAndCommentsLines(block.lines);
+        const parametersStart = codeLines.findIndex((line) => /^\s*params\b/i.test(line));
+        const parametersEnd = codeLines.findIndex((line, index) => {
             return index > parametersStart && /^\s*endparams\b/i.test(line);
         });
 
@@ -30,7 +32,7 @@ export class ParameterDeclarationInserter {
             };
         }
 
-        const variablesStart = block.lines.findIndex((line) => /^\s*variables\b/i.test(line));
+        const variablesStart = codeLines.findIndex((line) => /^\s*variables\b/i.test(line));
         const insertionLine = variablesStart >= 0 ? variablesStart : 1;
         const indentation = this.getIndentation(
             block.lines[variablesStart >= 0 ? variablesStart : this.findFirstContentLine(block.lines)]

@@ -1,5 +1,5 @@
 {
-    "name": "uniface-sintax-extension",
+    "name": "uniface-syntax-extension",
     "displayName": "uniface-syntax-extension",
     "description": "A VSCode extension for Uniface program language, with syntax highlighter and all powerful of VSCode resources",
     "version": "2.0.1",
@@ -119,7 +119,8 @@
         "npm-run-all": "^4.1.5",
         "prettier": "^3.9.10",
         "standard-version": "^9.5.0",
-        "typescript": "^6.0.3"
+        "typescript": "^6.0.3",
+        "vsce": "^1.25.1"
     },
     "publisher": "eliangela",
     "author": {
@@ -144,9 +145,6 @@
     "activationEvents": [
         "onLanguage:uniface"
     ],
-    "dependencies": {
-        "vsce": "^1.25.1"
-    },
     "allowScripts": {
         "esbuild@0.28.2": true,
         "keytar@7.9.0": true

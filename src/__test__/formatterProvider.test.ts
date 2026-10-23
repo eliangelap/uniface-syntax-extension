@@ -74,6 +74,36 @@ suite('UnifaceFormatterProvider', () => {
         );
     });
 
+    test('does not treat blockdata inside strings or comments as blockdata', async () => {
+        const document = await vscode.workspace.openTextDocument({
+            content: [
+                'entry valid',
+                'message "blockdata+"',
+                '; blockdata+',
+                'value = 1',
+                'end',
+            ].join('\n'),
+            language: 'uniface',
+        });
+
+        const edits = await formatterProvider().provideDocumentFormattingEdits(
+            document,
+            { insertSpaces: true, tabSize: 4 },
+            cancellationToken
+        );
+
+        assert.strictEqual(
+            edits?.[0].newText,
+            [
+                'entry valid',
+                '\tmessage "blockdata+"',
+                '\t; blockdata+',
+                '\tvalue = 1',
+                'end',
+            ].join('\n')
+        );
+    });
+
     test('preserves single-line if statements without increasing subsequent indentation', async () => {
         const document = await vscode.workspace.openTextDocument({
             content: [

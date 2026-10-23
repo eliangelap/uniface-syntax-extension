@@ -1,6 +1,11 @@
 import * as vscode from 'vscode';
 import { endKeywordsRegex, startKeywordsRegex } from './regExpConstants';
 import { findMissingBlockEnds } from './blockStructure/blockStructureAnalyzer';
+import {
+    createCodeScannerState,
+    getCodeOutsideStringsAndComments,
+    getNextCodeScannerState,
+} from './util/procCodeScanner';
 
 export const formatterProvider = (): vscode.DocumentFormattingEditProvider => {
     return {
@@ -53,7 +58,12 @@ class UnifaceFormatter {
     }
 
     public format(): string {
+        let scannerState = createCodeScannerState();
+
         for (const line of this.lines) {
+            const scannerResult = getCodeOutsideStringsAndComments(line, scannerState);
+            scannerState = getNextCodeScannerState(line, scannerResult.state);
+
             if (this.blockdataDelimiter) {
                 this.formattedLines.push(line);
                 if (line.trim() === this.blockdataDelimiter) {
@@ -81,7 +91,7 @@ class UnifaceFormatter {
             this.adjustDepthForSelectCaseBranch(trimmed);
             this.addFormattedLine(trimmed);
             this.updateContinuationState(isContinuation);
-            this.blockdataDelimiter = this.getBlockdataDelimiter(trimmed);
+            this.blockdataDelimiter = scannerResult.state.blockdataDelimiter;
             if (!isSingleLineIf) {
                 this.adjustDepthForStart(trimmed);
             }
@@ -235,9 +245,5 @@ class UnifaceFormatter {
             this.isInContinuation = false;
             this.continuationIndent = 0;
         }
-    }
-
-    private getBlockdataDelimiter(line: string): string | null {
-        return /\bblockdata([^\s])/i.exec(line)?.[1] ?? null;
     }
 }
