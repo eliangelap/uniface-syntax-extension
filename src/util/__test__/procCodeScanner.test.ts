@@ -7,7 +7,7 @@ import {
 suite('ProcCodeScanner blockdata', () => {
     test('masks blockdata content until its matching delimiter', () => {
         const lines = [
-            'dsTexto: blockdata+',
+            'dsTexto: blockdata +',
             'entry ignored',
             'end',
             '    +',
@@ -25,10 +25,20 @@ suite('ProcCodeScanner blockdata', () => {
     });
 
     test('keeps masking content when blockdata has no closing delimiter', () => {
-        const lines = ['dsTexto: blockdata@', 'any text', 'entry ignored'];
+        const lines = ['dsTexto: blockdata @', 'any text', 'entry ignored'];
         const codeLines = getCodeOutsideStringsAndCommentsLines(lines);
 
         assert.strictEqual(codeLines[0], 'dsTexto: '.padEnd(lines[0].length));
         assert.ok(codeLines.slice(1).every((line) => line.trim() === ''));
+    });
+
+    test('does not treat identifiers beginning with blockdata as blockdata', () => {
+        const lines = ['blockdataValue = 1', 'blockdataEntry = 2', 'entry validEntry', 'end'];
+
+        const codeLines = getCodeOutsideStringsAndCommentsLines(lines);
+
+        assert.deepStrictEqual(codeLines, lines);
+        assert.strictEqual(isBlockdataLine(lines, 0), false);
+        assert.strictEqual(isBlockdataLine(lines, 1), false);
     });
 });

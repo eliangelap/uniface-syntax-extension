@@ -74,7 +74,7 @@ suite('UnifaceDefinitionProvider', () => {
 
     test('ignores calls inside blockdata', async () => {
         const document = await vscode.workspace.openTextDocument({
-            content: 'entry targetEntry\nend\nentry callerEntry\ndsTexto: blockdata@\ncall targetEntry\n@\nend',
+            content: 'entry targetEntry\nend\nentry callerEntry\ndsTexto: blockdata @\ncall targetEntry\n@\nend',
             language: 'uniface',
         });
 

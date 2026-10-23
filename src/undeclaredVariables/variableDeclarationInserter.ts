@@ -1,4 +1,5 @@
 import { BlockCode } from '../code/getBlockAroundPosition.use.case';
+import { getCodeOutsideStringsAndCommentsLines } from '../util/procCodeScanner';
 
 export interface VariableDeclarationInsertion {
     line: number;
@@ -8,14 +9,15 @@ export interface VariableDeclarationInsertion {
 
 export class VariableDeclarationInserter {
     public create(block: BlockCode, name: string, dataType: string): VariableDeclarationInsertion {
-        const variablesStart = block.lines.findIndex((line) => /^\s*variables\b/i.test(line));
-        const variablesEnd = block.lines.findIndex((line, index) => {
+        const codeLines = getCodeOutsideStringsAndCommentsLines(block.lines);
+        const variablesStart = codeLines.findIndex((line) => /^\s*variables\b/i.test(line));
+        const variablesEnd = codeLines.findIndex((line, index) => {
             return index > variablesStart && /^\s*endvariables\b/i.test(line);
         });
 
         if (variablesStart >= 0 && variablesEnd >= 0) {
             const matchingDeclarationLine = this.findLastMatchingDeclarationLine(
-                block.lines,
+                codeLines,
                 variablesStart,
                 variablesEnd,
                 dataType
@@ -42,7 +44,7 @@ export class VariableDeclarationInserter {
             };
         }
 
-        const parametersEnd = block.lines.findIndex((line) => /^\s*endparams\b/i.test(line));
+        const parametersEnd = codeLines.findIndex((line) => /^\s*endparams\b/i.test(line));
         const declarationLine = Math.max(parametersEnd, 0);
         const indentation = this.getIndentation(block.lines[declarationLine]);
 

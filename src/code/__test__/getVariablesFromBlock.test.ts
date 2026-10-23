@@ -63,14 +63,14 @@ suite('GetVariablesFromBlock', () => {
 
     test('ignores declarations written inside blockdata', () => {
         const block = {
-            text: 'entry sampleEntry\nvariables\nstring actualValue\nendvariables\ndsTexto: blockdata@\nvariables\nstring ignoredValue\nendvariables\n@\nend',
+            text: 'entry sampleEntry\nvariables\nstring actualValue\nendvariables\ndsTexto: blockdata @\nvariables\nstring ignoredValue\nendvariables\n@\nend',
             startLine: 0,
             lines: [
                 'entry sampleEntry',
                 'variables',
                 'string actualValue',
                 'endvariables',
-                'dsTexto: blockdata@',
+                'dsTexto: blockdata @',
                 'variables',
                 'string ignoredValue',
                 'endvariables',

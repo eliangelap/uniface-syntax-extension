@@ -3,6 +3,7 @@ import {
     createCodeScannerState,
     getCodeOutsideStringsAndComments,
     getNextCodeScannerState,
+    getUnifaceStringEscapeLength,
     StringDelimiter,
 } from '../util/procCodeScanner';
 
@@ -109,6 +110,14 @@ export class ProcCodeSanitizer {
             if (character === '\\') {
                 isBackslashEscaped = true;
                 continue;
+            }
+
+            if (!isInsideInterpolation) {
+                const escapeLength = getUnifaceStringEscapeLength(line, index, delimiter);
+                if (escapeLength) {
+                    index += escapeLength - 1;
+                    continue;
+                }
             }
 
             if (isInsideInterpolation) {

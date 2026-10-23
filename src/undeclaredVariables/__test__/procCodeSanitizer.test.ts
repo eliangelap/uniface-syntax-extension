@@ -78,7 +78,7 @@ suite('ProcCodeSanitizer', () => {
     });
 
     test('masks blockdata content without masking code that follows it', () => {
-        const lines = ['dsTexto: blockdata+', 'undeclaredValue = 1', '+', 'actualValue = 1'];
+        const lines = ['dsTexto: blockdata +', 'undeclaredValue = 1', '+', 'actualValue = 1'];
         const sanitizedLines = new ProcCodeSanitizer().sanitizeLines(lines);
 
         assert.ok(sanitizedLines.slice(0, 3).every((line) => !/undeclaredValue|blockdata/.test(line)));
@@ -98,6 +98,20 @@ suite('ProcCodeSanitizer', () => {
             [{ name: 'undeclaredValue', start: 11 }],
             [{ name: 'declaredValue', start: 11 }],
             [],
+        ]);
+    });
+
+    test('finds interpolations after Uniface escaped string delimiters', () => {
+        const lines = [
+            'message "prefix %%" %%missingDouble%%%"',
+            "message 'prefix %%' %%missingSingle%%%'",
+        ];
+
+        const references = new ProcCodeSanitizer().getInterpolatedVariables(lines);
+
+        assert.deepStrictEqual(references, [
+            [{ name: 'missingDouble', start: 22 }],
+            [{ name: 'missingSingle', start: 22 }],
         ]);
     });
 });

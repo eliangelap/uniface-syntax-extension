@@ -45,7 +45,7 @@
             "patterns": [
                 {
                     "name": "string.unquoted.blockdata.uniface",
-                    "begin": "(?i)\\bblockdata([^\\s])",
+                    "begin": "(?i)\\bblockdata\\s+([^\\s])",
                     "end": "^\\s*\\1\\s*$"
                 }
             ]

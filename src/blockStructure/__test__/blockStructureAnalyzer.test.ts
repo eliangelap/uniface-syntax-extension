@@ -75,7 +75,7 @@ suite('BlockStructureAnalyzer', () => {
 
     test('ignores block declarations and ends written inside blockdata', async () => {
         const document = await vscode.workspace.openTextDocument({
-            content: 'entry valid\ndsTexto: blockdata+\nentry ignored\nend\n+\nend',
+            content: 'entry valid\ndsTexto: blockdata +\nentry ignored\nend\n+\nend',
             language: 'uniface',
         });
         const publisher = new DiagnosticPublisherStub();

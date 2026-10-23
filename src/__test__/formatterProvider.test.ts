@@ -42,7 +42,7 @@ suite('UnifaceFormatterProvider', () => {
         const document = await vscode.workspace.openTextDocument({
             content: [
                 'entry valid',
-                'dsTexto: blockdata+',
+                'dsTexto: blockdata +',
                 '  Prezado(s), #NM_PESSOA#',
                 '',
                 '      Mensagem automática',
@@ -63,7 +63,7 @@ suite('UnifaceFormatterProvider', () => {
             edits?.[0].newText,
             [
                 'entry valid',
-                '\tdsTexto: blockdata+',
+                '\tdsTexto: blockdata +',
                 '  Prezado(s), #NM_PESSOA#',
                 '',
                 '      Mensagem automática',
@@ -78,8 +78,8 @@ suite('UnifaceFormatterProvider', () => {
         const document = await vscode.workspace.openTextDocument({
             content: [
                 'entry valid',
-                'message "blockdata+"',
-                '; blockdata+',
+                'message "blockdata +"',
+                '; blockdata +',
                 'value = 1',
                 'end',
             ].join('\n'),
@@ -96,8 +96,8 @@ suite('UnifaceFormatterProvider', () => {
             edits?.[0].newText,
             [
                 'entry valid',
-                '\tmessage "blockdata+"',
-                '\t; blockdata+',
+                '\tmessage "blockdata +"',
+                '\t; blockdata +',
                 '\tvalue = 1',
                 'end',
             ].join('\n')

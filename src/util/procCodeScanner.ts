@@ -52,7 +52,7 @@ export function isBlockdataLine(lines: readonly string[], lineNumber: number): b
     return false;
 }
 
-function getUnifaceStringEscapeLength(
+export function getUnifaceStringEscapeLength(
     line: string,
     index: number,
     delimiter: Exclude<StringDelimiter, null>
@@ -178,7 +178,7 @@ export function getCodeOutsideStringsAndComments(
             code += ' '.repeat(line.length - code.length);
             break;
         } else {
-            const blockdata = /^blockdata([^\s])/i.exec(line.slice(index));
+            const blockdata = /^blockdata\s+([^\s])/i.exec(line.slice(index));
             const isWordStart = index === 0 || !/[A-Za-z0-9_]/.test(line[index - 1]);
 
             if (blockdata && isWordStart) {

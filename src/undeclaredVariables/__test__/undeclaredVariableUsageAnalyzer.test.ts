@@ -109,7 +109,7 @@ suite('UndeclaredVariableUsageAnalyzer', () => {
             startLine: 0,
             lines: [
                 'entry sample',
-                'dsTexto: blockdata+',
+                'dsTexto: blockdata +',
                 'variables',
                 '#define IGNORED_CONSTANT = 1',
                 'endvariables',
@@ -224,6 +224,26 @@ suite('UndeclaredVariableUsageAnalyzer', () => {
             })),
             [{ name: 'undeclaredValue', line: 14, start: 19, end: 34 }]
         );
+    });
+
+    test('finds interpolated variables after Uniface escaped string delimiters', () => {
+        const block: BlockCode = {
+            text: '',
+            startLine: 0,
+            lines: [
+                'entry sample',
+                'message "prefix %%" %%missingDouble%%%"',
+                "message 'prefix %%' %%missingSingle%%%'",
+                'end',
+            ],
+        };
+
+        const usages = new UndeclaredVariableUsageAnalyzer().getUndeclaredUsages(block, []);
+
+        assert.deepStrictEqual(usages.map((usage) => usage.name), [
+            'missingDouble',
+            'missingSingle',
+        ]);
     });
 
     test('accepts declared variables and validates only the root of interpolated struct access', () => {

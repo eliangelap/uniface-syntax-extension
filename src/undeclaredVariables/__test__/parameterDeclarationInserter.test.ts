@@ -61,7 +61,7 @@ suite('ParameterDeclarationInserter', () => {
             startLine: 0,
             lines: [
                 'entry sample',
-                '    dsTexto: blockdata+',
+                '    dsTexto: blockdata +',
                 '    params',
                 '    endparams',
                 '    +',
