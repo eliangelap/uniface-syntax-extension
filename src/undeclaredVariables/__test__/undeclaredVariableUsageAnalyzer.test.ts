@@ -524,7 +524,7 @@ suite('UndeclaredVariableUsageAnalyzer', () => {
         assert.deepStrictEqual(usages.map((usage) => usage.name), ['variavelNaoDeclarada']);
     });
 
-    test('ignores calls to local functions with a return value but validates other identifiers', () => {
+    test('ignores function calls while validating other identifiers', () => {
         const block: BlockCode = {
             text: '',
             startLine: 0,
@@ -538,8 +538,7 @@ suite('UndeclaredVariableUsageAnalyzer', () => {
 
         const usages = new UndeclaredVariableUsageAnalyzer().getUndeclaredUsages(
             block,
-            ['result'],
-            ['returningFunction']
+            ['result']
         );
 
         assert.deepStrictEqual(usages.map((usage) => usage.name), [
@@ -637,7 +636,6 @@ suite('UndeclaredVariableUsageAnalyzer', () => {
         const usages = new UndeclaredVariableUsageAnalyzer().getUndeclaredUsages(
             block,
             ['result', 'vDate', 'vTime', 'vDatetime'],
-            [],
             [
                 { name: 'vDate', dataType: 'date', line: 0 },
                 { name: 'vTime', dataType: 'time', line: 0 },
@@ -662,7 +660,6 @@ suite('UndeclaredVariableUsageAnalyzer', () => {
         const usages = new UndeclaredVariableUsageAnalyzer().getUndeclaredUsages(
             block,
             ['result', 'vDate', 'vTime', 'vDatetime', 'vString'],
-            [],
             [
                 { name: 'vDate', dataType: 'date', line: 0 },
                 { name: 'vTime', dataType: 'time', line: 0 },
@@ -688,7 +685,6 @@ suite('UndeclaredVariableUsageAnalyzer', () => {
         const usages = new UndeclaredVariableUsageAnalyzer().getUndeclaredUsages(
             block,
             ['vQtAplicacao'],
-            [],
             [{ name: 'vQtAplicacao', dataType: 'numeric', line: 0 }]
         );
 
@@ -747,7 +743,6 @@ suite('UndeclaredVariableUsageAnalyzer', () => {
         const usages = new UndeclaredVariableUsageAnalyzer().getUndeclaredUsages(
             block,
             ['result', 'vQtAplicacao'],
-            [],
             [{ name: 'vQtAplicacao', dataType: 'numeric', line: 0 }]
         );
 
