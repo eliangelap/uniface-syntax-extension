@@ -29,13 +29,9 @@ export class UndeclaredVariableUsageAnalyzer {
     public getUndeclaredUsages(
         block: BlockCode,
         declaredNames: Iterable<string>,
-        returnValueFunctionNames: Iterable<string> = [],
         declaredVariables: Iterable<DeclaredVariable> = []
     ): UndeclaredVariableUsage[] {
         const declared = new Set([...declaredNames].map((name) => name.toLowerCase()));
-        const returnValueFunctions = new Set(
-            [...returnValueFunctionNames].map((name) => name.toLowerCase())
-        );
         const usages: UndeclaredVariableUsage[] = [];
         const sanitizedLines = this.sanitizer.sanitizeLines(block.lines);
         const interpolatedVariables = this.sanitizer.getInterpolatedVariables(block.lines);
@@ -84,7 +80,6 @@ export class UndeclaredVariableUsageAnalyzer {
                 extractionMask.code,
                 block.startLine + lineIndex,
                 declared,
-                returnValueFunctions,
                 statementContext.ignoredTokenStarts,
                 usages
             );
@@ -123,7 +118,6 @@ export class UndeclaredVariableUsageAnalyzer {
         code: string,
         line: number,
         declared: ReadonlySet<string>,
-        returnValueFunctions: ReadonlySet<string>,
         ignoredTokenStarts: ReadonlySet<number>,
         usages: UndeclaredVariableUsage[]
     ): void {
@@ -138,7 +132,6 @@ export class UndeclaredVariableUsageAnalyzer {
                 ignoredTokenStarts.has(match.index) ||
                 declared.has(name.toLowerCase()) ||
                 isFunctionCall ||
-                (returnValueFunctions.has(name.toLowerCase()) && isFunctionCall) ||
                 this.ignoredWords.has(name.toLowerCase())
             ) {
                 continue;

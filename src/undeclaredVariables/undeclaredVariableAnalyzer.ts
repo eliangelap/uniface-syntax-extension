@@ -46,7 +46,6 @@ export class UndeclaredVariableAnalyzer implements vscode.Disposable {
             return;
         }
 
-        const returnValueFunctionNames = this.getReturnValueFunctionNames(blocks);
         const usages = blocks.flatMap((block) => {
             const declaredVariables = [
                 ...this.dependencies.getVariables(block),
@@ -57,7 +56,6 @@ export class UndeclaredVariableAnalyzer implements vscode.Disposable {
             return this.usageAnalyzer.getUndeclaredUsages(
                 block,
                 declaredNames,
-                returnValueFunctionNames,
                 declaredVariables
             );
         });
@@ -72,13 +70,11 @@ export class UndeclaredVariableAnalyzer implements vscode.Disposable {
             return;
         }
 
-        const returnValueFunctionNames = this.getReturnValueFunctionNames(blocks);
         const usages = blocks.flatMap((block) => {
             const declaredVariables = [...block.variables, ...block.parameters];
             return this.usageAnalyzer.getUndeclaredUsages(
                 block,
                 declaredVariables.map((variable) => variable.name),
-                returnValueFunctionNames,
                 declaredVariables
             );
         });
@@ -88,15 +84,6 @@ export class UndeclaredVariableAnalyzer implements vscode.Disposable {
 
     public clearDiagnostics(document: vscode.TextDocument): void {
         this.publisher.clear(document);
-    }
-
-    private getReturnValueFunctionNames(blocks: BlockCode[]): string[] {
-        return blocks.flatMap((block) => {
-            const functionName = /^\s*(?:entry|function)\s+([A-Za-z_]\w*)\b/i.exec(block.lines[0]);
-            const hasReturnValue = block.lines.some((line) => /^\s*returns\s+\w+\b/i.test(line));
-
-            return functionName && hasReturnValue ? [functionName[1]] : [];
-        });
     }
 
     public dispose(): void {
