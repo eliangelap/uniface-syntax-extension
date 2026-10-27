@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.1.0](https://github.com/eliangelap/uniface-syntax-extension/compare/v2.0.0...v2.1.0) (2026-10-27)
+
+
+### Features
+
+* **parâmetros:** ✨ adicionada declaração rápida de parâmetros ([af3ab87](https://github.com/eliangelap/uniface-syntax-extension/commit/af3ab87e702e941532eb20388a469d09e09cdb8d))
+
+
+### Bug Fixes
+
+* **análise:** 🐛 corrige mascaramento de código Uniface ([e9183a9](https://github.com/eliangelap/uniface-syntax-extension/commit/e9183a994ac945b71fccbff5f37f63e08f4aaa75))
+* **blockdata:** 🐛 corrige análise em blocos de dados ([cc3c53d](https://github.com/eliangelap/uniface-syntax-extension/commit/cc3c53d15533b2cdcbdde8033a96b8e326ff1419))
+* **diagnósticos:** 🐛 remove validação de extração ([9d95a67](https://github.com/eliangelap/uniface-syntax-extension/commit/9d95a6718b92ca08c38825b869211695613d2dcd))
+* **extensão:** 🐛 corrige strings continuadas e testes ([45fcdc0](https://github.com/eliangelap/uniface-syntax-extension/commit/45fcdc004d9c2ffd5cbbe3eb2fdfc6a27aa26991))
+* **formatador:** 🐛 corrige fechamento de until sem espaço ([b929c75](https://github.com/eliangelap/uniface-syntax-extension/commit/b929c752a61b8a94dfc26cbeb76eec7a0550fa00))
+* **parser:** 🐛 corrige análise de strings Uniface ([683196a](https://github.com/eliangelap/uniface-syntax-extension/commit/683196a794a97c9c17e0bb3afb37306fe162cebb))
+* **parser:** 🐛 corrige interpolação em linha continuada ([11ae6ad](https://github.com/eliangelap/uniface-syntax-extension/commit/11ae6adb63791e0a71bf70ceeb29beb88bf64349))
+* **parser:** 🐛 detecta variáveis interpoladas não declaradas ([7eb647c](https://github.com/eliangelap/uniface-syntax-extension/commit/7eb647ccfbd3190ee5710552624bd590148b539b))
+* **parser:** corrige comentários do PR 62 ([#63](https://github.com/eliangelap/uniface-syntax-extension/issues/63)) ([c9461e9](https://github.com/eliangelap/uniface-syntax-extension/commit/c9461e9aa84e960226d390d57890058ac8b009d3))
+* reconhecer escape percentual literal antes de interpolação ([74fda3e](https://github.com/eliangelap/uniface-syntax-extension/commit/74fda3e20cb9a272cddf510e45f15533293005bf))
+
 ## [2.0.0](https://github.com/eliangelap/uniface-syntax-extension/compare/v1.14.1...v2.0.0) (2026-09-13)
 
 
