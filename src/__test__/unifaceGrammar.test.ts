@@ -14,7 +14,7 @@ interface TextMatePattern {
 suite('Uniface TextMate grammar', () => {
     function getGrammarPath(): string {
         const extension = vscode.extensions.all.find(
-            (candidate) => candidate.packageJSON.name === 'uniface-syntax-extension'
+            (candidate) => candidate.packageJSON.name === 'uniface-sintax-extension'
         );
 
         assert.ok(extension, 'The Uniface extension must be loaded for grammar tests.');

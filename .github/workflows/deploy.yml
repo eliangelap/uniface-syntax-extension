@@ -71,7 +71,7 @@ jobs:
             - name: Upload test VSIX artifact
               uses: actions/upload-artifact@v6
               with:
-                  name: uniface-syntax-extension-v${{ steps.release.outputs.version }}-test
+                  name: uniface-sintax-extension-v${{ steps.release.outputs.version }}-test
                   path: ${{ steps.get_vsix.outputs.file_name }}
                   if-no-files-found: error
 
