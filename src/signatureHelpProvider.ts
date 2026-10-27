@@ -65,7 +65,14 @@ export class UnifaceSignatureHelpProvider implements vscode.SignatureHelpProvide
         const params = procFunction.params.join(', ');
 
         signatureInformation.label = `${procFunction.name}(${params})`;
-        signatureInformation.documentation = procFunction.docs;
+        const documentation = new vscode.MarkdownString(procFunction.docs);
+
+        if (procFunction.deprecated) {
+            documentation.appendMarkdown('\n\n**Deprecated.**');
+        }
+
+        documentation.appendMarkdown(`\n\n[Official documentation](${procFunction.link})`);
+        signatureInformation.documentation = documentation;
 
         signatureInformation.parameters = [];
         for (const param of procFunction.params) {

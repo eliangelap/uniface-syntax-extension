@@ -51,14 +51,25 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
         );
 
         if (dollarPrefixedTokenRange) {
-            const procFunctionCompletions = new StringListToCompletionItems().execute(
-                reservedFunctions.map((proc) => proc.name),
-                vscode.CompletionItemKind.Method
-            );
+            const procFunctionCompletions = reservedFunctions.map((procFunction) => {
+                const completion = new vscode.CompletionItem(
+                    procFunction.name,
+                    vscode.CompletionItemKind.Method
+                );
 
-            for (const completion of procFunctionCompletions) {
+                completion.insertText = procFunction.name;
                 completion.range = dollarPrefixedTokenRange;
-            }
+                completion.documentation = new vscode.MarkdownString(
+                    `[Official documentation](${procFunction.link})`
+                );
+
+                if (procFunction.deprecated) {
+                    completion.tags = [vscode.CompletionItemTag.Deprecated];
+                    completion.detail = 'Deprecated';
+                }
+
+                return completion;
+            });
 
             completions.push(...procFunctionCompletions);
         }

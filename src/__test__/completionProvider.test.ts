@@ -87,6 +87,23 @@ suite('CompletionItemProvider', () => {
         assert.deepStrictEqual(aboutCompletion.range, new vscode.Range(1, 4, 1, 7));
     });
 
+    test('marks deprecated Proc Functions in completion items', async () => {
+        const document = await vscode.workspace.openTextDocument({
+            content: 'entry sampleEntry\n    $form\nend\n',
+            language: 'uniface',
+        });
+
+        const completions = new CompletionItemProvider().provideCompletionItems(
+            document,
+            new vscode.Position(1, 9)
+        ) as vscode.CompletionItem[];
+        const formdbCompletion = completions.find((completion) => completion.label === '$formdb');
+
+        assert.ok(formdbCompletion);
+        assert.deepStrictEqual(formdbCompletion.tags, [vscode.CompletionItemTag.Deprecated]);
+        assert.strictEqual(formdbCompletion.detail, 'Deprecated');
+    });
+
     test('does not list proc functions outside their cursor context', async () => {
         const document = await vscode.workspace.openTextDocument({
             content: 'entry sampleEntry\nvalue = \nend\n',
