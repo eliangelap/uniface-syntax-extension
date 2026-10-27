@@ -12,6 +12,15 @@ suite('ProcCodeSanitizer', () => {
         assert.match(sanitized, /data->/);
     });
 
+    test('masks extraction parameters from struct access chains while preserving the root', () => {
+        const code = 'vDsLatitudeDecimal = vStcSaida->DECIMAL->Latitude[round, 6]';
+        const sanitized = new ProcCodeSanitizer().sanitize(code);
+
+        assert.strictEqual(sanitized.length, code.length);
+        assert.match(sanitized, /vStcSaida/);
+        assert.doesNotMatch(sanitized.slice(sanitized.indexOf('vStcSaida')), /DECIMAL|Latitude|round/);
+    });
+
     test('masks a string continued with %\\ until its closing delimiter on the next line', () => {
         const lines = [
             'value = "first line %\\',

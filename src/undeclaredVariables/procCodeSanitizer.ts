@@ -70,6 +70,9 @@ export class ProcCodeSanitizer {
             .replace(/\b[A-Za-z_]\w*\.[A-Za-z_]\w*(?:\/init\b)?\b(?!\s*\[)/gi, (entityField) =>
                 ' '.repeat(entityField.length)
             )
+            .replace(/(?:->\s*[A-Za-z_]\w*)+\s*\[[^\]]*\]/g, (structExtraction) =>
+                ' '.repeat(structExtraction.length)
+            )
             .replace(/(->\s*)([A-Za-z_]\w*)/g, (_access, operator, field) =>
                 `${operator}${' '.repeat(field.length)}`
             ),

@@ -369,6 +369,35 @@ suite('UndeclaredVariableUsageAnalyzer', () => {
         );
     });
 
+    test('ignores extraction parameters from struct access chains while validating the root', () => {
+        const block: BlockCode = {
+            text: '',
+            startLine: 0,
+            lines: [
+                'entry sample',
+                'vDsLatitudeDecimal = vStcSaida->DECIMAL->Latitude[round, 6]',
+                'end',
+            ],
+        };
+        const usageAnalyzer = new UndeclaredVariableUsageAnalyzer();
+
+        assert.deepStrictEqual(
+            usageAnalyzer.getUndeclaredUsages(
+                block,
+                ['vDsLatitudeDecimal', 'vStcSaida'],
+                [
+                    { name: 'vDsLatitudeDecimal', dataType: 'numeric', line: 0 },
+                    { name: 'vStcSaida', dataType: 'struct', line: 0 },
+                ]
+            ),
+            []
+        );
+        assert.deepStrictEqual(
+            usageAnalyzer.getUndeclaredUsages(block, ['vDsLatitudeDecimal']).map((usage) => usage.name),
+            ['vStcSaida']
+        );
+    });
+
     test('ignores struct fields passed to procfunctions while validating the struct root', () => {
         const block: BlockCode = {
             text: '',
@@ -686,6 +715,30 @@ suite('UndeclaredVariableUsageAnalyzer', () => {
             block,
             ['vQtAplicacao'],
             [{ name: 'vQtAplicacao', dataType: 'numeric', line: 0 }]
+        );
+
+        assert.deepStrictEqual(usages, []);
+    });
+
+    test('ignores extraction parameters applied to numeric arithmetic expressions', () => {
+        const block: BlockCode = {
+            text: '',
+            startLine: 0,
+            lines: [
+                'entry sample',
+                'v_nr_perc = ((v_nr_atual / v_nr_total) * 100)[round]',
+                'end',
+            ],
+        };
+
+        const usages = new UndeclaredVariableUsageAnalyzer().getUndeclaredUsages(
+            block,
+            ['v_nr_perc', 'v_nr_atual', 'v_nr_total'],
+            [
+                { name: 'v_nr_perc', dataType: 'numeric', line: 0 },
+                { name: 'v_nr_atual', dataType: 'numeric', line: 0 },
+                { name: 'v_nr_total', dataType: 'numeric', line: 0 },
+            ]
         );
 
         assert.deepStrictEqual(usages, []);

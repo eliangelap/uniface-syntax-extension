@@ -10,7 +10,9 @@ export class ExtractionParameterValidator {
         code: string,
         declaredVariables: Iterable<DeclaredVariable>
     ): ExtractionParameterValidationResult {
-        const sourceTypes = this.getSourceTypes(declaredVariables);
+        const declared = [...declaredVariables];
+        const sourceTypes = this.getSourceTypes(declared);
+        const numericSources = this.getNumericSources(declared);
         const extractionRegex =
             /(\$?[A-Za-z_]\w*(?:\s*\.\s*[A-Za-z_]\w*)?)\s*\[\s*([^\]\s](?:[^\]]*?[^\]\s])?)\s*\]/g;
         let maskedCode = code;
@@ -40,6 +42,28 @@ export class ExtractionParameterValidator {
                 maskedCode.slice(parameterStart + parameter.length);
         }
 
+        for (const extraction of code.matchAll(/\[\s*([^\]\s](?:[^\]]*?[^\]\s])?)\s*\]/g)) {
+            const parameter = extraction[1];
+            const parameterStart = extraction.index! + extraction[0].indexOf(parameter);
+            let expressionEnd = extraction.index! - 1;
+            while (/\s/.test(code[expressionEnd] ?? '')) {
+                expressionEnd--;
+            }
+            const expressionStart = this.getParenthesizedExpressionStart(code, expressionEnd);
+
+            if (
+                expressionStart === undefined ||
+                !this.isNumericExpression(code.slice(expressionStart + 1, expressionEnd), numericSources)
+            ) {
+                continue;
+            }
+
+            maskedCode =
+                maskedCode.slice(0, parameterStart) +
+                ' '.repeat(parameter.length) +
+                maskedCode.slice(parameterStart + parameter.length);
+        }
+
         return { code: maskedCode };
     }
 
@@ -54,5 +78,40 @@ export class ExtractionParameterValidator {
         }
 
         return sourceTypes;
+    }
+
+    private getNumericSources(declaredVariables: Iterable<DeclaredVariable>): Set<string> {
+        const numericSources = new Set<string>();
+
+        for (const variable of declaredVariables) {
+            if (variable.dataType.toLowerCase() === 'numeric') {
+                numericSources.add(variable.name.toLowerCase());
+            }
+        }
+
+        return numericSources;
+    }
+
+    private getParenthesizedExpressionStart(code: string, expressionEnd: number): number | undefined {
+        let nesting = 0;
+
+        for (let index = expressionEnd; index >= 0; index--) {
+            if (code[index] === ')') {
+                nesting++;
+            } else if (code[index] === '(' && --nesting === 0) {
+                return index;
+            }
+        }
+
+        return undefined;
+    }
+
+    private isNumericExpression(expression: string, numericSources: ReadonlySet<string>): boolean {
+        if (!/^[\s\w.+\-*/%()]+$/.test(expression)) {
+            return false;
+        }
+
+        const identifiers = expression.match(/[A-Za-z_]\w*/g) ?? [];
+        return identifiers.length > 0 && identifiers.every((name) => numericSources.has(name.toLowerCase()));
     }
 }

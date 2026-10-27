@@ -25,4 +25,26 @@ suite('ExtractionParameterValidator', () => {
 
         assert.doesNotMatch(result.code, /invalid/);
     });
+
+    test('masks parameters applied to parenthesized numeric expressions', () => {
+        const result = new ExtractionParameterValidator().validate(
+            '((v_nr_atual / v_nr_total) * 100)[round] + (v_nr_atual / v_nr_total)[round, 2]',
+            [
+                { name: 'v_nr_atual', dataType: 'numeric', line: 0 },
+                { name: 'v_nr_total', dataType: 'numeric', line: 0 },
+            ]
+        );
+
+        assert.doesNotMatch(result.code, /round/);
+    });
+
+    test('keeps parameters visible when a parenthesized expression is not numeric', () => {
+        const result = new ExtractionParameterValidator().validate(
+            '(v_nr_atual / undeclaredValue)[round]',
+            [{ name: 'v_nr_atual', dataType: 'numeric', line: 0 }]
+        );
+
+        assert.match(result.code, /undeclaredValue/);
+        assert.match(result.code, /round/);
+    });
 });
