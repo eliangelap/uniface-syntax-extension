@@ -1,8 +1,18 @@
 import * as vscode from 'vscode';
 import { DeclaredVariable } from '../code/getVariablesFromBlock.use.case';
 
+export const unusedVariableDiagnosticCode = 'uniface.unusedVariable';
+export const uninitializedVariableDiagnosticCode = 'uniface.uninitializedVariable';
+
+export interface VariableDiagnostic {
+    variable: DeclaredVariable;
+    message: string;
+    code: string;
+    range?: vscode.Range;
+}
+
 export interface UnusedVariablesDiagnosticPublisherContract {
-    publish(document: vscode.TextDocument, unusedVariables: DeclaredVariable[]): void;
+    publish(document: vscode.TextDocument, diagnostics: VariableDiagnostic[]): void;
     clear(document: vscode.TextDocument): void;
     dispose(): void;
 }
@@ -14,15 +24,16 @@ export class UnusedVariablesDiagnosticPublisher implements UnusedVariablesDiagno
         )
     ) {}
 
-    public publish(document: vscode.TextDocument, unusedVariables: DeclaredVariable[]): void {
-        const diagnostics = unusedVariables.map((variable) => {
-            const line = document.lineAt(variable.line);
-
-            return new vscode.Diagnostic(
-                line.range,
-                `Variable "${variable.name}" is declared but is not used.`,
+    public publish(document: vscode.TextDocument, variableDiagnostics: VariableDiagnostic[]): void {
+        const diagnostics = variableDiagnostics.map(({ variable, message, code, range }) => {
+            const diagnostic = new vscode.Diagnostic(
+                range ?? document.lineAt(variable.line).range,
+                message,
                 vscode.DiagnosticSeverity.Warning
             );
+            diagnostic.code = code;
+
+            return diagnostic;
         });
 
         this.diagnostics.set(document.uri, diagnostics);

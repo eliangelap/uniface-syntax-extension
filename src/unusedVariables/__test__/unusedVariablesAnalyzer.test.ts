@@ -3,14 +3,19 @@ import * as vscode from 'vscode';
 import { BlockCode } from '../../code/getBlockAroundPosition.use.case';
 import { DeclaredVariable } from '../../code/getVariablesFromBlock.use.case';
 import { UnifaceUnusedVariableAnalyzer } from '../unusedVariablesAnalyzer';
-import { UnusedVariablesDiagnosticPublisherContract } from '../unusedVariablesDiagnosticPublisher';
+import {
+    uninitializedVariableDiagnosticCode,
+    UnusedVariablesDiagnosticPublisherContract,
+    unusedVariableDiagnosticCode,
+    VariableDiagnostic,
+} from '../unusedVariablesDiagnosticPublisher';
 
 class DiagnosticPublisherStub implements UnusedVariablesDiagnosticPublisherContract {
-    public publishedVariables: DeclaredVariable[] | undefined;
+    public publishedDiagnostics: VariableDiagnostic[] | undefined;
     public clearedDocuments: vscode.TextDocument[] = [];
 
-    public publish(_document: vscode.TextDocument, unusedVariables: DeclaredVariable[]): void {
-        this.publishedVariables = unusedVariables;
+    public publish(_document: vscode.TextDocument, diagnostics: VariableDiagnostic[]): void {
+        this.publishedDiagnostics = diagnostics;
     }
 
     public clear(document: vscode.TextDocument): void {
@@ -22,7 +27,7 @@ class DiagnosticPublisherStub implements UnusedVariablesDiagnosticPublisherContr
 
 suite('UnifaceUnusedVariableAnalyzer', () => {
     const block: BlockCode = {
-        text: 'entry sampleEntry\nvariables\nstring usedValue, unusedValue\nendvariables\nusedValue = 1\nend',
+        text: 'entry sampleEntry\nvariables\nstring usedValue, unusedValue\nendvariables\nusedValue = 1\nresult = usedValue\nend',
         startLine: 0,
         lines: [
             'entry sampleEntry',
@@ -30,6 +35,7 @@ suite('UnifaceUnusedVariableAnalyzer', () => {
             'string usedValue, unusedValue',
             'endvariables',
             'usedValue = 1',
+            'result = usedValue',
             'end',
         ],
     };
@@ -67,7 +73,13 @@ suite('UnifaceUnusedVariableAnalyzer', () => {
 
         analyzer.analyzeDocument(document);
 
-        assert.deepStrictEqual(publisher.publishedVariables, [variables[1]]);
+        assert.deepStrictEqual(publisher.publishedDiagnostics, [
+            {
+                variable: variables[1],
+                code: unusedVariableDiagnosticCode,
+                message: 'Variable "unusedValue" is declared but is not used.',
+            },
+        ]);
     });
 
     test('publishes unused variables from every block in the document', async () => {
@@ -94,7 +106,18 @@ suite('UnifaceUnusedVariableAnalyzer', () => {
 
         analyzer.analyzeDocument(document);
 
-        assert.deepStrictEqual(publisher.publishedVariables, [variables[1], secondUnused]);
+        assert.deepStrictEqual(publisher.publishedDiagnostics, [
+            {
+                variable: variables[1],
+                code: unusedVariableDiagnosticCode,
+                message: 'Variable "unusedValue" is declared but is not used.',
+            },
+            {
+                variable: secondUnused,
+                code: unusedVariableDiagnosticCode,
+                message: 'Variable "secondUnused" is declared but is not used.',
+            },
+        ]);
     });
 
     test('skips analysis when a block END is missing', async () => {
@@ -113,6 +136,50 @@ suite('UnifaceUnusedVariableAnalyzer', () => {
         analyzer.analyzeDocument(document);
 
         assert.deepStrictEqual(publisher.clearedDocuments, [document]);
-        assert.strictEqual(publisher.publishedVariables, undefined);
+        assert.strictEqual(publisher.publishedDiagnostics, undefined);
+    });
+
+    test('reports an interpolated variable that was never initialized', async () => {
+        const interpolationBlock: BlockCode = {
+            text: 'entry sampleEntry\nvariables\nstring teste, teste2\nendvariables\nteste2 = "%%teste%%%"\nend',
+            startLine: 0,
+            lines: [
+                'entry sampleEntry',
+                'variables',
+                'string teste, teste2',
+                'endvariables',
+                'teste2 = "%%teste%%%"',
+                'end',
+            ],
+        };
+        const interpolationVariables: DeclaredVariable[] = [
+            { name: 'teste', dataType: 'string', line: 2 },
+            { name: 'teste2', dataType: 'string', line: 2 },
+        ];
+        const document = await vscode.workspace.openTextDocument({
+            content: interpolationBlock.text,
+            language: 'uniface',
+        });
+        const publisher = new DiagnosticPublisherStub();
+        const analyzer = new UnifaceUnusedVariableAnalyzer(publisher, undefined, {
+            getBlocks: () => [interpolationBlock],
+            getVariables: () => interpolationVariables,
+        });
+
+        analyzer.analyzeDocument(document);
+
+        assert.deepStrictEqual(publisher.publishedDiagnostics, [
+            {
+                variable: interpolationVariables[1],
+                code: unusedVariableDiagnosticCode,
+                message: 'Variable "teste2" is declared but is not used.',
+            },
+            {
+                variable: interpolationVariables[0],
+                code: uninitializedVariableDiagnosticCode,
+                message: 'Variable "teste" is used but was never initialized.',
+                range: new vscode.Range(4, 12, 4, 17),
+            },
+        ]);
     });
 });
