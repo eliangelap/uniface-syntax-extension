@@ -289,4 +289,40 @@ suite('UnifaceFormatterProvider', () => {
             ].join('\n')
         );
     });
+
+    test('collapses consecutive blank lines and preserves define directives at zero indentation', async () => {
+        const document = await vscode.workspace.openTextDocument({
+            content: ['#define FLAG', '', '', 'entry valid', 'value = 1', 'end'].join('\n'),
+            language: 'uniface',
+        });
+
+        const edits = await formatterProvider().provideDocumentFormattingEdits(
+            document,
+            { insertSpaces: true, tabSize: 4 },
+            cancellationToken
+        );
+
+        assert.strictEqual(
+            edits?.[0].newText,
+            ['#define FLAG', '', 'entry valid', '\tvalue = 1', 'end'].join('\n')
+        );
+    });
+
+    test('indents continuation lines one level beyond their statement', async () => {
+        const document = await vscode.workspace.openTextDocument({
+            content: ['entry valid', 'value = $concat(first, %\\', 'second)', 'end'].join('\n'),
+            language: 'uniface',
+        });
+
+        const edits = await formatterProvider().provideDocumentFormattingEdits(
+            document,
+            { insertSpaces: true, tabSize: 4 },
+            cancellationToken
+        );
+
+        assert.strictEqual(
+            edits?.[0].newText,
+            ['entry valid', '\tvalue = $concat(first, %\\', '\t\tsecond)', 'end'].join('\n')
+        );
+    });
 });

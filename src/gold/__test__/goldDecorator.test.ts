@@ -57,4 +57,24 @@ suite('GoldDecorator', () => {
             disposable.dispose();
         }
     });
+
+    test('updates decorations after editing the active Uniface document', async () => {
+        const document = await vscode.workspace.openTextDocument({
+            content: 'value',
+            language: 'uniface',
+        });
+        const editor = await vscode.window.showTextDocument(document);
+        const context = { subscriptions: [] as vscode.Disposable[] } as vscode.ExtensionContext;
+        registerGoldDecorationEvents(context);
+
+        await editor.edit((editBuilder) => {
+            editBuilder.insert(new vscode.Position(0, 5), '\x1B');
+        });
+        await new Promise((resolve) => setTimeout(resolve, 300));
+
+        assert.strictEqual(document.getText(), 'value\x1B');
+        for (const disposable of context.subscriptions) {
+            disposable.dispose();
+        }
+    });
 });

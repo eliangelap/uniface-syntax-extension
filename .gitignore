@@ -3,6 +3,7 @@ dist/
 out/
 .vscode/
 .vscode-test/
+coverage/
 
 uniface-sintax-extension-*
 

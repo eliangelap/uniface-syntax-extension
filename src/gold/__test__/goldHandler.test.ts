@@ -1,6 +1,11 @@
 import * as assert from 'node:assert';
 import * as vscode from 'vscode';
-import { getGoldReplacement, getGoldReplacements } from '../goldHandler';
+import {
+    getGoldReplacement,
+    getGoldReplacements,
+    isInsideString,
+    registerGoldInterceptor,
+} from '../goldHandler';
 
 suite('GoldHandler', () => {
     test('converts GOLD sequences only inside strings, including strings in comments', () => {
@@ -55,5 +60,49 @@ suite('GoldHandler', () => {
                 [6, 8],
             ]
         );
+    });
+
+    test('recognizes escaped delimiters and closed strings', () => {
+        assert.strictEqual(isInsideString('value = "text"', 'value = "text"'.length), false);
+        const escapedDelimiterLine = 'value = "text %%" +;"';
+        assert.strictEqual(
+            isInsideString(escapedDelimiterLine, escapedDelimiterLine.indexOf(';')),
+            true
+        );
+        assert.strictEqual(isInsideString("value = 'text+;'", "value = 'text+;'".indexOf(';')), true);
+    });
+
+    test('ignores replacement changes and unsupported GOLD sequences', async () => {
+        const document = await vscode.workspace.openTextDocument({
+            content: '"value+;"',
+            language: 'uniface',
+        });
+        const changes = [
+            { rangeOffset: 7, rangeLength: 1, text: ';' },
+            { rangeOffset: 8, rangeLength: 0, text: 'x' },
+        ] as vscode.TextDocumentContentChangeEvent[];
+
+        assert.strictEqual(getGoldReplacement('"value+x"', 7), null);
+        assert.deepStrictEqual(getGoldReplacements(document, changes), []);
+    });
+
+    test('intercepts a GOLD sequence typed in an active Uniface editor', async () => {
+        const document = await vscode.workspace.openTextDocument({
+            content: '"value+"',
+            language: 'uniface',
+        });
+        const editor = await vscode.window.showTextDocument(document);
+        const context = { subscriptions: [] as vscode.Disposable[] } as vscode.ExtensionContext;
+        registerGoldInterceptor(context);
+
+        await editor.edit((editBuilder) => {
+            editBuilder.insert(new vscode.Position(0, 7), ';');
+        });
+        await new Promise((resolve) => setTimeout(resolve, 50));
+
+        assert.strictEqual(document.getText(), '"value\x1B"');
+        for (const disposable of context.subscriptions) {
+            disposable.dispose();
+        }
     });
 });

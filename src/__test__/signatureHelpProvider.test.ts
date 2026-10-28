@@ -56,4 +56,83 @@ suite('UnifaceSignatureHelpProvider', () => {
             /https:\/\/docs\.rocketsoftware\.com\/pt-BR\/bundle\/uniface_104\/page\/anh1665702601480\.html/
         );
     });
+
+    test('returns no signature when the cursor is outside a supported call expression', async () => {
+        const document = await vscode.workspace.openTextDocument({
+            content: 'value = 1',
+            language: 'uniface',
+        });
+        const editor = await vscode.window.showTextDocument(document);
+        const position = new vscode.Position(0, document.lineAt(0).text.length);
+        editor.selection = new vscode.Selection(position, position);
+        const cancellationTokenSource = new vscode.CancellationTokenSource();
+
+        const signatureHelp = new UnifaceSignatureHelpProvider().provideSignatureHelp(
+            document,
+            position,
+            cancellationTokenSource.token,
+            {} as vscode.SignatureHelpContext
+        );
+
+        cancellationTokenSource.dispose();
+
+        assert.strictEqual(signatureHelp, null);
+    });
+
+    test('returns entry parameters and selects the active argument', async () => {
+        const content = [
+            'entry calculate',
+            'params',
+            '    string input : in',
+            '    numeric total : out',
+            'endparams',
+            'end',
+            'call calculate(first, second',
+        ].join('\n');
+        const document = await vscode.workspace.openTextDocument({ content, language: 'uniface' });
+        const editor = await vscode.window.showTextDocument(document);
+        const position = new vscode.Position(6, 'call calculate(first, second'.length);
+        editor.selection = new vscode.Selection(position, position);
+        const cancellationTokenSource = new vscode.CancellationTokenSource();
+
+        const signatureHelp = new UnifaceSignatureHelpProvider().provideSignatureHelp(
+            document,
+            position,
+            cancellationTokenSource.token,
+            {} as vscode.SignatureHelpContext
+        ) as vscode.SignatureHelp;
+
+        cancellationTokenSource.dispose();
+
+        assert.strictEqual(signatureHelp.signatures[0].label, 'calculate(input, total)');
+        assert.strictEqual(signatureHelp.signatures[0].documentation, '');
+        assert.deepStrictEqual(
+            signatureHelp.signatures[0].parameters.map((parameter) => parameter.label),
+            ['input', 'total']
+        );
+        assert.strictEqual(signatureHelp.activeParameter, 1);
+    });
+
+    test('keeps the generic signature for an unknown Proc Function', async () => {
+        const document = await vscode.workspace.openTextDocument({
+            content: '$unknown(',
+            language: 'uniface',
+        });
+        const editor = await vscode.window.showTextDocument(document);
+        const position = new vscode.Position(0, '$unknown('.length);
+        editor.selection = new vscode.Selection(position, position);
+        const cancellationTokenSource = new vscode.CancellationTokenSource();
+
+        const signatureHelp = new UnifaceSignatureHelpProvider().provideSignatureHelp(
+            document,
+            position,
+            cancellationTokenSource.token,
+            {} as vscode.SignatureHelpContext
+        ) as vscode.SignatureHelp;
+
+        cancellationTokenSource.dispose();
+
+        assert.strictEqual(signatureHelp.signatures[0].label, '$unknown()');
+        assert.strictEqual(signatureHelp.signatures[0].documentation, undefined);
+    });
 });
