@@ -2,6 +2,7 @@ import * as assert from 'node:assert';
 import * as vscode from 'vscode';
 import { BlockCode } from '../../code/getBlockAroundPosition.use.case';
 import { DeclaredVariable } from '../../code/getVariablesFromBlock.use.case';
+import { DeclaredParameter } from '../../code/getParametersFromBlock.use.case';
 import { UnifaceUnusedVariableAnalyzer } from '../unusedVariablesAnalyzer';
 import {
     uninitializedVariableDiagnosticCode,
@@ -181,5 +182,47 @@ suite('UnifaceUnusedVariableAnalyzer', () => {
                 range: new vscode.Range(4, 12, 4, 17),
             },
         ]);
+    });
+
+    test('uses local out parameter directions while analyzing a document', async () => {
+        const targetBlock: BlockCode = {
+            text: 'entry teste\nparams\nnumeric pNrCalculo : out\nendparams\nend',
+            startLine: 0,
+            lines: ['entry teste', 'params', 'numeric pNrCalculo : out', 'endparams', 'end'],
+        };
+        const callerBlock: BlockCode = {
+            text: 'entry teste2\nvariables\nnumeric vCalculo\nendvariables\ncall teste(vCalculo)\nmessage/info vCalculo\nend',
+            startLine: 5,
+            lines: [
+                'entry teste2',
+                'variables',
+                'numeric vCalculo',
+                'endvariables',
+                'call teste(vCalculo)',
+                'message/info vCalculo',
+                'end',
+            ],
+        };
+        const callerVariable: DeclaredVariable = { name: 'vCalculo', dataType: 'numeric', line: 7 };
+        const targetParameter: DeclaredParameter = {
+            name: 'pNrCalculo',
+            dataType: 'numeric',
+            line: 2,
+            direction: 'out',
+        };
+        const document = await vscode.workspace.openTextDocument({
+            content: `${targetBlock.text}\n${callerBlock.text}`,
+            language: 'uniface',
+        });
+        const publisher = new DiagnosticPublisherStub();
+        const analyzer = new UnifaceUnusedVariableAnalyzer(publisher, undefined, {
+            getBlocks: () => [targetBlock, callerBlock],
+            getVariables: (currentBlock) => (currentBlock === callerBlock ? [callerVariable] : []),
+            getParameters: (currentBlock) => (currentBlock === targetBlock ? [targetParameter] : []),
+        });
+
+        analyzer.analyzeDocument(document);
+
+        assert.deepStrictEqual(publisher.publishedDiagnostics, []);
     });
 });

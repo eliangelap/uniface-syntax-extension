@@ -3,14 +3,14 @@ import { findMissingBlockEnds } from '../blockStructure/blockStructureAnalyzer';
 import { MissingBlockEnd } from '../blockStructure/blockStructureDiagnosticPublisher';
 import { BlockCode } from '../code/getBlockAroundPosition.use.case';
 import { DeclaredVariable, GetVariablesFromBlock } from '../code/getVariablesFromBlock.use.case';
-import { GetParametersFromBlock } from '../code/getParametersFromBlock.use.case';
+import { DeclaredParameter, GetParametersFromBlock } from '../code/getParametersFromBlock.use.case';
 import { DeclaredModule } from '../code/types/declaredModule';
 import { blockEndRegex, blockStartRegex } from '../regExpConstants';
 import { getCodeOutsideStringsAndCommentsLines } from './procCodeScanner';
 
 export interface AnalyzedBlock extends BlockCode {
     variables: DeclaredVariable[];
-    parameters: DeclaredVariable[];
+    parameters: DeclaredParameter[];
 }
 
 export interface DocumentAnalysisSnapshot {

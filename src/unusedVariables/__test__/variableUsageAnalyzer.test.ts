@@ -77,6 +77,158 @@ suite('VariableUsageAnalyzer', () => {
         assert.deepStrictEqual(usage.uninitializedReads, []);
     });
 
+    test('recognizes a selectdb destination as initialized across continuation lines', () => {
+        const usage = new VariableUsageAnalyzer().getUsageSummary(
+            [
+                'variables',
+                'numeric vQtTabela, vNrCalculo',
+                'endvariables',
+                'selectdb qt_tabela %\\',
+                '    from "nome_tabela" %\\',
+                '    u_where id = 1 %\\',
+                '    to vQtTabela',
+                'vNrCalculo = vQtTabela * 10',
+            ],
+            [
+                { name: 'vQtTabela', dataType: 'numeric', line: 1 },
+                { name: 'vNrCalculo', dataType: 'numeric', line: 1 },
+            ]
+        );
+
+        assert.deepStrictEqual([...usage.readVariables], ['vQtTabela']);
+        assert.deepStrictEqual(usage.uninitializedReads, []);
+    });
+
+    test('recognizes a selectdb destination on its first line', () => {
+        const usage = new VariableUsageAnalyzer().getUsageSummary(
+            ['variables', 'numeric value', 'endvariables', 'selectdb id from "entity" to value', 'result = value'],
+            [{ name: 'value', dataType: 'numeric', line: 1 }]
+        );
+
+        assert.deepStrictEqual([...usage.readVariables], ['value']);
+        assert.deepStrictEqual(usage.uninitializedReads, []);
+    });
+
+    test('reports reads that occur before a selectdb destination is initialized', () => {
+        const usage = new VariableUsageAnalyzer().getUsageSummary(
+            [
+                'variables',
+                'numeric value, result',
+                'endvariables',
+                'result = value',
+                'selectdb id from "entity" to value',
+            ],
+            [
+                { name: 'value', dataType: 'numeric', line: 1 },
+                { name: 'result', dataType: 'numeric', line: 1 },
+            ]
+        );
+
+        assert.deepStrictEqual(usage.uninitializedReads, [{ name: 'value', line: 3, start: 9 }]);
+    });
+
+    test('recognizes an out parameter from a local call as initialized', () => {
+        const analyzer = new VariableUsageAnalyzer();
+        const signatures = analyzer.getCallableSignatures([
+            {
+                lines: ['entry teste'],
+                parameters: [{ name: 'pNrCalculo', dataType: 'numeric', line: 1, direction: 'out' }],
+            },
+        ]);
+        const usage = analyzer.getUsageSummary(
+            ['variables', 'numeric vCalculo', 'endvariables', 'call teste(vCalculo)', 'message/info vCalculo'],
+            [{ name: 'vCalculo', dataType: 'numeric', line: 1 }],
+            signatures
+        );
+
+        assert.deepStrictEqual([...usage.readVariables], ['vCalculo']);
+        assert.deepStrictEqual(usage.uninitializedReads, []);
+    });
+
+    test('keeps an uninitialized warning for an in parameter from a local call', () => {
+        const analyzer = new VariableUsageAnalyzer();
+        const signatures = analyzer.getCallableSignatures([
+            {
+                lines: ['entry teste'],
+                parameters: [{ name: 'pNrCalculo', dataType: 'numeric', line: 1, direction: 'in' }],
+            },
+        ]);
+        const usage = analyzer.getUsageSummary(
+            ['variables', 'numeric vCalculo', 'endvariables', 'call teste(vCalculo)'],
+            [{ name: 'vCalculo', dataType: 'numeric', line: 1 }],
+            signatures
+        );
+
+        assert.deepStrictEqual(usage.uninitializedReads, [{ name: 'vCalculo', line: 3, start: 11 }]);
+    });
+
+    test('treats an inout parameter as both a read and a write', () => {
+        const analyzer = new VariableUsageAnalyzer();
+        const signatures = analyzer.getCallableSignatures([
+            {
+                lines: ['entry teste'],
+                parameters: [{ name: 'pNrCalculo', dataType: 'numeric', line: 1, direction: 'inout' }],
+            },
+        ]);
+        const usage = analyzer.getUsageSummary(
+            [
+                'variables',
+                'numeric vCalculo',
+                'endvariables',
+                'call teste(vCalculo)',
+                'message/info vCalculo',
+            ],
+            [{ name: 'vCalculo', dataType: 'numeric', line: 1 }],
+            signatures
+        );
+
+        assert.deepStrictEqual(usage.uninitializedReads, [{ name: 'vCalculo', line: 3, start: 11 }]);
+        assert.deepStrictEqual([...usage.readVariables], ['vCalculo']);
+    });
+
+    test('assumes external calls and activations initialize simple arguments', () => {
+        const usage = new VariableUsageAnalyzer().getUsageSummary(
+            [
+                'variables',
+                'numeric fromCall, fromActivate',
+                'endvariables',
+                'call rotinaExterna(%\\',
+                '    fromCall)',
+                'activate "COMPONENTE".operacaoExterna(fromActivate)',
+                'message/info fromCall, fromActivate',
+            ],
+            [
+                { name: 'fromCall', dataType: 'numeric', line: 1 },
+                { name: 'fromActivate', dataType: 'numeric', line: 1 },
+            ]
+        );
+
+        assert.deepStrictEqual([...usage.readVariables].sort(), ['fromActivate', 'fromCall']);
+        assert.deepStrictEqual(usage.uninitializedReads, []);
+    });
+
+    test('uses local operation parameter directions for activate', () => {
+        const analyzer = new VariableUsageAnalyzer();
+        const signatures = analyzer.getCallableSignatures([
+            {
+                lines: ['operation calcula'],
+                parameters: [{ name: 'pNrCalculo', dataType: 'numeric', line: 1, direction: 'in' }],
+            },
+        ]);
+        const usage = analyzer.getUsageSummary(
+            [
+                'variables',
+                'numeric vCalculo',
+                'endvariables',
+                'activate "COMPONENTE".calcula(vCalculo)',
+            ],
+            [{ name: 'vCalculo', dataType: 'numeric', line: 1 }],
+            signatures
+        );
+
+        assert.deepStrictEqual(usage.uninitializedReads, [{ name: 'vCalculo', line: 3, start: 30 }]);
+    });
+
     test('reports a direct read before its first assignment', () => {
         const usage = new VariableUsageAnalyzer().getUsageSummary(
             ['variables', 'string value, result', 'endvariables', 'result = value', 'value = "ready"'],

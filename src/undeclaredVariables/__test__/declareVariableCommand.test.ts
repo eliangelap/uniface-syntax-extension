@@ -71,6 +71,28 @@ suite('DeclareVariableCommand', () => {
         assert.strictEqual(createInsertionCalled, false);
     });
 
+    test('does not declare a variable that is already declared as a parameter', async () => {
+        let createInsertionCalled = false;
+        const command = new DeclareVariableCommand({
+            selectDataType: async () => 'string',
+            openDocument: async () => createDocumentStub(documentUri),
+            getBlock: () => block,
+            getVariables: () => [],
+            getParameters: () => [
+                { name: 'existingParameter', dataType: 'string', direction: 'in', line: 2 },
+            ],
+            createInsertion: () => {
+                createInsertionCalled = true;
+                return { line: 0, character: 0, text: '' };
+            },
+            applyEdit: async () => true,
+        });
+
+        await command.execute(documentUri, 'EXISTINGPARAMETER', 5);
+
+        assert.strictEqual(createInsertionCalled, false);
+    });
+
     test('creates and applies an insertion for an undeclared variable', async () => {
         let appliedEdit: vscode.WorkspaceEdit | undefined;
         const command = new DeclareVariableCommand({

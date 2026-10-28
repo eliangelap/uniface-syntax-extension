@@ -3,6 +3,7 @@ import { BlockCode } from '../code/getBlockAroundPosition.use.case';
 import { GetBlockList } from '../code/getBlockList.use.case';
 import { findMissingBlockEnds } from '../blockStructure/blockStructureAnalyzer';
 import { DeclaredVariable, GetVariablesFromBlock } from '../code/getVariablesFromBlock.use.case';
+import { DeclaredParameter, GetParametersFromBlock } from '../code/getParametersFromBlock.use.case';
 import {
     UnusedVariablesDiagnosticPublisher,
     UnusedVariablesDiagnosticPublisherContract,
@@ -10,17 +11,19 @@ import {
     unusedVariableDiagnosticCode,
     VariableDiagnostic,
 } from './unusedVariablesDiagnosticPublisher';
-import { VariableUsageAnalyzer } from './variableUsageAnalyzer';
+import { CallableSignatures, VariableUsageAnalyzer } from './variableUsageAnalyzer';
 import { DocumentAnalysisSnapshot } from '../util/documentAnalysisSnapshot';
 
 interface UnusedVariableAnalyzerDependencies {
     getBlocks(document: vscode.TextDocument): BlockCode[];
     getVariables(block: BlockCode): DeclaredVariable[];
+    getParameters?(block: BlockCode): DeclaredParameter[];
 }
 
 const defaultDependencies: UnusedVariableAnalyzerDependencies = {
     getBlocks: (document) => new GetBlockList().execute(document),
     getVariables: (block) => new GetVariablesFromBlock().execute(block),
+    getParameters: (block) => new GetParametersFromBlock().execute(block),
 };
 
 export class UnifaceUnusedVariableAnalyzer implements vscode.Disposable {
@@ -45,10 +48,15 @@ export class UnifaceUnusedVariableAnalyzer implements vscode.Disposable {
             return;
         }
 
-        const diagnostics = blocks.flatMap((block) => {
-            const declaredVariables = this.dependencies.getVariables(block);
-            return this.getDiagnostics(block, declaredVariables);
-        });
+        const analyzedBlocks = blocks.map((block) => ({
+            ...block,
+            variables: this.dependencies.getVariables(block),
+            parameters: this.dependencies.getParameters?.(block) ?? [],
+        }));
+        const callableSignatures = this.usageAnalyzer.getCallableSignatures(analyzedBlocks);
+        const diagnostics = analyzedBlocks.flatMap((block) =>
+            this.getDiagnostics(block, block.variables, callableSignatures)
+        );
 
         this.publisher.publish(document, diagnostics);
     }
@@ -60,7 +68,10 @@ export class UnifaceUnusedVariableAnalyzer implements vscode.Disposable {
             return;
         }
 
-        const diagnostics = blocks.flatMap((block) => this.getDiagnostics(block, block.variables));
+        const callableSignatures = this.usageAnalyzer.getCallableSignatures(blocks);
+        const diagnostics = blocks.flatMap((block) =>
+            this.getDiagnostics(block, block.variables, callableSignatures)
+        );
 
         this.publisher.publish(document, diagnostics);
     }
@@ -73,8 +84,12 @@ export class UnifaceUnusedVariableAnalyzer implements vscode.Disposable {
         this.publisher.dispose();
     }
 
-    private getDiagnostics(block: BlockCode, declaredVariables: DeclaredVariable[]): VariableDiagnostic[] {
-        const usage = this.usageAnalyzer.getUsageSummary(block.lines, declaredVariables);
+    private getDiagnostics(
+        block: BlockCode,
+        declaredVariables: DeclaredVariable[],
+        callableSignatures: CallableSignatures
+    ): VariableDiagnostic[] {
+        const usage = this.usageAnalyzer.getUsageSummary(block.lines, declaredVariables, callableSignatures);
         const unusedDiagnostics = declaredVariables
             .filter((variable) => !usage.readVariables.has(variable.name))
             .map((variable) => ({

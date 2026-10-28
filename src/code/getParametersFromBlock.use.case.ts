@@ -4,9 +4,15 @@ import { BlockCode } from './getBlockAroundPosition.use.case';
 import { DeclaredVariable } from './getVariablesFromBlock.use.case';
 import { getCodeOutsideStringsAndCommentsLines } from '../util/procCodeScanner';
 
+export type ParameterDirection = 'in' | 'out' | 'inout';
+
+export interface DeclaredParameter extends DeclaredVariable {
+    direction: ParameterDirection;
+}
+
 export class GetParametersFromBlock {
-    public execute = (block: BlockCode): DeclaredVariable[] => {
-        const parameters: DeclaredVariable[] = [];
+    public execute = (block: BlockCode): DeclaredParameter[] => {
+        const parameters: DeclaredParameter[] = [];
         const parameterRegex = RegExp(`^${variableRegex}\\s*:\\s*(in|out|inout)\\b`, 'i');
         let inParametersBlock = false;
 
@@ -41,6 +47,7 @@ export class GetParametersFromBlock {
                 dataType: parameterMatch[1],
                 name: parameterMatch[2],
                 line: block.startLine + i,
+                direction: parameterMatch[3].toLowerCase() as ParameterDirection,
             });
         }
 

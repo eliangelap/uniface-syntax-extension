@@ -32,11 +32,13 @@ suite('GetParametersFromBlock', () => {
                 dataType: 'string',
                 name: 'firstParameter',
                 line: 12,
+                direction: 'in',
             },
             {
                 dataType: 'numeric',
                 name: 'secondParameter',
                 line: 14,
+                direction: 'inout',
             },
         ]);
     });
