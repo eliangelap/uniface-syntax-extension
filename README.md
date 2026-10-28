@@ -1,39 +1,42 @@
 # Uniface Syntax Extension
 
-A Visual Studio Code extension for Uniface and ProcScript files. It adds language support for `.uniface` and `.proc` files, plus editor tools for authoring, navigation, formatting, GOLD characters, and code diagnostics.
+A Visual Studio Code extension for Uniface and ProcScript files. It adds language support for `.uniface` and `.proc` files, plus editor tools for authoring, navigation, formatting, GOLD characters, code assistance, and diagnostics.
 
 ## Features
 
 ### Language support
 
 - Syntax highlighting through the `source.uniface` grammar.
-- Language configuration for Uniface and ProcScript files, including comments, strings, constants, directives, declarations, and ProcScript statements.
-- Code formatting through VS Code's **Format Document** command, with indentation for control structures, continuations, comments, and `#define` directives.
+- Recognition of `.uniface` and `.proc` files as the **Uniface** language.
+- Language configuration for comments, single- and double-quoted strings, constants, directives, declarations, ProcScript statements, bracket matching, and automatic closing pairs.
+- Code formatting through VS Code's **Format Document** command. It normalizes indentation for control structures (`if`, loops, `try`, `selectcase`, and their branches), continuations, comments, `#define` directives, and blank lines; it preserves `blockdata` contents.
 - Formatting is deliberately skipped when an `entry` or `operation` has a missing `END`, preserving the source until its structure is corrected.
 
 ### Completion and signature help
 
-- Completion for `entry` declarations after `call`.
-- Completion for parameters and variables declared in the current block.
-- Completion for built-in ProcScript functions when typing `$`.
-- Signature help for built-in ProcScript functions and called entries, including the active parameter.
+- Context-aware completion avoids comments and `blockdata` sections.
+- Completion for `entry` declarations after `call`, including inline calls.
+- Completion for ProcScript statements, plus parameters and variables declared in the current block.
+- Completion for built-in ProcScript functions when typing `$`, with a link to the official documentation and a deprecation indicator where applicable.
+- Signature help for built-in ProcScript functions and called entries, including their parameters and the active argument.
 
 ### Navigation and explorer
 
-- Go to Definition for entries referenced by `call`.
+- Go to Definition for entries referenced by `call` (case-insensitive, and ignored inside comments, strings, and `blockdata`).
 - A dedicated **Uniface** activity-bar view that lists declared `trigger`, `operation`, `entry`, and `function` modules.
-- Select an item in the view to jump to its declaration.
+- The module list refreshes as the document changes; select an item to jump to its declaration.
 
 ### Authoring assistance
 
-- **Uniface: Create new Entry** inserts a documented entry template with parameters, variables, and return handling.
-- **Uniface: Create new Operation** inserts an operation template with the same baseline structure.
-- Diagnostics highlight variables declared in a block that are not used.
-- Diagnostics identify variable usages that have not been declared and provide quick fixes to declare them as variables with a selected type or as parameters with a selected type and direction.
+- **Uniface: Create new Entry** prompts for a valid name and inserts a documented, editable entry template with parameters, variables, error handling, and a return.
+- **Uniface: Create new Operation** provides the equivalent template for operations.
+- Generated templates fill in the current user and date and support VS Code tab stops and placeholders.
+- Diagnostics highlight variables declared in a block that are not read, and variables that are read before initialization or never initialized.
+- Diagnostics identify variable usages that have not been declared. Quick fixes insert them in the appropriate block either as a variable or a parameter; the type (and, for parameters, direction) is chosen interactively.
 - Extraction parameters for `date`, `time`, `datetime`, `numeric`, and `string` values, including `$date`, `$clock`, and `$datim`, are ignored by undeclared-variable diagnostics.
 - Diagnostics report a missing `END` for `entry` and `operation` blocks.
 - Declaration validation reports duplicate parameter or variable names (case-insensitively) and a missing variable name between consecutive commas, such as `string texto,, texto2`.
-- Variable diagnostics and declaration validation are skipped while the document has a missing `END`, avoiding misleading results from an incomplete block.
+- Analyses update when a Uniface document is opened or edited. Variable diagnostics and declaration validation are skipped while the document has a missing `END`, avoiding misleading results from an incomplete block.
 
 #### Custom entry template
 
@@ -66,7 +69,7 @@ breaks can be entered directly in the Settings editor. It supports `{{operationN
 ### GOLD key support
 
 - Recognizes GOLD sequences typed inside single- or double-quoted strings and replaces them with the corresponding control character.
-- Displays supported GOLD control characters with a visible decoration in the editor.
+- Displays supported GOLD control characters with a visible orange decoration and an ASCII-code tooltip, while hiding the underlying control character.
 
 Supported sequences include `+;`, `+=`, `+!`, `+<`, `+>`, `+&`, `+|`, `+?`, and `+*`.
 
@@ -81,7 +84,7 @@ Supported sequences include `+;`, `+=`, `+!`, `+<`, `+>`, `+&`, `+|`, `+?`, and 
 ## Requirements
 
 - Visual Studio Code `^1.125.0`.
-- Node.js `24.14.0` for local development.
+- Node.js `24.22.1` for local development.
 
 ## Development
 
