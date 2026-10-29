@@ -74,7 +74,7 @@ export class VariableDeclarationInserter {
         const declaration = line.split(';', 1)[0].trim();
         const match = /^(\w+)\s+(.+)$/.exec(declaration);
 
-        if (!match || match[1].toLowerCase() !== dataType.toLowerCase()) {
+        if (match?.[1].toLowerCase() !== dataType.toLowerCase()) {
             return false;
         }
 

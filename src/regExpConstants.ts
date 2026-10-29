@@ -47,7 +47,7 @@ const startKeywords = [
     'variables',
     'params',
     'forlist',
-    'forlist\\/id',
+    String.raw`forlist\/id`,
     'selectcase',
     'try',
 ];

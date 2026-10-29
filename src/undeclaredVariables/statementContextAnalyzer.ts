@@ -113,7 +113,7 @@ export class StatementContextAnalyzer {
             return [];
         }
 
-        const modifier = /\s*\/\s*([A-Za-z_]\w*)\b/gy;
+        const modifier = /\s*\/\s*([A-Za-z_]\w*)\b/y;
         const starts: number[] = [];
         modifier.lastIndex = statement[0].length;
 

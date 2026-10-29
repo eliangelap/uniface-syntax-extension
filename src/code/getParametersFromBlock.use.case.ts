@@ -13,7 +13,7 @@ export interface DeclaredParameter extends DeclaredVariable {
 export class GetParametersFromBlock {
     public execute = (block: BlockCode): DeclaredParameter[] => {
         const parameters: DeclaredParameter[] = [];
-        const parameterRegex = RegExp(`^${variableRegex}\\s*:\\s*(in|out|inout)\\b`, 'i');
+        const parameterRegex = new RegExp(String.raw`^${variableRegex}\s*:\s*(in|out|inout)\b`, 'i');
         let inParametersBlock = false;
 
         const codeLines = getCodeOutsideStringsAndCommentsLines(block.lines);

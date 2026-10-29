@@ -52,6 +52,6 @@ export class ParameterDeclarationInserter {
     private findFirstContentLine(lines: string[]): number {
         const firstContentLine = lines.findIndex((line, index) => index > 0 && line.trim().length > 0);
 
-        return firstContentLine >= 0 ? firstContentLine : 0;
+        return Math.max(firstContentLine, 0);
     }
 }
