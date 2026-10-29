@@ -13,7 +13,7 @@ export { UndeclaredVariableUsage } from './undeclaredVariableUsage';
 
 export class UndeclaredVariableUsageAnalyzer {
     private readonly statements = new Set(
-        new GetStatementList().execute().map((statement) => statement.toLowerCase())
+        new GetStatementList().execute().map((statement) => statement.name.toLowerCase())
     );
 
     private readonly ignoredWords = new Set(

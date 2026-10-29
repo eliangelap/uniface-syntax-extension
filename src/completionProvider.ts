@@ -5,7 +5,6 @@ import { GetEntriesCompletionList } from './code/getEntriesCompletionList.use.ca
 import { GetParametersFromBlock } from './code/getParametersFromBlock.use.case';
 import { GetUnifaceProcFunctionList } from './code/getUnifaceProcFunctionList.use.case';
 import { GetVariablesFromBlock } from './code/getVariablesFromBlock.use.case';
-import { StringListToCompletionItems } from './code/stringListToCompletionItems.use.case';
 import { VariablesToCompletionItems } from './code/variablesToCompletionItems.use.case';
 import { CodeAnalyzer } from './util/codeAnalyzer.use.case';
 import { isBlockdataLine } from './util/procCodeScanner';
@@ -40,10 +39,7 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
         const dollarPrefixedTokenRange = this.getDollarPrefixedTokenRange(document, position);
 
         completions.push(
-            ...new StringListToCompletionItems().execute(
-                new GetStatementList().execute(),
-                vscode.CompletionItemKind.Keyword
-            ),
+            ...this.getStatementCompletions(),
             ...new VariablesToCompletionItems().execute(
                 [...parameters, ...variables],
                 dollarPrefixedTokenRange ?? undefined
@@ -89,6 +85,38 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
         }
 
         return new vscode.Range(position.line, match.index, position.line, position.character);
+    }
+
+    private getStatementCompletions(): vscode.CompletionItem[] {
+        return new GetStatementList().execute().map((statement) => {
+            const completion = new vscode.CompletionItem(
+                statement.name,
+                vscode.CompletionItemKind.Keyword
+            );
+            completion.insertText = statement.name;
+
+            if (statement.docs || statement.syntax || statement.link) {
+                const documentation = new vscode.MarkdownString();
+                if (statement.docs) {
+                    documentation.appendMarkdown(statement.docs);
+                }
+                if (statement.syntax) {
+                    documentation.appendCodeblock(statement.syntax, 'uniface');
+                }
+                if (statement.link) {
+                    documentation.appendMarkdown(`\n\n[Official documentation](${statement.link})`);
+                }
+                completion.documentation = documentation;
+            }
+            if (statement.params.length > 0) {
+                completion.detail = statement.params.join(', ');
+            }
+            if (statement.deprecated) {
+                completion.tags = [vscode.CompletionItemTag.Deprecated];
+                completion.detail = 'Deprecated';
+            }
+            return completion;
+        });
     }
 
     private removeDuplicateCompletions(

@@ -18,6 +18,8 @@ suite('CompletionItemProvider', () => {
 
         assert.ok(callCompletion);
         assert.strictEqual(callCompletion.kind, vscode.CompletionItemKind.Keyword);
+        const documentation = callCompletion.documentation as vscode.MarkdownString;
+        assert.ok(documentation.value.includes('Official documentation'));
     });
 
     test('does not list completions in a comment', async () => {

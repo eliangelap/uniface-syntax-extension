@@ -135,4 +135,29 @@ suite('UnifaceSignatureHelpProvider', () => {
         assert.strictEqual(signatureHelp.signatures[0].label, '$unknown()');
         assert.strictEqual(signatureHelp.signatures[0].documentation, undefined);
     });
+
+    test('shows statement syntax and official documentation after a space', async () => {
+        const document = await vscode.workspace.openTextDocument({
+            content: 'activate ',
+            language: 'uniface',
+        });
+        const editor = await vscode.window.showTextDocument(document);
+        const position = new vscode.Position(0, 'activate '.length);
+        editor.selection = new vscode.Selection(position, position);
+        const cancellationTokenSource = new vscode.CancellationTokenSource();
+
+        const signatureHelp = new UnifaceSignatureHelpProvider().provideSignatureHelp(
+            document,
+            position,
+            cancellationTokenSource.token,
+            {} as vscode.SignatureHelpContext
+        ) as vscode.SignatureHelp;
+
+        cancellationTokenSource.dispose();
+
+        assert.ok(signatureHelp.signatures[0].label.startsWith('activate'));
+        const documentation = signatureHelp.signatures[0].documentation as vscode.MarkdownString;
+        assert.match(documentation.value, /Calls an operation on a component instance\./);
+        assert.match(documentation.value, /Official documentation/);
+    });
 });
