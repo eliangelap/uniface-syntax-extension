@@ -7,6 +7,8 @@ import { GetUnifaceProcFunctionList } from './code/getUnifaceProcFunctionList.us
 import { GetVariablesFromBlock } from './code/getVariablesFromBlock.use.case';
 import { StringListToCompletionItems } from './code/stringListToCompletionItems.use.case';
 import { VariablesToCompletionItems } from './code/variablesToCompletionItems.use.case';
+import { GetSnippetDefinitions } from './snippets/getSnippetDefinitions.use.case';
+import { CustomSnippetsCompletionItems } from './snippets/customSnippetsCompletionItems';
 import { CodeAnalyzer } from './util/codeAnalyzer.use.case';
 import { isBlockdataLine } from './util/procCodeScanner';
 
@@ -47,6 +49,9 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
             ...new VariablesToCompletionItems().execute(
                 [...parameters, ...variables],
                 dollarPrefixedTokenRange ?? undefined
+            ),
+            ...new CustomSnippetsCompletionItems().execute(
+                new GetSnippetDefinitions().execute(vscode.workspace.getConfiguration('uniface'))
             )
         );
 

@@ -63,6 +63,30 @@ breaks can be entered directly in the Settings editor. It supports `{{operationN
 }
 ```
 
+#### Custom snippets
+
+Three snippets are available in `entry` and `operation` blocks and can be edited in the
+Settings editor (prefix and multiline body each): `wlent` (iterate entity occurrences),
+`retv` (retrieve with error validation) and `stor` (store with error validation), through
+`uniface.snippets.<id>.prefix` and `uniface.snippets.<id>.body`. Bodies use VS Code snippet
+syntax (`${1:placeholder}`, `\\$` for a literal `$`). An empty prefix disables the snippet.
+
+Add more snippets with the `uniface.snippets.custom` setting (edit in `settings.json`).
+Each key is a name, `prefix` triggers it, `body` is a list of lines or a string, and
+`description` is optional:
+
+```json
+{
+    "uniface.snippets.custom": {
+        "clear-entity": {
+            "prefix": "clre",
+            "body": ["clear/e \"${1:entidade}\""],
+            "description": "Clear an entity"
+        }
+    }
+}
+```
+
 ### GOLD key support
 
 - Recognizes GOLD sequences typed inside single- or double-quoted strings and replaces them with the corresponding control character.
