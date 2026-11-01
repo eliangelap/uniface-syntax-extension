@@ -33,7 +33,7 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
         const blockText = new GetBlockAroundPosition().execute(document, position);
 
         if (!blockText) {
-            return [];
+            return this.getSnippetCompletions();
         }
 
         const parameters = new GetParametersFromBlock().execute(blockText);
@@ -50,9 +50,7 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
                 [...parameters, ...variables],
                 dollarPrefixedTokenRange ?? undefined
             ),
-            ...new CustomSnippetsCompletionItems().execute(
-                new GetSnippetDefinitions().execute(vscode.workspace.getConfiguration('uniface'))
-            )
+            ...this.getSnippetCompletions()
         );
 
         if (dollarPrefixedTokenRange) {
@@ -70,6 +68,12 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
 
         return this.removeDuplicateCompletions(completions);
     };
+
+    private getSnippetCompletions(): vscode.CompletionItem[] {
+        return new CustomSnippetsCompletionItems().execute(
+            new GetSnippetDefinitions().execute(vscode.workspace.getConfiguration('uniface'))
+        );
+    }
 
     private getDollarPrefixedTokenRange(
         document: vscode.TextDocument,
