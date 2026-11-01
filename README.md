@@ -65,7 +65,7 @@ breaks can be entered directly in the Settings editor. It supports `{{operationN
 
 #### Custom snippets
 
-Three snippets are available in `entry` and `operation` blocks and can be edited in the
+Three snippets are available inside code blocks (`entry`, `operation`, `trigger` and `function`) and can be edited in the
 Settings editor (prefix and multiline body each): `wlent` (iterate entity occurrences),
 `retv` (retrieve with error validation) and `stor` (store with error validation), through
 `uniface.snippets.<id>.prefix` and `uniface.snippets.<id>.body`. Bodies use VS Code snippet
