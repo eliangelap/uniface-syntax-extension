@@ -20,6 +20,22 @@ suite('CompletionItemProvider', () => {
         assert.strictEqual(callCompletion.kind, vscode.CompletionItemKind.Keyword);
     });
 
+    test('lists snippets outside any block', async () => {
+        const document = await vscode.workspace.openTextDocument({
+            content: '\n',
+            language: 'uniface',
+        });
+
+        const completions = new CompletionItemProvider().provideCompletionItems(
+            document,
+            new vscode.Position(0, 0)
+        ) as vscode.CompletionItem[];
+
+        assert.ok(
+            completions.some((completion) => completion.kind === vscode.CompletionItemKind.Snippet)
+        );
+    });
+
     test('does not list completions in a comment', async () => {
         const document = await vscode.workspace.openTextDocument({
             content: 'entry sampleEntry\n; comment\nend\n',

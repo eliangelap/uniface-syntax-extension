@@ -45,6 +45,75 @@
                     "editPresentation": "multilineText",
                     "default": ";|\n; Author: {{author}}\n; Date: {{date}}\n; Description: \n;\noperation {{operationName}}\n    params\n        string  pLsEntrada   : in\n        string  pLsSaida     : out\n                \\$t_ds_erro\\$  : out\n    endparams\n    variables\n        string  vDsContexto\n    endvariables\n\n    vDsContexto = \"%%^<\\$componentname>, <\\$trigger>, {{operationName}}\"\n\n    ; Enter your code here...\n\n    return 0\nend ;{{operationName}}",
                     "description": "Multiline text used to generate a new operation. Supports {{operationName}}, {{author}}, {{date}}, and VS Code snippet placeholders."
+                },
+                "uniface.snippets.wlent.prefix": {
+                    "type": "string",
+                    "default": "wlent",
+                    "description": "Text typed to trigger the snippet that lets you iterate over the occurrences of an entity. Leave empty to disable it."
+                },
+                "uniface.snippets.wlent.body": {
+                    "type": "string",
+                    "editPresentation": "multilineText",
+                    "default": "setocc \"${1:entidade}\", 1\nwhile(\\$status >= 0)\n\t\n\tsetocc \"${1:entidade}\", \\$curocc(\"${1:entidade}\") + 1\nendwhile",
+                    "description": "Body of the snippet that lets you iterate over the occurrences of an entity. Supports VS Code snippet syntax: ${1:placeholder}, \\$ for a literal $."
+                },
+                "uniface.snippets.retv.prefix": {
+                    "type": "string",
+                    "default": "retv",
+                    "description": "Text typed to trigger the snippet that lets you retrieve an entity with error validation. Leave empty to disable it."
+                },
+                "uniface.snippets.retv.body": {
+                    "type": "string",
+                    "editPresentation": "multilineText",
+                    "default": "retrieve/e \"${1:entidade}\"\nif(\\$status < 0)\n\tif(\\$status != -2)\n\t\tcall pl_erro_cmdmsg(\\$procerrorcontext)\n\telse\n\t\t\\$t_ds_erro$ = \\$concat(\"${2:Mensagem de erro customizada}. \", <DEF_CONTEXTO>)\n\tendif\n\t\\$t_ds_erro$ = \\$concat(\\$t_ds_erro$, <DEF_CONTEXTO>)\n\tclear/e \"${1:entidade}\"\n\treturn <g_erroexec>\nendif",
+                    "description": "Body of the snippet that lets you retrieve an entity with error validation. Supports VS Code snippet syntax: ${1:placeholder}, \\$ for a literal $."
+                },
+                "uniface.snippets.stor.prefix": {
+                    "type": "string",
+                    "default": "stor",
+                    "description": "Text typed to trigger the snippet that lets you store an entity with error validation. Leave empty to disable it."
+                },
+                "uniface.snippets.stor.body": {
+                    "type": "string",
+                    "editPresentation": "multilineText",
+                    "default": "store/e \"${1:entidade}\"\nif(\\$status < 0)\n\tif(\\$status != <g_erroexec>)\n\t\tcall pl_erro_cmdmsg(\\$procerrorcontext)\n\tendif\n\trollback\n\tclear/e \"${1:entidade}\"\n\t\\$t_ds_erro$ = \\$concat(\\$t_ds_erro$, <DEF_CONTEXTO>)\n\treturn <g_erroexec>\nendif",
+                    "description": "Body of the snippet that lets you store an entity with error validation. Supports VS Code snippet syntax: ${1:placeholder}, \\$ for a literal $."
+                },
+                "uniface.snippets.custom": {
+                    "type": "object",
+                    "description": "Extra code snippets offered as completions in Uniface files. Each key is a snippet name; \"prefix\" is the text typed to trigger it and \"body\" is the list of lines (VS Code snippet syntax: ${1:placeholder}, \\$ for a literal $).",
+                    "default": {},
+                    "additionalProperties": {
+                        "type": "object",
+                        "required": [
+                            "prefix",
+                            "body"
+                        ],
+                        "properties": {
+                            "prefix": {
+                                "type": "string",
+                                "description": "Text typed to trigger the snippet."
+                            },
+                            "body": {
+                                "oneOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                ],
+                                "description": "Snippet lines."
+                            },
+                            "description": {
+                                "type": "string",
+                                "description": "Optional description shown in the completion list."
+                            }
+                        }
+                    }
                 }
             }
         },

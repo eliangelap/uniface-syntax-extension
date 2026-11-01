@@ -7,6 +7,8 @@ import { GetUnifaceProcFunctionList } from './code/getUnifaceProcFunctionList.us
 import { GetVariablesFromBlock } from './code/getVariablesFromBlock.use.case';
 import { StringListToCompletionItems } from './code/stringListToCompletionItems.use.case';
 import { VariablesToCompletionItems } from './code/variablesToCompletionItems.use.case';
+import { GetSnippetDefinitions } from './snippets/getSnippetDefinitions.use.case';
+import { CustomSnippetsCompletionItems } from './snippets/customSnippetsCompletionItems';
 import { CodeAnalyzer } from './util/codeAnalyzer.use.case';
 import { isBlockdataLine } from './util/procCodeScanner';
 
@@ -31,7 +33,7 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
         const blockText = new GetBlockAroundPosition().execute(document, position);
 
         if (!blockText) {
-            return [];
+            return this.getSnippetCompletions();
         }
 
         const parameters = new GetParametersFromBlock().execute(blockText);
@@ -47,7 +49,8 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
             ...new VariablesToCompletionItems().execute(
                 [...parameters, ...variables],
                 dollarPrefixedTokenRange ?? undefined
-            )
+            ),
+            ...this.getSnippetCompletions()
         );
 
         if (dollarPrefixedTokenRange) {
@@ -65,6 +68,12 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
 
         return this.removeDuplicateCompletions(completions);
     };
+
+    private getSnippetCompletions(): vscode.CompletionItem[] {
+        return new CustomSnippetsCompletionItems().execute(
+            new GetSnippetDefinitions().execute(vscode.workspace.getConfiguration('uniface'))
+        );
+    }
 
     private getDollarPrefixedTokenRange(
         document: vscode.TextDocument,
